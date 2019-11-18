@@ -27,7 +27,9 @@ def getArticleDOIFromCrossref(article_title):
 
 # open articles csv file
 catalysis_articles = {}
-with open('UKCatalysisHubArticles201910.csv', newline='') as csvfile:
+input_file = 'UKCatalysisHubArticles201910.csv'
+output_file = 'UKCatalysisHubArticles201910Mod.csv'
+with open(input_file, newline='') as csvfile:
      reader = csv.DictReader(csvfile)
      for row in reader:
          catalysis_articles[int(row['Num'])]=row
@@ -44,7 +46,7 @@ for cat_art_num in catalysis_articles.keys():
 
 
 #write back to a new csv file
-with open('UKCatalysisHubArticles201910Mod.csv', 'w', newline='') as csvfile:
+with open(output_file, 'w', newline='') as csvfile:
     fieldnames = ['Num', 'Phase', 'P', 'CatalysisTheme', 'ProjectYear', 'Authors', 'Title', 'Journal', 'PublicationDate', 'Identifier']
     writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
     writer.writeheader()

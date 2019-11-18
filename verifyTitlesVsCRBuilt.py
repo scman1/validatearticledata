@@ -95,7 +95,7 @@ def jsonToPlainText(element):
 # open articles csv files
 catalysis_articles = {}
 fieldnames=[]
-with open('UKCatalysisHubArticles201910VerCN.csv', newline='') as csvfile:
+with open('ukch_pop2NoDups.csv', newline='') as csvfile:
      reader = csv.DictReader(csvfile)
      for row in reader:
          if fieldnames==[]:
@@ -108,24 +108,29 @@ fieldnames.append('CRTitle')
 cr_articles = {}
 article_columns=[]
 
-with open('UKCCHArticles201910CR.csv', newline='') as csvfile:
+with open('UKCHArticles201910CRYMD.csv', newline='') as csvfile:
      reader = csv.DictReader(csvfile)
      for row in reader:
          if article_columns==[]:
              article_columns=list(row.keys())
          cr_articles[int(row['NumUKCH'])]=row
 
-for cat_art_num in cr_articles.keys():
+for cat_art_num in catalysis_articles.keys():
     ch_title = catalysis_articles[cat_art_num]['Title']
-    cr_title = cr_articles[cat_art_num]['title']
-    similarity = similar(ch_title,cr_title)
-    catalysis_articles[cat_art_num]['similarity'] = similarity
-    catalysis_articles[cat_art_num]['CRTitle'] = cr_title
+    top_similarity = 0
+    for cr_art_num in cr_articles.keys():
+        cr_title = cr_articles[cr_art_num]['title']
+        similarity = similar(ch_title,cr_title)
+        if similarity > 0.5:
+            if top_similarity < similarity:
+                top_similarity = similarity
+                catalysis_articles[cat_art_num]['similarity'] = similarity
+                catalysis_articles[cat_art_num]['CRTitle'] = cr_title
     
 # write back to a new csv file
 # create three files
 
-with open('UKCatalysisHubArticles201910VerTitles.csv', 'w', newline='') as csvfile:
+with open('ukch_pop2VT.csv', 'w', newline='') as csvfile:
     writer = csv.DictWriter(csvfile, fieldnames = fieldnames)
     writer.writeheader()
     for cat_art_num in catalysis_articles.keys():
