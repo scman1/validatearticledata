@@ -25,10 +25,11 @@ def getArticleDOIFromCrossref(article_title):
 
 
 
-# open articles csv file
+# working with csv data files
 catalysis_articles = {}
 input_file = 'ukch_popVT2MRB7.csv'
 output_file = 'ukch_popVT2MRB7Mod.csv'
+# open input csv file
 with open(input_file, newline='') as csvfile:
      reader = csv.DictReader(csvfile)
      for row in reader:
