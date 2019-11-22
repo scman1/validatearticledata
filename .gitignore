@@ -3,4 +3,6 @@
 *.xlsx
 *.sqlite
 *.ods
+*.txt
+*.html
 

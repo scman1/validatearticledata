@@ -38,6 +38,7 @@ def findURIFrag(uri, referents, contains):
     try:
         req = urllib.request.Request(uri)
         req.add_header('User-Agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.113 Safari/537.36')
+        req.add_header('CR-Clickthrough-Client-Token', '0ed86a82-c7d263a1-3015720c-a52a5080')
         article_page = urllib.request.urlopen(req)
         page_text = article_page.read()
     except Exception as e:
@@ -77,6 +78,7 @@ for cat_art_num in catalysis_articles.keys():
             url = jsonToPlainText(article_data['link'])
             txt=findURIFrag(url,["acknowle"],"catalysis")
             print(cat_art_num,"|",url,"|", txt)
+            break
  
 
 
