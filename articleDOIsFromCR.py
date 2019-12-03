@@ -22,26 +22,21 @@ def getArticleDOIFromCrossref(article_title):
         doi_text=""
     return doi_text
 
-
-
-
 # working with csv data files
 catalysis_articles = {}
-input_file = 'ukch_popVT2MRB7.csv'
-output_file = 'ukch_popVT2MRB7Mod.csv'
+input_file = 'UKCH201911c.csv'
+output_file = 'UKCH201911cDOI.csv'
 # open input csv file
 with open(input_file, newline='') as csvfile:
      reader = csv.DictReader(csvfile)
      for row in reader:
-         catalysis_articles[int(row['Num'])]=row
+         catalysis_articles[int(row['CatArtNum'])]=row
          
-
-
 #fill in the missing identifier
 for cat_art_num in catalysis_articles.keys():
     article_title = catalysis_articles[cat_art_num]['Title']
     doi_text=getArticleDOIFromCrossref(article_title)
-    catalysis_articles[cat_art_num]['DOI'] = doi_text
+    catalysis_articles[cat_art_num]['DOICR'] = doi_text
     catalysis_articles[cat_art_num]['checked'] = 1
     print(cat_art_num, article_title)
     

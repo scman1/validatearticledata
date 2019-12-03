@@ -95,7 +95,7 @@ def jsonToPlainText(element):
 # open articles csv file
 ###############################################################################
 
-input_file = 'UKCHpopBatch01CandidatesR.csv'
+input_file = 'UKCH201911DOIOnly.csv'
 catalysis_articles = {}
 fieldnames=[]
 with open(input_file, newline='') as csvfile:
@@ -114,7 +114,7 @@ cr_articles = {} # Num (from CHUK), DOI, type, and other fiedls from CR.
 article_columns=["NumUKCH"]
 # list of article authors from cross ref
 cr_authors = {} # AuthorNum, Firstname, Middle name, Last Name
-author_columns = ["AuthorNum", "Name", "LastName", "ORCID", 'affiliations']
+author_columns = ["AuthorNum", "Name", "LastName", "ORCID", 'affiliations','sequence']
 # list of article-author links
 cr_article_authour_link = {} # AuthorNum, DOI
 article_authour_columns = ["DOI","AuthorNum"]
@@ -191,8 +191,12 @@ for cat_art_num in catalysis_articles.keys():
             new_author['LastName'] = author['family']
             if 'given' in author.keys():
                 new_author['Name'] = author['given']
+            if 'given' in author.keys():
+                new_author['sequence'] = author['sequence']
             if 'ORCID' in author.keys():
             	new_author['ORCID'] = author['ORCID']
+            else:
+                new_author['ORCID'] = "None"
             if 'affiliation'in author.keys():
                 affiliations=""
                 for affl in author['affiliation']:
@@ -204,26 +208,27 @@ for cat_art_num in catalysis_articles.keys():
             new_art_auth_link['DOI'] = doi_text
             new_art_auth_link['AuthorNum'] = aut_num
             cr_article_authour_link[art_auth_link] = new_art_auth_link
-        print(article_data['author'])    
+        print(article_data['author'])
+        
         
     
 # write back to a new csv file
 # create three files
 
-with open('UKCCHArticlesNew.csv', 'w', newline='') as csvfile:
+with open('UKCCHArticles201911.csv', 'w', newline='') as csvfile:
     writer = csv.DictWriter(csvfile, fieldnames = article_columns)
     writer.writeheader()
     for cat_art_num in cr_articles.keys():
         writer.writerow(cr_articles[cat_art_num])
 
-with open('UKCCHAuthorsNew.csv', 'w', newline='') as csvfile:
+with open('UKCCHAuthors201911.csv', 'w', newline='') as csvfile:
     writer = csv.DictWriter(csvfile, fieldnames = author_columns)
     writer.writeheader()
     for aut_num in cr_authors.keys():
         writer.writerow(cr_authors[aut_num])
 
 
-with open('UKCCHArtAutLinkNew.csv', 'w', newline='') as csvfile:
+with open('UKCCHArtAutLink201911.csv', 'w', newline='') as csvfile:
     writer = csv.DictWriter(csvfile, fieldnames = article_authour_columns)
     writer.writeheader()
     for link_num in cr_article_authour_link.keys():
