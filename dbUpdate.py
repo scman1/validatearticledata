@@ -31,6 +31,33 @@ def add_articles(input_file):
                  "INSERT INTO Articles %s VALUES  %s " % (columns, values)).fetchone( )
         con.commit()
 
+def add_authors(author, fieldnames):
+        aut_id = author['ID']
+        print("adding:", aut_id)
+        # build column list
+        columns = str(tuple(author.keys())).replace("'", "")
+        values = str(tuple(author.values()))
+        ins = con.execute(
+            "INSERT INTO Authors %s VALUES  %s " % (columns, values)).fetchone( )
+        con.commit()
+
+def add_links(art_aut_link):
+    art_doi = art_aut_link['DOI']
+    aut_id = art_aut_link['mergedANum']
+    link_doi = con.execute(
+         "SELECT DOI from Article_Author_Link where DOI='%s' and mergedANum = '%s'" % (art_doi, aut_id)).fetchone( )
+    if str(type(link_doi)) != "<class 'NoneType'>" and len(link_doi) > 0:
+         print("Found:", link_doi[0])
+    else:
+        print("Not Found:", art_doi, "inserting", art_aut_link)
+        # build column list
+        columns = str(tuple(art_aut_link.keys())).replace("'", "")
+        values = str(tuple(art_aut_link.values()))
+        ins = con.execute(
+            "INSERT INTO Article_Author_Link %s VALUES  %s " % (columns, values)).fetchone( )
+        con.commit()
+
+
 def get_data(input_file, id_field):
     csv_data = {}
     fieldnames=[]
@@ -97,23 +124,43 @@ arts_file = 'UKCCHArticlesAdded201911.csv'
 # New articles have action null while authors and author_article_links
 # are pending
 auts_file = 'UKCCHAuthorsAdded201911Load.csv'
-author_records, author_fields = get_data(auts_file, 'mergeANum')
+author_records, author_fields = get_data(auts_file, 'ID')
+
+
+links_file = 'UKCCHArtAutLinkAdded201911Load.csv'
+links_records, links_fields = get_data(links_file, 'ID')
 
 top_id = get_max_aut_id()
+new_id = 0
 
-for key in  author_records.keys():
-    a_full = author_records[key]['FullName']
-    a_last = author_records[key]['LastName']
-    a_given = author_records[key]['GivenName']
-    a_id = author_records[key]['mergeANum']
+for key in author_records.keys():
+    a_row = author_records[key]
+    a_full = a_row['FullName']
+    a_last = a_row['LastName']
+    a_given = a_row['GivenName']
+    a_id = a_row['ID']
     db_id = get_author_id(a_full,a_given, a_last)
+    counter = 0
     if db_id == -1:
+        counter += 1
         top_id += 1
+        new_id = top_id
+        a_row['ID'] = new_id
         print("no match found add as new", a_full, "new ID:",top_id)
-        #with corresponding art_aut_link
+        add_authors(a_row, links_fields)
     else:
-        print("match found only add art_aut_link id:", db_id) 
-
+        print("match found only add art_aut_link id:", db_id)
+        new_id = db_id
+    for key in links_records.keys():
+        a_num = links_records[key]['mergedANum']
+        row = links_records[key]
+        if a_num == a_id:
+            if 'ID' in links_fields:
+                row.pop('ID')
+            row['mergedANum'] = new_id
+            add_links(row)
+    if counter == 5:
+        break
 
 ###############################################################################
 # authors/articles link file
