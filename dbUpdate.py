@@ -140,9 +140,7 @@ for key in author_records.keys():
     a_given = a_row['GivenName']
     a_id = a_row['ID']
     db_id = get_author_id(a_full,a_given, a_last)
-    counter = 0
     if db_id == -1:
-        counter += 1
         top_id += 1
         new_id = top_id
         a_row['ID'] = new_id
@@ -159,9 +157,6 @@ for key in author_records.keys():
                 row.pop('ID')
             row['mergedANum'] = new_id
             add_links(row)
-    if counter == 5:
-        break
-
 ###############################################################################
 # authors/articles link file
 ###############################################################################
