@@ -40,6 +40,7 @@ def add_authors(author, fieldnames):
         ins = con.execute(
             "INSERT INTO Authors %s VALUES  %s " % (columns, values)).fetchone( )
         con.commit()
+        print("Author Added", ins)
 
 def add_links(art_aut_link):
     art_doi = art_aut_link['DOI']
@@ -73,39 +74,59 @@ def get_max_aut_id():
     db_author = con.execute("SELECT MAX(ID) FROM Authors").fetchone( )
     return db_author[0]
 
-def get_author_id(fullname,givenname, lastname):
+def get_author_id(fullname, givenname, lastname, ORCID = ""):
     id = -1
     db_author = con.execute(
-        "SELECT * FROM Authors WHERE FullName='%s'" % fullname.replace("'","''")).fetchone( )
+        "SELECT * FROM Authors WHERE fullName='%s'" % fullname.replace("'","''")).fetchone( )
     #print("FULL MATCH",a_full, a_id, db_author)
     if not db_author is None:
         id = db_author[5]
-    elif db_author is None:
+    elif db_author is None and ORCID != '':
+        db_author = con.execute(
+            "SELECT * FROM Authors WHERE ORCID = '%s'" % ORCID).fetchone( )
+        if not db_author is None:
+            print("ORCID MATCH:", db_author, fullname, ORCID, db_author[3])
+            id = db_author[5]
+            
+    else:
     # try to match by last name using similarity
         db_authors = con.execute(
-            "SELECT * FROM Authors WHERE fullName LIKE '"+"%"+ lastname.replace("'","''")+"%"+"'").fetchall( )
+            "SELECT * FROM Authors WHERE LastName LIKE '"+"%"+ lastname.replace("'","''")+"%"+"'").fetchall( )
         if not db_authors is None:
             for db_author in db_authors:
                 similarity = similar(fullname, db_author[0])
                 if similarity > 0.8:
-                    print("LASTNAME MATCH",a_full, a_id, db_author[5])
+                    print("LASTNAME MATCH",fullname, lastname, db_author)
                     id = db_author[5]
                     break
     if id == -1:
         db_authors = con.execute(
-            "SELECT * FROM Authors WHERE fullName LIKE '"+"%"+ givenname.replace("'","''")+"%"+"'").fetchall( )
+            "SELECT * FROM Authors WHERE GivenName LIKE '"+"%"+ givenname.replace("'","''")+"%"+"'").fetchall( )
         if not db_authors is None:
             for db_author in db_authors:
                 similarity = similar(fullname, db_author[0])
                 if similarity > 0.8:
-                    print("GIVENNAME MATCH",a_full, a_id, db_author[5])
+                    print("GIVENNAME MATCH",fullname, givenname, db_author)
                     id = db_author[5]
+                    inspected = False
+                    while not inspected:
+                        print('***************************************************************')
+                        print("Searching for:", fullname)
+                        print("Found", db_author[0], "ID", db_author[5])
+                        print('Options:')
+                        print("a","-" , "Match found")
+                        print("b","-" , "Continue Search")
+                        print("Selection:")
+                        usr_select = input()
+                        if usr_select in ['a','b']:
+                            if usr_select == "b":
+                                id = -1
+                            inspected = True
+                if id != -1:
                     break
     return id
                 
     
-
-
 dbname = 'ukch_articles.sqlite'
 con = sqlite.connect(dbname)
 art_doi = "10.1038/s41929-019-0334-3"
@@ -116,6 +137,7 @@ title = con.execute(
 arts_file = 'NewBibUKCHCAJGEdit.csv'
 
 
+# Update/Add articles verified by JG and CA
 catalysis_articles = {}
 fieldnames=[]
 with open(arts_file, newline='') as csvfile:
@@ -143,64 +165,54 @@ with open(arts_file, newline='') as csvfile:
              #"UPDATE INTO Article_Updates SET Action = %s" % columns).fetchone( )
     con.commit()
 
+# Select all authors from author update,
+# look up in article link
+# if article added then
+#    look up in authors,
+#    if found then get ID for creating Author-Article Link
+#    if not found then add author and create Author-Article Link
+#
+#
 
+new_authors = \
+            con.execute(
+                "SELECT AuthorNum, Name, LastName, fullName, ORCID from Author_Updates").fetchall( )
 
-
-# open csv file and read new articles
-# look up the doi of each new article and if it does not exist add it to the DB
-
-###############################################################################
-# articles csv file
-###############################################################################
-
-
-# using the 
-
-# add_articles(arts_file)
-
-# New articles have action null while authors and author_article_links
-# are pending
-##auts_file = 'UKCCHAuthorsAdded201911Load.csv'
-##author_records, author_fields = get_data(auts_file, 'ID')
-##
-##
-##links_file = 'UKCCHArtAutLinkAdded201911Load.csv'
-##links_records, links_fields = get_data(links_file, 'ID')
-##
-##top_id = get_max_aut_id()
-##new_id = 0
-##
-##for key in author_records.keys():
-##    a_row = author_records[key]
-##    a_full = a_row['FullName']
-##    a_last = a_row['LastName']
-##    a_given = a_row['GivenName']
-##    a_id = a_row['ID']
-##    db_id = get_author_id(a_full,a_given, a_last)
-##    if db_id == -1:
-##        top_id += 1
-##        new_id = top_id
-##        a_row['ID'] = new_id
-##        print("no match found add as new", a_full, "new ID:",top_id)
-##        add_authors(a_row, links_fields)
-##    else:
-##        print("match found only add art_aut_link id:", db_id)
-##        new_id = db_id
-##    for key in links_records.keys():
-##        a_num = links_records[key]['mergedANum']
-##        row = links_records[key]
-##        if a_num == a_id:
-##            if 'ID' in links_fields:
-##                row.pop('ID')
-##            row['mergedANum'] = new_id
-##            add_links(row)
-###############################################################################
-# authors/articles link file
-###############################################################################
-
-
-###############################################################################
-# authors file
-###############################################################################
-
+i_found = 0
+i_not_found = 0
+for new_author in new_authors:
+    # LookUp by ORCID
+    author_ID = 0
+    na_num, na_name, na_lastname, na_fullname, na_ORCID = new_author
+    na_ORCID = new_author[4]
+    na_fullname = new_author[3]
+    na_name = new_author[1]
+    na_lastname = new_author[2]
+    na_num = new_author[0]
+    # Lookup Authors and if needed add
+    author_ID = get_author_id(na_fullname,na_name,na_lastname,na_ORCID)
+    top_id = get_max_aut_id()
+    if author_ID == -1:
+        i_not_found += 1
+        print("Not Found", i_not_found, new_author)
+        top_id += 1
+        author_ID = top_id
+        # Need to add to the DB, before creating article-author-link
+        new_author = {'FullName':na_fullname, "LastName":na_lastname, "GivenName":na_name, "ORCID":na_ORCID, "Articles":0, 'ID':author_ID}
+        author_fields = ['FullName', "LastName", "GivenName", "ORCID", "Articles","ID"]
+        add_authors(new_author, author_fields)
+        print('ADDED AUTHOR:', author_ID)
+    else:
+        i_found += 1
+        print("Found", i_found, new_author)
+        # no need to add, just create article-author-link
+    # create author link
+    new_links = con.execute(
+        "SELECT * FROM Article_Author_Link_Updates WHERE AuthorNum = '%s'" % (na_num)).fetchall( )
+    for link in new_links:
+            new_link = {'DOI':link[0], "AuthorNum":link[1], "mergedANum":author_ID,
+                        "AuthorCount":link[7], "AuthorOrder":link[3], "UKCHNum":link[4],
+                        'Action':link[6], "Sequence":link[5]}
+            
+            add_links(new_link)
 
