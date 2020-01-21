@@ -2,6 +2,8 @@ import csv
 import string
 from sqlite3 import dbapi2 as sqlite
 from difflib import SequenceMatcher
+import requests
+from bs4 import BeautifulSoup
 
 def similar(a, b):
     return SequenceMatcher(None, a,b).ratio()
@@ -255,6 +257,117 @@ def add_affiliation_author_link(db_con):
         db_con.execute("UPDATE Affiliation_Links SET AuthorNum = '%s' WHERE AffiLinkID = '%s'" %(author_ID, afi_num)).fetchone( )
     db_con.commit()
     print("Found:", i_found, "Not Found:", i_not_found)
+
+def verify_addresses(db_con):
+    # Lookup Affiliation link affiliations and affiliation address
+    # 
+    # just update the Author ID number
+        # if not found look up last name
+        # for each returned record
+        #   - if records have orcid use it to try match
+        #   - calculate the similarity of full names
+        #   - if > 60 % ask if update
+
+    affiliations = \
+                    db_con.execute(
+                        "SELECT AffiLinkID, UniqueID, affiliations from Affiliation_Links").fetchall( )
+    i_found = 0
+    i_not_found = 0
+    for affi_record in affiliations:
+        #get the corresponding address record and check if addresses match
+        affiLinkID, Affiliation_ID, affiliation_text = affi_record
+        affi_addresses = \
+                    db_con.execute(
+                        "SELECT * from Affiliation_Addresses WHERE AffiLinkID = '%s'"% (affiLinkID)).fetchall( )
+        if not affi_addresses is None:
+            addr_occurrences = 0
+            for field in affi_addresses[0]:
+                #print(field,affiliation_text)
+                if field in affiliation_text:
+                    addr_occurrences += 1
+            if addr_occurrences == 0:
+                print("ADDRESS:", affiLinkID, Affiliation_ID, affi_addresses, "match not found in:", affiliation_text)
+
+        #get the affiliation record and check if institutions match
+        an_affiliation = \
+                    db_con.execute(
+                        "SELECT Institution, Country from Affiliations WHERE ID = '%s'"% (Affiliation_ID)).fetchall( )
+       
+        if not an_affiliation is None:
+            inst_occurrences = 0
+            for field in an_affiliation[0]:
+                #print(field,affiliation_text)
+                if field in affiliation_text:
+                    inst_occurrences += 1
+            if inst_occurrences == 0:
+                print("INSTITUTION:", affiLinkID, Affiliation_ID, an_affiliation, "match not found in:", affiliation_text)
+
+# Read the publications page from UKCH and get a list of articles
+pub_urls = ['https://ukcatalysishub.co.uk/publications', 'https://ukcatalysishub.co.uk/biocatalysis-publications-2017/',
+            'https://ukcatalysishub.co.uk/design-publications-2013/', 'https://ukcatalysishub.co.uk/design-publications-2014/',
+            'https://ukcatalysishub.co.uk/design-publications-2015/', 'https://ukcatalysishub.co.uk/design-publications-2016/',
+            'https://ukcatalysishub.co.uk/design-publications-2017/', 'https://ukcatalysishub.co.uk/energy-publications-2014/',
+            'https://ukcatalysishub.co.uk/energy-publications-2015/', 'https://ukcatalysishub.co.uk/energy-publications-2016/',
+            'https://ukcatalysishub.co.uk/energy-publications-2017/', 'https://ukcatalysishub.co.uk/environment-publications-2014/',
+            'https://ukcatalysishub.co.uk/environment-publications-2015/', 'https://ukcatalysishub.co.uk/environment-publications-2016/',
+            'https://ukcatalysishub.co.uk/environment-publications-2017/', 'https://ukcatalysishub.co.uk/transformations-publications-2014/',
+            'https://ukcatalysishub.co.uk/transformations-publications-2015/', 'https://ukcatalysishub.co.uk/transformations-publications-2016/',
+            'https://ukcatalysishub.co.uk/transformations-publications-2017/']
+
+def insert_record(db_con, new_record, table):
+    # build column list
+    columns = str(tuple(new_record.keys())).replace("'", "")
+    values = str(tuple(new_record.values()))
+    ins = db_con.execute(
+            "INSERT INTO %s %s VALUES  %s " % (table, columns, values)).fetchone( )
+    db_con.commit()
+
+
+def verify_themes(db_con):
+    article_list = db_con.execute(
+                        "SELECT articles.doi, articles.title, articles.pub_print_year, articles.pub_ol_year, articles.id, article_theme_links.theme_id "+
+                        "  FROM articles LEFT JOIN article_theme_links " +
+                        "    ON LOWER(articles.doi) = LOWER(article_theme_links.doi) " +
+                        "  WHERE article_theme_links.theme_id is null AND articles.action <> 'Remove'").fetchall( )
+    theme_list = db_con.execute(
+                        "SELECT themes.id, themes.short "+
+                        "  FROM themes ").fetchall( )
+    if not article_list is None:
+        art_count = len(article_list)
+        for article in article_list:
+            doi = article[0]
+            title = article[1]
+            skip = len(theme_list) + 1
+            print("Title:", article[1], "Print:", article[2], "On-Line:", article[3])
+            inspected = False
+            while not inspected:
+                print('***************************************************************')
+                print("Searching for:", doi)
+                print("Found", article[0], "ID", "Print:", article[2], "On-Line:", article[3])
+                print('Options:')
+                for theme in theme_list:
+                    print(theme[0], "-" , theme[1])
+                print(skip,"-" , "Skip")
+                print("Selection:") 
+                usr_select = int(input())
+                if usr_select in range(1, skip):
+                    if usr_select != skip:
+                        print(theme_list[usr_select-1], "\n Year:")
+                        year_select = int(input())
+                        print("Project:")
+                        project_select = input()
+                        new_theme_link={'id':0, 'doi':article[0], 'project':project_select,
+                                         'theme_id':usr_select, 'project_year':year_select,
+                                         'article_id':article[4]}
+                        insert_record(db_con, new_theme_link, 'article_theme_links')
+                    
+                    inspected = True
+                    print(inspected)
+                    if inspected:
+                        print("inspected")
+
+        print ("Unclassified articles:", art_count)
+
     
 dbname = 'ukch_articles.sqlite'
 db_con = sqlite.connect(dbname)
@@ -266,53 +379,8 @@ title = db_con.execute(
 arts_file = 'NewBibUKCHCAJGEdit.csv'
 
 
-
-
 #add_new_articles(db_con, arts_file)
 #add_new_authors()
 #add_affiliation_author_link(db_con)
-
-#verify addresses
-
-# Lookup Affiliation link affiliations and affiliation address
-# 
-# just update the Author ID number
-    # if not found look up last name
-    # for each returned record
-    #   - if records have orcid use it to try match
-    #   - calculate the similarity of full names
-    #   - if > 60 % ask if update
-
-affiliations = \
-                db_con.execute(
-                    "SELECT AffiLinkID, UniqueID, affiliations from Affiliation_Links").fetchall( )
-i_found = 0
-i_not_found = 0
-for affi_record in affiliations:
-    #get the corresponding address record and check if addresses match
-    affiLinkID, Affiliation_ID, affiliation_text = affi_record
-    affi_addresses = \
-                db_con.execute(
-                    "SELECT * from Affiliation_Addresses WHERE AffiLinkID = '%s'"% (affiLinkID)).fetchall( )
-    if not affi_addresses is None:
-        addr_occurrences = 0
-        for field in affi_addresses[0]:
-            #print(field,affiliation_text)
-            if field in affiliation_text:
-                addr_occurrences += 1
-        if addr_occurrences == 0:
-            print("ADDRESS:", affiLinkID, Affiliation_ID, affi_addresses, "match not found in:", affiliation_text)
-
-    #get the affiliation record and check if institutions match
-    an_affiliation = \
-                db_con.execute(
-                    "SELECT Institution, Country from Affiliations WHERE ID = '%s'"% (Affiliation_ID)).fetchall( )
-   
-    if not an_affiliation is None:
-        inst_occurrences = 0
-        for field in an_affiliation[0]:
-            #print(field,affiliation_text)
-            if field in affiliation_text:
-                inst_occurrences += 1
-        if inst_occurrences == 0:
-            print("INSTITUTION:", affiLinkID, Affiliation_ID, an_affiliation, "match not found in:", affiliation_text)
+#verify_addresses(db_con)
+verify_themes(db_con)
