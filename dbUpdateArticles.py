@@ -368,7 +368,64 @@ def verify_themes(db_con):
 
         print ("Unclassified articles:", art_count)
 
+
+def check_articles_db(db_con, in_file, out_file):
+    # check if articles are already in DB
+    catalysis_articles = {}
+    fieldnames=[]
+    i_found = 0
+    i_not_found = 0
+    with open(in_file, newline='') as csvfile:
+        reader = csv.DictReader(csvfile)
+        for row in reader:
+            if fieldnames==[]:
+                fieldnames=list(row.keys())
+            catalysis_articles[int(row['CatArtNum'])]=row
+        article_list = db_con.execute(
+                        "SELECT articles.doi, articles.title "+
+                        "  FROM articles WHERE articles.action <> 'Remove'").fetchall( )
+        # first pass by title
+        for new_art_id in catalysis_articles.keys():
+            art_title = catalysis_articles[new_art_id]['Title']
+            catalysis_articles[new_art_id]["Saved"] = 0
+            art_doi = db_con.execute(
+                 "SELECT DOI from Articles where Title LIKE '%s' " % (art_title)).fetchone( )
+            if str(type(art_doi)) != "<class 'NoneType'>" and len(art_doi) > 0:
+                 print("Found:", art_title, art_doi) #title[0])
+                 catalysis_articles[new_art_id]["Saved"] = 1
+                 i_found += 1
+            else:
+                # second pass look up similarity
+                for article in article_list:
+                    db_title = article[1]
+                    similarity = similar (db_title, art_title)
+                    if similarity > 0.8:
+                        i_found += 1
+                        # almost positive match
+                        catalysis_articles[new_art_id]["Saved"] = 2
+                        break
+                    elif similarity > 0.5:    
+                        # verify match
+                        i_found += 1
+                        catalysis_articles[new_art_id]["Saved"] = 3
+                        break
+            if catalysis_articles[new_art_id]["Saved"] == 0:
+                print("Not Found:", art_doi)
+                i_not_found += 1
+        
+        
+    print("Registered", i_found,"Not Registered", i_not_found)
+    fieldnames.append("Saved")
     
+    #write back to a new csv file
+    with open(out_file, 'w', newline='') as csvfile:
+        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+        writer.writeheader()
+        for cat_art_num in catalysis_articles.keys():
+            writer.writerow(catalysis_articles[cat_art_num])
+        
+
+            
 dbname = 'ukch_articles.sqlite'
 db_con = sqlite.connect(dbname)
 art_doi = "10.1038/s41929-019-0334-3"
@@ -376,11 +433,17 @@ title = db_con.execute(
     "SELECT title from Articles where DOI='%s'" % art_doi).fetchone( )
 
 # open update actions file
-arts_file = 'NewBibUKCHCAJGEdit.csv'
+arts_file = 'UKCH202001b.csv'
 
+input_file = "UKCH202001b.csv"
+output_file = "UKCH202001c.csv"
+# Check if article in DB
+check_articles_db(db_con, input_file, output_file)
 
 #add_new_articles(db_con, arts_file)
 #add_new_authors()
 #add_affiliation_author_link(db_con)
 #verify_addresses(db_con)
-verify_themes(db_con)
+#verify_themes(db_con)
+
+
