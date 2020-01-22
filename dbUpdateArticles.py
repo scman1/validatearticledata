@@ -5,6 +5,12 @@ from difflib import SequenceMatcher
 import requests
 from bs4 import BeautifulSoup
 
+from habanero import Crossref
+from habanero import cn
+import json
+
+cr = Crossref()
+
 def similar(a, b):
     return SequenceMatcher(None, a,b).ratio()
 
@@ -387,35 +393,44 @@ def check_articles_db(db_con, in_file, out_file):
         # first pass by title
         for new_art_id in catalysis_articles.keys():
             art_title = catalysis_articles[new_art_id]['Title']
-            catalysis_articles[new_art_id]["Saved"] = 0
+            catalysis_articles[new_art_id]["Registered"] = 0
+            catalysis_articles[new_art_id]["Similarity"] = 0
             art_doi = db_con.execute(
                  "SELECT DOI from Articles where Title LIKE '%s' " % (art_title)).fetchone( )
             if str(type(art_doi)) != "<class 'NoneType'>" and len(art_doi) > 0:
                  print("Found:", art_title, art_doi) #title[0])
-                 catalysis_articles[new_art_id]["Saved"] = 1
+                 catalysis_articles[new_art_id]["Registered"] = 1
+                 catalysis_articles[new_art_id]["Similarity"] = 1
+                 catalysis_articles[new_art_id]["DOI"] = art_doi
                  i_found += 1
             else:
                 # second pass look up similarity
                 for article in article_list:
                     db_title = article[1]
-                    similarity = similar (db_title, art_title)
+                    similarity = similar (db_title.lower(), art_title.lower())
+                    
                     if similarity > 0.8:
                         i_found += 1
                         # almost positive match
-                        catalysis_articles[new_art_id]["Saved"] = 2
-                        break
+                        if catalysis_articles[new_art_id]["Similarity"] < similarity:
+                            catalysis_articles[new_art_id]["Registered"] = 2
+                            catalysis_articles[new_art_id]["DOI"] = article[0]
+                            catalysis_articles[new_art_id]["Similarity"] = similarity
                     elif similarity > 0.5:    
                         # verify match
                         i_found += 1
-                        catalysis_articles[new_art_id]["Saved"] = 3
-                        break
-            if catalysis_articles[new_art_id]["Saved"] == 0:
+                        if catalysis_articles[new_art_id]["Similarity"] < similarity:
+                            catalysis_articles[new_art_id]["Registered"] = 3
+                            catalysis_articles[new_art_id]["DOI"] = article[0]
+                            catalysis_articles[new_art_id]["Similarity"] = similarity
+            if catalysis_articles[new_art_id]["Registered"] == 0:
                 print("Not Found:", art_doi)
-                i_not_found += 1
-        
+                i_not_found += 1        
         
     print("Registered", i_found,"Not Registered", i_not_found)
-    fieldnames.append("Saved")
+    fieldnames.append("Registered")
+    fieldnames.append("Similarity")
+    fieldnames.append("DOI")
     
     #write back to a new csv file
     with open(out_file, 'w', newline='') as csvfile:
@@ -423,9 +438,275 @@ def check_articles_db(db_con, in_file, out_file):
         writer.writeheader()
         for cat_art_num in catalysis_articles.keys():
             writer.writerow(catalysis_articles[cat_art_num])
-        
 
+def get_articles_doi(in_file, out_file):
+    # check if articles are already in DB
+    catalysis_articles = {}
+    fieldnames=[]
+    i_found = 0
+    i_not_found = 0
+    with open(in_file, newline='') as csvfile:
+        reader = csv.DictReader(csvfile)
+        for row in reader:
+            if fieldnames==[]:
+                fieldnames=list(row.keys())
+            if row['Action'] == 'Add':
+                catalysis_articles[int(row['CatArtNum'])]=row
+        for new_art_id in catalysis_articles.keys():
+            art_title = catalysis_articles[new_art_id]['Title']
+            art_doi = catalysis_articles[new_art_id]['DOI']
+            cr_doi = getArticleDOIFromCrossref(art_title)
+            if cr_doi != art_doi:
+                print("Found:", cr_doi, "for", art_title)
+                catalysis_articles[new_art_id]['crDOI'] = cr_doi
+                i_found+=1
+            else:
+                catalysis_articles[new_art_id]['crDOI'] = cr_doi 
+                i_not_found += 1    
             
+    print("Found", i_found,"Not Found", i_not_found)
+    fieldnames.append("crDOI")
+    
+    #write back to a new csv file
+    with open(out_file, 'w', newline='') as csvfile:
+        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+        writer.writeheader()
+        for cat_art_num in catalysis_articles.keys():
+            writer.writerow(catalysis_articles[cat_art_num])
+
+def verify_articles_doi(in_file, out_file):
+    # check if articles are already in DB
+    catalysis_articles = {}
+    fieldnames=[]
+    with open(in_file, newline='') as csvfile:
+        reader = csv.DictReader(csvfile)
+        for row in reader:
+            if fieldnames==[]:
+                fieldnames=list(row.keys())
+            catalysis_articles[int(row['CatArtNum'])]=row
+            
+        for new_art_id in catalysis_articles.keys():
+            if catalysis_articles[new_art_id]['Action'] == 'Add':
+                art_title = catalysis_articles[new_art_id]['Title']
+                art_doi = catalysis_articles[new_art_id]['crDOI']
+                result = verifyArticleDOIinCrossrefCN(art_title,art_doi)
+                catalysis_articles[new_art_id]['DOIOK'] = result[0]
+                print(result)
+
+    fieldnames.append("DOIOK")
+    
+    #write back to a new csv file
+    with open(out_file, 'w', newline='') as csvfile:
+        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+        writer.writeheader()
+        for cat_art_num in catalysis_articles.keys():
+            writer.writerow(catalysis_articles[cat_art_num])
+
+def getCrossRefBibData(doi_text):
+    try:
+        art_bib = json.loads(cn.content_negotiation(ids = doi_text, format = "citeproc-json"))
+        return art_bib
+    except:
+        return {}
+
+def jsonToPlainText(element):
+    if isinstance(element, int) or \
+       isinstance(element, float) or \
+       isinstance(element, str):
+        return element
+    elif 'date-parts' in element:
+        return element['date-parts'][0]
+    elif 'issue' in element:
+        return element['issue']
+    elif isinstance(element, list) \
+         and len(element) > 0 and 'URL' in element[0]:
+        return element[0]['URL']
+
+def getArticleDOIFromCrossref(article_title):
+    res = cr.works(query = article_title, select = ["DOI","title"])
+    doi_text=""
+    for recovered in res['message']['items']:
+        if 'title' in recovered.keys() and 'DOI' in recovered.keys():
+            similarity = similar(recovered['title'][0].lower(), article_title.lower())
+            #print(recovered['title'][0], similarity)
+            if similarity > 0.7:
+                doi_text = recovered['DOI']
+    return doi_text
+
+#use content to find articles by key
+def verifyArticleDOIinCrossrefCN(article_title,doi_text):
+    article_data = getCrossRefBibData(doi_text)
+    cr_title = cr_doi = ""
+    doi_match = False
+    similarity = 0    
+    if not article_data == {}:
+        cr_title = jsonToPlainText(article_data['title'])
+        cr_doi = jsonToPlainText(article_data['DOI'])
+        similarity = similar(cr_title.lower(), article_title.lower())
+        if similarity > 0.7:
+            doi_match=True
+        else:
+            print("Difference|",similarity, "|", article_title, "|", doi_text, "|", cr_title, "|", cr_doi)
+    return [doi_match, cr_title, cr_doi, similarity]
+
+def verifyArticleDOIinCrossref(article_title,doi_text):
+    res = cr.works(query = doi_text, select = ["DOI","title"])
+    doi_match=False
+    try:
+        for recovered in res['message']['items']:
+            similarity = similar(recovered['title'][0].lower(), article_title.lower())
+            #print(recovered['title'][0], similarity)
+            if similarity > 0.9:
+                doi_match=True
+                break
+            else:
+                print("Difference",similarity, article_title, recovered['title'][0])
+    except:
+        doi_match=False
+    return doi_match
+
+def buildDBfromJSON(input_file):
+    catalysis_articles = {}
+    fieldnames=[]
+    with open(input_file, newline='') as csvfile:
+         reader = csv.DictReader(csvfile)
+         for row in reader:
+             if fieldnames==[]:
+                 fieldnames=list(row.keys())
+             if row['Action'] == 'Add':
+                 if row['crDOI'] == "":
+                     print("Missing Identifier", row['Title'], row['Num'])
+                 else:
+                     catalysis_articles[int(row['Num'])]=row
+
+    # print(len(catalysis_articles))
+    # build new article and author tables
+    # list of articles from crossref using DOIs
+    cr_articles = {} # Num (from CHUK), DOI, type, and other fiedls from CR.
+    article_columns=["NumUKCH"]
+    # list of article authors from cross ref
+    cr_authors = {} # AuthorNum, Firstname, Middle name, Last Name
+    author_columns = ["AuthorNum", "Name", "LastName", "ORCID", 'affiliations','sequence']
+    # list of article-author links
+    cr_article_authour_link = {} # AuthorNum, DOI
+    article_authour_columns = ["DOI","AuthorNum"]
+
+    ## NumUKCH 	        : 1
+    ## indexed 	        : [2019, 11, 11]
+    ## reference-count 	: 52
+    ## publisher 	        : Springer Science and Business Media LLC
+    ## issue 	        : 10
+    ## license 	        : http://www.springer.com/tdm
+    ## funder 	        : None
+    ## content-domain 	: None
+    ## published-print 	: [2019, 10]
+    ## DOI 	                : 10.1038/s41929-019-0334-3
+    ## type 	        : article-journal
+    ## created 	        : [2019, 9, 16]
+    ## page 	        : 873-881
+    ## update-policy 	: http://dx.doi.org/10.1007/springer_crossmark_policy
+    ## source 	        : Crossref
+    ## is-referenced-by-count : 0
+    ## title 	        : Tuning of catalytic sites in Pt/TiO2 catalysts for the chemoselective hydrogenation of 3-nitrostyrene
+    ## prefix 	        : 10.1038
+    ## volume 	        : 2
+    ## member 	        : 297
+    ## published-online 	: [2019, 9, 16]
+    ## reference 	        : None
+    ## container-title 	: Nature Catalysis
+    ## original-title 	: None
+    ## language 	        : en
+    ## link        	        : http://www.nature.com/articles/s41929-019-0334-3.pdf
+    ## deposited 	        : [2019, 11, 11]
+    ## score 	        : 1.0
+    ## subtitle 	        : None
+    ## short-title 	        : None
+    ## issued        	: [2019, 9, 16]
+    ## references-count 	: 52
+    ## journal-issue 	: None
+    ## alternative-id 	: None
+    ## URL 	                : http://dx.doi.org/10.1038/s41929-019-0334-3
+    ## relation 	        : None
+    ## ISSN 	        : None
+    ## container-title-short : Nat Catal
+              
+    for cat_art_num in catalysis_articles.keys():
+        if catalysis_articles[cat_art_num]['crDOI'] != "":
+            doi_text = catalysis_articles[cat_art_num]['crDOI']
+            article_data = getCrossRefBibData(doi_text)
+            data_keys = list(article_data.keys())
+            for key in data_keys:
+                if not (key in article_columns) and \
+                   key not in ['author', 'assertion', 'indexed', 'funder',
+                               'content-domain','created','update-policy', 'source',
+                               'is-referenced-by-count','prefix','member',
+                               'reference','original-title','language','deposited',
+                               'score', 'subtitle', 'short-title', 'issued',
+                               'alternative-id','relation','ISSN','container-title-short']:
+                    article_columns.append(key)
+            new_row = {}
+            
+            for key in article_columns:
+                if key == 'NumUKCH':
+                    new_row['NumUKCH'] = cat_art_num
+                else:
+                    if key in article_data.keys():
+                        new_row[key] = jsonToPlainText(article_data[key])
+            cr_articles[cat_art_num] = new_row
+            for author in article_data['author']:
+                new_author={}
+                aut_num = len(cr_authors) + 1
+                new_author["AuthorNum"] = aut_num
+                new_author['LastName'] = author['family']
+                if 'given' in author.keys():
+                    new_author['Name'] = author['given']
+                if 'given' in author.keys():
+                    new_author['sequence'] = author['sequence']
+                if 'ORCID' in author.keys():
+                    new_author['ORCID'] = author['ORCID']
+                else:
+                    new_author['ORCID'] = "None"
+                if 'affiliation'in author.keys():
+                    affiliations=""
+                    for affl in author['affiliation']:
+                        affiliations += affl['name'] + "|"
+                    new_author['affiliations'] = affiliations
+                cr_authors[aut_num] = new_author
+                art_auth_link = len(cr_article_authour_link)+1
+                new_art_auth_link={}
+                new_art_auth_link['DOI'] = doi_text
+                new_art_auth_link['AuthorNum'] = aut_num
+                cr_article_authour_link[art_auth_link] = new_art_auth_link
+            #print(article_data['author'])
+            
+            
+        
+    # write back to a new csv file
+    # create three files
+    arts_file = input_file[:-4]+"Articles.csv"
+    auts_file = input_file[:-4]+"Authors.csv"
+    link_file = input_file[:-4]+"ArtAutLink.csv"
+    with open(arts_file, 'w', newline='') as csvfile:
+        writer = csv.DictWriter(csvfile, fieldnames = article_columns)
+        writer.writeheader()
+        for cat_art_num in cr_articles.keys():
+            writer.writerow(cr_articles[cat_art_num])
+
+    with open(auts_file, 'w', newline='') as csvfile:
+        writer = csv.DictWriter(csvfile, fieldnames = author_columns)
+        writer.writeheader()
+        for aut_num in cr_authors.keys():
+            writer.writerow(cr_authors[aut_num])
+
+
+    with open(link_file, 'w', newline='') as csvfile:
+        writer = csv.DictWriter(csvfile, fieldnames = article_authour_columns)
+        writer.writeheader()
+        for link_num in cr_article_authour_link.keys():
+            writer.writerow(cr_article_authour_link[link_num])
+
+
+
 dbname = 'ukch_articles.sqlite'
 db_con = sqlite.connect(dbname)
 art_doi = "10.1038/s41929-019-0334-3"
@@ -435,10 +716,23 @@ title = db_con.execute(
 # open update actions file
 arts_file = 'UKCH202001b.csv'
 
-input_file = "UKCH202001b.csv"
-output_file = "UKCH202001c.csv"
+input_file = "UKCH202001c.csv"
+output_file = "UKCH202001d.csv"
 # Check if article in DB
-check_articles_db(db_con, input_file, output_file)
+#check_articles_db(db_con, input_file, output_file)
+
+# Get DOIS for articles not in DB
+input_file = "UKCH202001d.csv"
+output_file = "UKCH202001e.csv"
+#get_articles_doi(input_file, output_file)
+
+# Verify DOIS for articles not in DB
+input_file = "UKCH202001e.csv"
+output_file = "UKCH202001f.csv"
+#verify_articles_doi(input_file, output_file)
+
+input_file = "UKCH202001f.csv"
+buildDBfromJSON(input_file)
 
 #add_new_articles(db_con, arts_file)
 #add_new_authors()
