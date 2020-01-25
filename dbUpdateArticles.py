@@ -705,8 +705,146 @@ def buildDBfromJSON(input_file):
         for link_num in cr_article_authour_link.keys():
             writer.writerow(cr_article_authour_link[link_num])
 
+def get_data(input_file, id_field):
+    csv_data = {}
+    fieldnames=[]
+    with open(input_file, newline='') as csvfile:
+        reader = csv.DictReader(csvfile)
+        for row in reader:
+            if fieldnames==[]:
+                fieldnames=list(row.keys())
+            csv_data[int(row[id_field])]=row
+    return csv_data, fieldnames
+
+def remove_breaks(str_text):
+    if "\n" in str_text:
+        str_text = str_text.replace("\n", " ")
+    return str_text
+
+def remove_last_bar(str_text):
+    return str_text[:-1]
+
+def count_affiliations(str_text):
+    return str_text.count("|") + 1
+
+def get_affi_fields():
+    affi_fields = { 'c':["Country", False], 'd':["Department", False],
+                    'f':["Faculty", False], 'g':["Group", False],
+                    'i':["Institution", False], 'u':["Unit", False]} 
+    return affi_fields
+    
 
 
+def get_value_list(db_con, table, field):
+    results = db_con.execute("SELECT %s from %s GROUP BY %s" % (field, table, field) ).fetchall( )
+    value_list = []
+    for result in results:
+        for item in result:
+            value_list.append(item)
+    if '' in value_list: value_list.remove('')
+    return value_list
+
+
+def split_and_assign(input_text):
+    ret_parsed = {}
+    fields={'a':'ResearchGroup', 'b':'Department','c':'Faculty','d':'Institution',
+            'e':'Address','f':'City','g':'Country','h':'Postcode'}
+    if isinstance(input_text, str):
+        user_opt = ""
+        while True:
+            print(input_text)
+            print('Options:\n a) split\n b) assign\n selection:')
+            user_opt = input()
+            if user_opt in ['a', 'b']:
+                break
+        if user_opt == 'a':
+            print("split separator (;,|):")
+            separator = input()
+            parts = input_text.split(separator)
+            for part in parts:
+               ret_parsed.update(split_and_assign(part.strip()))
+        elif user_opt == 'b':
+            assgnr = ""
+            strip_val = input_text.strip()
+            while True:
+                if strip_val in institutions_list:
+                    print('assing to:', "Institution")
+                    ret_parsed["Institution"] = strip_val
+                    break;
+                elif strip_val in countries_list:
+                    print('assing to:', "Country")
+                    ret_parsed["Country"] = strip_val
+                    break;
+                elif input_text.strip() in countries_list:
+                    print('assing to:', "Country")
+                    ret_parsed["Country"] = input_text.strip()
+                    break;
+                
+                print('Options:\n a) ResearchGroup\n b) Department\n c) Faculty\n d) Institution\n e) Address\n f) City\n g) Country\n h) Postcode')
+                assgnr = input()
+                print(assgnr)
+                keys = list(fields.keys())
+                print(keys)
+                if assgnr in keys:
+                    print('assing to:', assgnr, fields[assgnr])
+                    ret_parsed[fields[assgnr]]=input_text.strip()
+                    break;
+    return ret_parsed
+
+def split_affiliations(db_con, auth_file, link_file):
+    affi_num = 1
+    assigned_list = {}
+    auth_records, auth_fields = get_data(auth_file, 'AuthorNum')
+    link_records, likn_fields = get_data(link_file, 'AuthorNum')
+    entries_processed = {}
+    for a_num in auth_records:
+        if auth_records[a_num]['affiliations'] != "":
+            auth_records[a_num]['affiliations'] = remove_breaks(auth_records[a_num]['affiliations'])
+            auth_records[a_num]['affiliations'] = remove_last_bar(auth_records[a_num]['affiliations'])
+            affiliations = count_affiliations(auth_records[a_num]['affiliations'])
+            print("***********************************************************")
+            print("Affiliations", affiliations, auth_records[a_num]['affiliations'])
+            #ask is single or multiple affiliations
+            answer = sinlge = False
+            if affiliations > 1:
+                # ask if number of  affiliation is correct
+                while answer == False:
+                    print("a - single affiliation")
+                    print("b - multiple affiliations")
+                    print("Selection:")
+                    usr_select = input()
+                    if usr_select == 'a':
+                        answer = single  = True
+                    elif usr_select == 'b':
+                        single  = False
+                        answer = True
+            else:
+                # split one affiliation
+                affi_entry = auth_records[a_num]['affiliations']
+                if affi_entry in  entries_processed.values():
+                    for entry in list(entries_processed):
+                        if entries_processed[entry] == affi_entry:
+                            assigned_list[affi_num] = assigned_list[entry]
+                            assigned_list[affi_num]["AuthorNum"] = a_num
+                            entries_processed[affi_num] = affi_entry
+                            affi_num += 1
+                else:
+                    print("split one affiliation")
+                    assigned = split_and_assign(affi_entry)
+                    assigned_list[affi_num]=assigned
+                    assigned_list[affi_num]["AuthorNum"] = a_num
+                    entries_processed[affi_num] = affi_entry
+                    affi_num += 1
+                    
+                print(assigned_list)
+                print(entries_processed)
+            if affi_num == 4:
+                break
+    return assigned_list
+            #print(link_records[a_num])
+
+    #print("Countries:", countries_list,"\nInstitutions:", institutions_list,"\nDepartments:", department_list,"\nFaculties", faculty_list,"\nGroups:", group_list)        
+    
 dbname = 'ukch_articles.sqlite'
 db_con = sqlite.connect(dbname)
 art_doi = "10.1038/s41929-019-0334-3"
@@ -732,7 +870,27 @@ output_file = "UKCH202001f.csv"
 #verify_articles_doi(input_file, output_file)
 
 input_file = "UKCH202001f.csv"
-buildDBfromJSON(input_file)
+# build the records ready to load into DB
+#buildDBfromJSON(input_file)
+
+arts_file = input_file[:-4]+"Articles.csv"
+auts_file = input_file[:-4]+"Authors.csv"
+link_file = input_file[:-4]+"ArtAutLink.csv"
+afi_file = "affiliations201912.csv"
+addr_file = "affiliations201912.csv"
+
+# get institutions list from affiliations table
+institutions_list = get_value_list(db_con, "Affiliations", "institution")
+# get coutries from affiliations table
+countries_list = get_value_list(db_con, "Affiliations","country")
+# get department list from affiliations table
+department_list = get_value_list(db_con, "Affiliations","department")
+# get faculty list from affiliations table
+faculty_list = get_value_list(db_con, "Affiliations","faculty")
+# get research group list from affiliations table
+group_list = get_value_list(db_con, "Affiliations", "work_group")
+
+affiliations = split_affiliations(db_con, auts_file, link_file)
 
 #add_new_articles(db_con, arts_file)
 #add_new_authors()
