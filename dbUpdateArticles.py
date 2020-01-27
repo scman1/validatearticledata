@@ -791,6 +791,38 @@ def split_and_assign(input_text):
                     break;
     return ret_parsed
 
+#split a single affiliation
+def split_single_affiliation(affi_entry, assigned_list, entries_processed, affi_num, a_num):
+    if affi_entry in  entries_processed.values():
+        for entry in list(entries_processed):
+            if entries_processed[entry] == affi_entry:
+                assigned_list[affi_num] = assigned_list[entry].copy()
+                assigned_list[affi_num]["AuthorNum"] = a_num
+                entries_processed[affi_num] = affi_entry
+                affi_num += 1
+    else:
+        print("split one affiliation")
+        assigned = split_and_assign(affi_entry)
+        assigned_list[affi_num]=assigned
+        assigned_list[affi_num]["AuthorNum"] = a_num
+        entries_processed[affi_num] = affi_entry
+        affi_num += 1
+    return affi_num, assigned_list, entries_processed
+
+#split more than one affiliation
+def split_mto_affiliation(affi_entries, assigned_list, entries_processed, affi_num, a_num):
+    print("Split more than one affiliation from:", affi_entries)
+    print("split separator (;,|):")
+    separator = input()
+    parts = affi_entries.split(separator)
+    for part in parts:
+        print("********************MULTIPLE**********************************")
+        print(part.strip(), affi_num, a_num)
+        affi_num, assigned_list, entries_processed = split_single_affiliation(part.strip(), assigned_list, entries_processed, affi_num, a_num)
+        print(assigned_list)
+        print(entries_processed)
+    return affi_num, assigned_list, entries_processed
+
 def split_affiliations(db_con, auth_file, link_file):
     affi_num = 1
     assigned_list = {}
@@ -814,34 +846,28 @@ def split_affiliations(db_con, auth_file, link_file):
                     print("Selection:")
                     usr_select = input()
                     if usr_select == 'a':
-                        answer = single  = True
+                        affi_entry = auth_records[a_num]['affiliations']
+                        affi_numaffi_num, assigned_list, entries_processed = split_single_affiliation(affi_entry, assigned_list, entries_processed, affi_num, a_num)
+                        print(assigned_list)
+                        print(entries_processed)
+                        answer = True
                     elif usr_select == 'b':
-                        single  = False
+                        affi_entry = auth_records[a_num]['affiliations']
+                        affi_numaffi_num, assigned_list, entries_processed = split_mto_affiliation(affi_entry, assigned_list, entries_processed, affi_num, a_num)
                         answer = True
             else:
                 # split one affiliation
                 affi_entry = auth_records[a_num]['affiliations']
-                if affi_entry in  entries_processed.values():
-                    for entry in list(entries_processed):
-                        if entries_processed[entry] == affi_entry:
-                            assigned_list[affi_num] = assigned_list[entry]
-                            assigned_list[affi_num]["AuthorNum"] = a_num
-                            entries_processed[affi_num] = affi_entry
-                            affi_num += 1
-                else:
-                    print("split one affiliation")
-                    assigned = split_and_assign(affi_entry)
-                    assigned_list[affi_num]=assigned
-                    assigned_list[affi_num]["AuthorNum"] = a_num
-                    entries_processed[affi_num] = affi_entry
-                    affi_num += 1
-                    
+                affi_num, assigned_list, entries_processed = split_single_affiliation(affi_entry, assigned_list, entries_processed, affi_num, a_num)                    
                 print(assigned_list)
                 print(entries_processed)
-            if affi_num == 4:
+            if affi_num > 5:
                 break
     return assigned_list
             #print(link_records[a_num])
+    print('******************FINAL*******************************')
+    print(assigned_list)
+    print(entries_processed)
 
     #print("Countries:", countries_list,"\nInstitutions:", institutions_list,"\nDepartments:", department_list,"\nFaculties", faculty_list,"\nGroups:", group_list)        
     
