@@ -578,7 +578,6 @@ def buildDBfromJSON(input_file):
                      print("Missing Identifier", row['Title'], row['Num'])
                  else:
                      catalysis_articles[int(row['Num'])]=row
-
     # print(len(catalysis_articles))
     # build new article and author tables
     # list of articles from crossref using DOIs
@@ -734,6 +733,20 @@ def get_affi_fields():
     return affi_fields
     
 
+def write_csv(values, filename):
+    fieldnames = []
+    for item in values.keys():
+        for key in values[item].keys():
+            if not key in fieldnames:
+                fieldnames.append(key)
+    #write back to a new csv file
+    with open(filename, 'w', newline='') as csvfile:
+        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+        writer.writeheader()
+        for key in values.keys():
+            writer.writerow(values[key])
+
+
 def search_affi_institution(db_con, str_institution, new_affi):
     sql_query = "SELECT affiliations.id, affiliation_addresses.id, trim( affiliations.institution ||' '||" + \
                 " affiliations.department ||' '|| affiliations.faculty ||' '||"+ \
@@ -791,6 +804,7 @@ def get_address(db_con, addr_id):
     return db_addr
 
 def split_and_assign(input_text):
+    input_text = input_text.strip()
     ret_parsed = {}
     fields={'a':'ResearchGroup', 'b':'Department','c':'Faculty','d':'Institution',
             'e':'Address','f':'City','g':'Country','h':'Postcode'}
@@ -807,43 +821,38 @@ def split_and_assign(input_text):
             separator = input()
             parts = input_text.split(separator)
             for part in parts:
-                print("look up in db:",part)
-                ass_affi, ass_add = search_affi_institution(db_con, part.strip(), input_text)
-                print(ass_affi, ass_add)
-                if ass_affi != 0:
-                    print(get_affiliation(db_con, ass_affi))
-                    print(get_address(db_con, ass_add))
-                    ret_parsed={'affiliation_id':ass_affi, "address_id":ass_add}
-                    return ret_parsed
-                else:
-                    ret_parsed.update(split_and_assign(part.strip()))
-                
+                ret_parsed.update(split_and_assign(part.strip()))
         elif user_opt == 'b':
             assgnr = ""
-            strip_val = input_text.strip()
-            search_affi_institution(db_con, strip_val, input_text)
             while True:
-                if strip_val in institutions_list:
+                if input_text in institutions_list:
                     print('assing to:', "Institution")
-                    ret_parsed["Institution"] = strip_val
+                    ret_parsed["Institution"] = input_text
                     break;
-                elif strip_val in countries_list:
+                elif input_text in countries_list:
                     print('assing to:', "Country")
-                    ret_parsed["Country"] = strip_val
+                    ret_parsed["Country"] = input_text
                     break;
-                elif input_text.strip() in countries_list:
-                    print('assing to:', "Country")
-                    ret_parsed["Country"] = input_text.strip()
+                elif input_text in department_list:
+                    print('assing to:', "Department")
+                    ret_parsed["Department"] = input_text
                     break;
-                
                 print('Options:\n a) ResearchGroup\n b) Department\n c) Faculty\n d) Institution\n e) Address\n f) City\n g) Country\n h) Postcode')
                 assgnr = input()
-                print(assgnr)
+                #print(assgnr)
                 keys = list(fields.keys())
-                print(keys)
+                #print(keys)
                 if assgnr in keys:
                     print('assing to:', assgnr, fields[assgnr])
-                    ret_parsed[fields[assgnr]]=input_text.strip()
+                    ret_parsed[fields[assgnr]]=input_text
+                    if assgnr == 'd' and not input_text in institutions_list:
+                        #institution
+                        institutions_list.append(input_text)
+                    elif assgnr == 'b' and not input_text in department_list:
+                        #department
+                        department_list.append(input_text)
+                    elif assgnr == 'e' and not input_text in address_list:
+                        address_list.append(input_text)
                     break;
     return ret_parsed
 
@@ -854,30 +863,26 @@ def split_single_affiliation(affi_entry, assigned_list, entries_processed, affi_
             if entries_processed[entry] == affi_entry:
                 assigned_list[affi_num] = assigned_list[entry].copy()
                 assigned_list[affi_num]["AuthorNum"] = a_num
+                assigned_list[affi_num]["id"] = affi_num
                 entries_processed[affi_num] = affi_entry
-                affi_num += 1
     else:
         print("split one affiliation")
         assigned = split_and_assign(affi_entry)
         assigned_list[affi_num]=assigned
         assigned_list[affi_num]["AuthorNum"] = a_num
+        assigned_list[affi_num]["id"] = affi_num
         entries_processed[affi_num] = affi_entry
-        affi_num += 1
     return affi_num, assigned_list, entries_processed
 
 #split more than one affiliation
 def split_mto_affiliation(affi_entries, assigned_list, entries_processed, affi_num, a_num):
     print("Split more than one affiliation from:", affi_entries)
-    print("split separator (;,|):")
-    separator = input()
-    parts = affi_entries.split(separator)
-    for part in parts:
-        print("********************MULTIPLE**********************************")
-        print(part.strip(), affi_num, a_num)
-        affi_num, assigned_list, entries_processed = split_single_affiliation(part.strip(), assigned_list, entries_processed, affi_num, a_num)
-        print(assigned_list)
-        print(entries_processed)
-    return affi_num, assigned_list, entries_processed
+    #print("split separator (;,|):")
+    #separator = input()
+    separator = "|"
+    affi_entries.split(separator)
+    return affi_entries.split(separator)
+
 
 def split_affiliations(db_con, auth_file, link_file):
     
@@ -886,45 +891,115 @@ def split_affiliations(db_con, auth_file, link_file):
     auth_records, auth_fields = get_data(auth_file, 'AuthorNum')
     link_records, likn_fields = get_data(link_file, 'AuthorNum')
     entries_processed = {}
+    # first pass split multiple affiliations
+    # go trough all authors, and if multiple split, replace record with new affiliation and add a new affiliation for author
+##    additional_aut_records = {}
+##    for a_num in auth_records:
+##        if auth_records[a_num]['affiliations'] != "":
+##            auth_records[a_num]['affiliations'] = remove_breaks(auth_records[a_num]['affiliations'])
+##            auth_records[a_num]['affiliations'] = remove_last_bar(auth_records[a_num]['affiliations'])
+##            affiliations = count_affiliations(auth_records[a_num]['affiliations'])
+##            print("***********************************************************")
+##            print("Affiliations", affiliations, auth_records[a_num]['affiliations'])
+##            #ask is single or multiple affiliations
+##            answer = sinlge = False
+##            if affiliations > 1:
+##                # ask if number of  affiliation is correct
+##                while answer == False:
+##                    print("a - multiple affiliations")
+##                    print("b - single affiliation")
+##                    print("Selection:")
+##                    usr_select = input()
+##                    affi_entry = auth_records[a_num]['affiliations']
+##                    if usr_select == 'a':
+##                        affiliations = split_mto_affiliation(affi_entry, assigned_list, entries_processed, affi_num, a_num)
+##                        print(affiliations)
+##                        index_affis = 0
+##                        for index_affis in range(0, len(affiliations)):
+##                            if index_affis == 0:
+##                                auth_records[a_num]['affiliations'] = affiliations[index_affis]
+##                            else:
+##                                new_id = len(additional_aut_records) + len(auth_records)+1
+##                                additional_aut_records[new_id] = auth_records[a_num].copy()
+##                                additional_aut_records[new_id]['affiliations'] = affiliations[index_affis]
+##                        answer = True
+##                    if usr_select == 'b':
+##                        # convert to single by replacing separtor for ;
+##                        auth_records[a_num]['affiliations'] = affi_entry.replace("|", ";")
+##                        print(auth_records[a_num]['affiliations'])
+##                        answer = True
+##    
+##    
+##    print(additional_aut_records)
+##    auth_records.update(additional_aut_records)
+##    write_csv(auth_records, "test01.csv")
+##    auth_records, auth_fields = get_data("test01.csv","id")
+##    
+##    print(len(auth_records),auth_records[len(auth_records)])
+##    # second pass look up in DB for similars use full text
+##    sql_query = "SELECT affiliations.id, affiliation_addresses.id, trim( affiliations.department ||' '||" + \
+##                " affiliations.institution ||' '|| affiliations.faculty ||' '||"+ \
+##                " affiliations.work_group) AS affi_str, trim(affiliation_addresses.add_01 ||' '||"+ \
+##                " affiliation_addresses.add_02  ||' '|| affiliation_addresses.add_03  ||' '||" + \
+##                " affiliation_addresses.add_04) ||' '|| affiliation_addresses.country AS add_str"+ \
+##                " FROM affiliations INNER JOIN affiliation_addresses "+ \
+##                " ON affiliations.id = affiliation_addresses.affiliation_id "
+##    
+##    
+##    db_affis = db_con.execute(sql_query).fetchall()
+##    for a_num in auth_records:
+##        auth_records[a_num]['affiliation_id'] =  0
+##        auth_records[a_num]['address_id'] = 0
+##        if auth_records[a_num]['affiliations'] != "":
+##            i_index = 0
+##            selected = 0
+##            selected_score = 0
+##            print(auth_records[a_num])
+##            affi_entry = auth_records[a_num]['affiliations']
+##            for affi in db_affis:
+##                #print(affi, new_affi)
+##                similarity = similar(affi_entry.lower(), (affi[2]+" " +affi[3]).lower())
+##                if similarity > 0.0:
+##                    if similarity > selected_score:
+##                        selected = i_index
+##                        selected_score = similarity
+##                i_index += 1
+##            if selected_score > 0:
+##                print("Found similar in DB")
+##                print(db_affis[selected], selected_score)
+##                print(db_affis[selected][0], db_affis[selected][1], db_affis[selected][2]+" " +db_affis[selected][3], selected_score)
+##                user_opt = ""
+##                while True:
+##                    print('Options:\n a) use\n b) skip\n selection:')
+##                    user_opt = input()
+##                    if user_opt in ['a', 'b']:
+##                        break
+##                if user_opt == 'a':
+##                    auth_records[a_num]['affiliation_id'] = db_affis[selected][0]
+##                    auth_records[a_num]['address_id'] = db_affis[selected][1]
+##                    #print(db_affis[selected][0]), int(db_affis[selected][1])
+##            affi_num = a_num
+##    write_csv(auth_records, "test02.csv")
+
+    auth_records, auth_fields = get_data("test02.csv","id")
+    for indexer in range(1, affi_num):
+        print(auth_records[indexer])
+    # third pass split affiliations
     for a_num in auth_records:
-        if auth_records[a_num]['affiliations'] != "":
-            auth_records[a_num]['affiliations'] = remove_breaks(auth_records[a_num]['affiliations'])
-            auth_records[a_num]['affiliations'] = remove_last_bar(auth_records[a_num]['affiliations'])
-            affiliations = count_affiliations(auth_records[a_num]['affiliations'])
-            print("***********************************************************")
-            print("Affiliations", affiliations, auth_records[a_num]['affiliations'])
-            #ask is single or multiple affiliations
-            answer = sinlge = False
-            if affiliations > 1:
-                # ask if number of  affiliation is correct
-                while answer == False:
-                    print("a - single affiliation")
-                    print("b - multiple affiliations")
-                    print("Selection:")
-                    usr_select = input()
-                    if usr_select == 'a':
-                        affi_entry = auth_records[a_num]['affiliations']
-                        affi_numaffi_num, assigned_list, entries_processed = split_single_affiliation(affi_entry, assigned_list, entries_processed, affi_num, a_num)
-                        print(assigned_list)
-                        print(entries_processed)
-                        answer = True
-                    elif usr_select == 'b':
-                        affi_entry = auth_records[a_num]['affiliations']
-                        affi_numaffi_num, assigned_list, entries_processed = split_mto_affiliation(affi_entry, assigned_list, entries_processed, affi_num, a_num)
-                        answer = True
-            else:
-                # split one affiliation
-                affi_entry = auth_records[a_num]['affiliations']
-                affi_num, assigned_list, entries_processed = split_single_affiliation(affi_entry, assigned_list, entries_processed, affi_num, a_num)                    
-                print(assigned_list)
-                print(entries_processed)
-            if affi_num > 4:
-                break
-    return assigned_list
-            #print(link_records[a_num])
+        print(auth_records[a_num])
+        if auth_records[a_num]['affiliations'] != "" and auth_records[a_num]['affiliation_id'] == '0':
+            affi_entry = auth_records[a_num]['affiliations']
+            affi_num, assigned_list, entries_processed = split_single_affiliation(affi_entry, assigned_list, entries_processed, affi_num, a_num)
+            auth_records[a_num]['new_afi_id'] = affi_num
+            affi_num = a_num
     print('******************FINAL*******************************')
     print(assigned_list)
     print(entries_processed)
+    write_csv(assigned_list, "new_affiliations.csv")
+    write_csv(auth_records, "test03.csv")
+    #write_csv(entries_processed, "affiliation_emn.csv")
+    
+    
 
     #print("Countries:", countries_list,"\nInstitutions:", institutions_list,"\nDepartments:", department_list,"\nFaculties", faculty_list,"\nGroups:", group_list)        
     
@@ -972,7 +1047,7 @@ department_list = get_value_list(db_con, "Affiliations","department")
 faculty_list = get_value_list(db_con, "Affiliations","faculty")
 # get research group list from affiliations table
 group_list = get_value_list(db_con, "Affiliations", "work_group")
-
+address_list = []
 affiliations = split_affiliations(db_con, auts_file, link_file)
 
 #add_new_articles(db_con, arts_file)
@@ -980,5 +1055,4 @@ affiliations = split_affiliations(db_con, auts_file, link_file)
 #add_affiliation_author_link(db_con)
 #verify_addresses(db_con)
 #verify_themes(db_con)
-
 
