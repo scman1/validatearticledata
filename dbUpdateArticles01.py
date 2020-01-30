@@ -9,38 +9,115 @@ from habanero import Crossref
 from habanero import cn
 import json
 
+import datetime
+
 cr = Crossref()
 
 def similar(a, b):
     return SequenceMatcher(None, a,b).ratio()
 
-def add_articles(input_file):
+def add_articles(con, input_file):
     catalysis_articles = {}
     fieldnames=[]
+    date_stamp = datetime.datetime.now().date().strftime('%Y%m%d')
     with open(input_file, newline='') as csvfile:
         reader = csv.DictReader(csvfile)
         for row in reader:
             if fieldnames==[]:
                 fieldnames=list(row.keys())
-            catalysis_articles[int(row['NumUKCH'])]=row
-        for new_art_id in catalysis_articles.keys():
-            art_doi = catalysis_articles[new_art_id]['DOI']
-            title = con.execute(
-                 "SELECT title from Articles where DOI='%s'" % art_doi).fetchone( )
-            if str(type(title)) != "<class 'NoneType'>" and len(title) > 0:
-                 print("Found:", title[0])
-            else:
-                print("Not Found:", art_doi)
-                print("inserting")
-                # build column list
-                columns = str(tuple(catalysis_articles[new_art_id].keys())).replace("'", "")
-                values = str(tuple(catalysis_articles[new_art_id].values()))
-                ins = con.execute(
-                 "INSERT INTO Articles %s VALUES  %s " % (columns, values)).fetchone( )
+            catalysis_articles[int(row['id'])]=row
+    for new_art_id in catalysis_articles.keys():
+        art_doi = catalysis_articles[new_art_id]['doi']
+        title = con.execute(
+             "SELECT title from Articles where DOI='%s'" % art_doi).fetchone( )
+        top_id = con.execute(
+             "SELECT MAX(id) from Articles").fetchone( )[0]
+        if str(type(title)) != "<class 'NoneType'>" and len(title) > 0:
+             print("Found:", title[0])
+        else:
+            print("Not Found:", art_doi)
+            print("inserting")
+            # build column list
+            csv_id = catalysis_articles[new_art_id]['id']
+            catalysis_articles[new_art_id]['id'] = int(top_id) + 1
+            catalysis_articles[new_art_id]['action'] = "added " + date_stamp 
+            columns = str(tuple(catalysis_articles[new_art_id].keys())).replace("'", "")
+            values = str(tuple(catalysis_articles[new_art_id].values()))
+            ins = con.execute(
+             "INSERT INTO Articles %s VALUES  %s " % (columns, values)).fetchone( )
+            catalysis_articles[new_art_id]['csv_id'] = csv_id
         con.commit()
+    write_csv(catalysis_articles, input_file)
 
-def add_authors(author, fieldnames):
-        aut_id = author['ID']
+
+def add_csv_authors(con, author_file, link_file, affi_link_file = "", affis_file = ""):
+    # Select all authors from author update,
+    # look up in article link
+    # if article added then
+    #    look up in authors,
+    #    if found then get ID for creating Author-Article Link
+    #    if not found then add author and create Author-Article Link
+    new_authors, author_fields = get_data(author_file, "id")
+    new_links, link_fields = get_data(link_file, "author_id")
+    if affi_link_file != "":
+        new_affi_links, affi_link_fields = get_data(affi_link_file, "id")
+    else:
+        new_affi_links = affi_link_fields = None
+    if affis_file != "":
+        new_affis, affi_fields = get_data(affis_file, "id")
+    else:
+        new_affis = affi_fields = None
+    i_found = 0
+    i_not_found = 0
+    date_stamp = datetime.datetime.now().date().strftime('%Y%m%d')
+    for na_index in new_authors:
+        new_author = new_authors[na_index]
+        # LookUp by ORCID
+        author_ID = 0
+        na_ORCID = new_author["orcid"]
+        na_fullname = new_author['last_name'] + ", " + new_author['given_name']
+        na_name = new_author['given_name']
+        na_lastname = new_author['last_name']
+        na_num = new_author['id']
+        na_sequence = new_author['sequence']
+        # Lookup Authors and if needed add
+        author_ID = get_author_id(con, na_fullname,na_name,na_lastname,na_ORCID)
+        top_id = get_max_id(con,"authors")[0]
+        if author_ID == -1:
+            i_not_found += 1
+            print("Not Found", i_not_found, new_author)
+            top_id += 1
+            author_ID = top_id
+            # Need to add to the DB, before creating article-author-link
+            new_author = {'full_name':na_fullname, "last_name":na_lastname, "given_name":na_name, "orcid":na_ORCID, "articles":0, 'id':author_ID}
+            author_fields = ['full_name', "last_name", "given_name", "orcid", "articles","id"]
+            add_authors(con, new_author, author_fields)
+            print('ADDED AUTHOR:', author_ID)
+        else:
+            i_found += 1
+            print("Found", i_found, new_author)
+            # no need to add, just create article-author-link
+        # create author link
+        new_author['db_id']=author_ID
+        max_id = get_max_id(con, "article_author_links")
+        for link in new_links:
+            if new_links[link]["author_id"] == na_num: 
+                new_link = {'doi':new_links[link]["doi"], "author_id":author_ID,
+                            "author_count":new_links[link]["count"], "author_order":new_links[link]["order"], "status":"Added"+date_stamp,
+                            'sequence':na_sequence, "id":str(max_id[0] + 1)}
+                add_links(con, new_link)
+        if new_affi_links != None:
+            print("Adding Affiliations")
+            
+        
+    write_csv(new_authors, author_file[:-4]+"1.csv")
+    write_csv(new_links, link_file[:-4]+"1.csv")
+
+
+
+
+def add_authors(con, author, fieldnames):
+        aut_id = author['id']
         print("adding:", aut_id)
         # build column list
         columns = str(tuple(author.keys())).replace("'", "")
@@ -50,11 +127,11 @@ def add_authors(author, fieldnames):
         con.commit()
         print("Author Added", ins)
 
-def add_links(art_aut_link):
-    art_doi = art_aut_link['DOI']
-    aut_id = art_aut_link['mergedANum']
+def add_links(con, art_aut_link):
+    art_doi = art_aut_link['doi']
+    aut_id = art_aut_link['author_id']
     link_doi = con.execute(
-         "SELECT DOI from Article_Author_Link where DOI='%s' and mergedANum = '%s'" % (art_doi, aut_id)).fetchone( )
+         "SELECT DOI from Article_Author_Links where doi='%s' and author_id = '%s'" % (art_doi, aut_id)).fetchone( )
     if str(type(link_doi)) != "<class 'NoneType'>" and len(link_doi) > 0:
          print("Found:", link_doi[0])
     else:
@@ -63,7 +140,7 @@ def add_links(art_aut_link):
         columns = str(tuple(art_aut_link.keys())).replace("'", "")
         values = str(tuple(art_aut_link.values()))
         ins = con.execute(
-            "INSERT INTO Article_Author_Link %s VALUES  %s " % (columns, values)).fetchone( )
+            "INSERT INTO Article_Author_Links %s VALUES  %s " % (columns, values)).fetchone( )
         con.commit()
 
 
@@ -78,27 +155,31 @@ def get_data(input_file, id_field):
             csv_data[int(row[id_field])]=row
     return csv_data, fieldnames
 
-def get_max_aut_id():
-    db_author = con.execute("SELECT MAX(ID) FROM Authors").fetchone( )
+def get_max_id(con, table_name):
+    max_id = con.execute("SELECT MAX(id) FROM "+ table_name).fetchone( )
+    return max_id
+
+def get_max_aut_id(con):
+    db_author = con.execute("SELECT MAX(id) FROM Authors").fetchone( )
     return db_author[0]
 
-def get_author_id(fullname, givenname, lastname, ORCID = ""):
+def get_author_id(con, fullname, givenname, lastname, ORCID = ""):
     id = -1
     db_author = con.execute(
-        "SELECT * FROM Authors WHERE fullName='%s'" % fullname.replace("'","''")).fetchone( )
+        "SELECT * FROM Authors WHERE full_name='%s'" % fullname.replace("'","''")).fetchone( )
     #print("FULL MATCH",a_full, a_id, db_author)
     if not db_author is None:
         id = db_author[5]
     elif db_author is None and ORCID != '':
         db_author = con.execute(
-            "SELECT * FROM Authors WHERE ORCID = '%s'" % ORCID).fetchone( )
+            "SELECT * FROM Authors WHERE orcid = '%s'" % ORCID).fetchone( )
         if not db_author is None:
             print("ORCID MATCH:", db_author, fullname, ORCID, db_author[3])
             id = db_author[5]  
     else:
     # try to match by last name using similarity
         db_authors = con.execute(
-            "SELECT * FROM Authors WHERE LastName LIKE '"+"%"+ lastname.replace("'","''")+"%"+"'").fetchall( )
+            "SELECT * FROM Authors WHERE last_name LIKE '"+"%"+ lastname.replace("'","''")+"%"+"'").fetchall( )
         if not db_authors is None:
             for db_author in db_authors:
                 similarity = similar(fullname, db_author[0])
@@ -129,7 +210,7 @@ def get_author_id(fullname, givenname, lastname, ORCID = ""):
                 
     if id == -1:
         db_authors = con.execute(
-            "SELECT * FROM Authors WHERE GivenName LIKE '"+"%"+ givenname.replace("'","''")+"%"+"'").fetchall( )
+            "SELECT * FROM Authors WHERE given_name LIKE '"+"%"+ givenname.replace("'","''")+"%"+"'").fetchall( )
         if not db_authors is None:
             for db_author in db_authors:
                 similarity = similar(fullname, db_author[0])
@@ -893,93 +974,93 @@ def split_affiliations(db_con, auth_file, link_file):
     entries_processed = {}
     # first pass split multiple affiliations
     # go trough all authors, and if multiple split, replace record with new affiliation and add a new affiliation for author
-##    additional_aut_records = {}
-##    for a_num in auth_records:
-##        if auth_records[a_num]['affiliations'] != "":
-##            auth_records[a_num]['affiliations'] = remove_breaks(auth_records[a_num]['affiliations'])
-##            auth_records[a_num]['affiliations'] = remove_last_bar(auth_records[a_num]['affiliations'])
-##            affiliations = count_affiliations(auth_records[a_num]['affiliations'])
-##            print("***********************************************************")
-##            print("Affiliations", affiliations, auth_records[a_num]['affiliations'])
-##            #ask is single or multiple affiliations
-##            answer = sinlge = False
-##            if affiliations > 1:
-##                # ask if number of  affiliation is correct
-##                while answer == False:
-##                    print("a - multiple affiliations")
-##                    print("b - single affiliation")
-##                    print("Selection:")
-##                    usr_select = input()
-##                    affi_entry = auth_records[a_num]['affiliations']
-##                    if usr_select == 'a':
-##                        affiliations = split_mto_affiliation(affi_entry, assigned_list, entries_processed, affi_num, a_num)
-##                        print(affiliations)
-##                        index_affis = 0
-##                        for index_affis in range(0, len(affiliations)):
-##                            if index_affis == 0:
-##                                auth_records[a_num]['affiliations'] = affiliations[index_affis]
-##                            else:
-##                                new_id = len(additional_aut_records) + len(auth_records)+1
-##                                additional_aut_records[new_id] = auth_records[a_num].copy()
-##                                additional_aut_records[new_id]['affiliations'] = affiliations[index_affis]
-##                        answer = True
-##                    if usr_select == 'b':
-##                        # convert to single by replacing separtor for ;
-##                        auth_records[a_num]['affiliations'] = affi_entry.replace("|", ";")
-##                        print(auth_records[a_num]['affiliations'])
-##                        answer = True
-##    
-##    
-##    print(additional_aut_records)
-##    auth_records.update(additional_aut_records)
-##    write_csv(auth_records, "test01.csv")
-##    auth_records, auth_fields = get_data("test01.csv","id")
-##    
-##    print(len(auth_records),auth_records[len(auth_records)])
-##    # second pass look up in DB for similars use full text
-##    sql_query = "SELECT affiliations.id, affiliation_addresses.id, trim( affiliations.department ||' '||" + \
-##                " affiliations.institution ||' '|| affiliations.faculty ||' '||"+ \
-##                " affiliations.work_group) AS affi_str, trim(affiliation_addresses.add_01 ||' '||"+ \
-##                " affiliation_addresses.add_02  ||' '|| affiliation_addresses.add_03  ||' '||" + \
-##                " affiliation_addresses.add_04) ||' '|| affiliation_addresses.country AS add_str"+ \
-##                " FROM affiliations INNER JOIN affiliation_addresses "+ \
-##                " ON affiliations.id = affiliation_addresses.affiliation_id "
-##    
-##    
-##    db_affis = db_con.execute(sql_query).fetchall()
-##    for a_num in auth_records:
-##        auth_records[a_num]['affiliation_id'] =  0
-##        auth_records[a_num]['address_id'] = 0
-##        if auth_records[a_num]['affiliations'] != "":
-##            i_index = 0
-##            selected = 0
-##            selected_score = 0
-##            print(auth_records[a_num])
-##            affi_entry = auth_records[a_num]['affiliations']
-##            for affi in db_affis:
-##                #print(affi, new_affi)
-##                similarity = similar(affi_entry.lower(), (affi[2]+" " +affi[3]).lower())
-##                if similarity > 0.0:
-##                    if similarity > selected_score:
-##                        selected = i_index
-##                        selected_score = similarity
-##                i_index += 1
-##            if selected_score > 0:
-##                print("Found similar in DB")
-##                print(db_affis[selected], selected_score)
-##                print(db_affis[selected][0], db_affis[selected][1], db_affis[selected][2]+" " +db_affis[selected][3], selected_score)
-##                user_opt = ""
-##                while True:
-##                    print('Options:\n a) use\n b) skip\n selection:')
-##                    user_opt = input()
-##                    if user_opt in ['a', 'b']:
-##                        break
-##                if user_opt == 'a':
-##                    auth_records[a_num]['affiliation_id'] = db_affis[selected][0]
-##                    auth_records[a_num]['address_id'] = db_affis[selected][1]
-##                    #print(db_affis[selected][0]), int(db_affis[selected][1])
-##            affi_num = a_num
-##    write_csv(auth_records, "test02.csv")
+    additional_aut_records = {}
+    for a_num in auth_records:
+        if auth_records[a_num]['affiliations'] != "":
+            auth_records[a_num]['affiliations'] = remove_breaks(auth_records[a_num]['affiliations'])
+            auth_records[a_num]['affiliations'] = remove_last_bar(auth_records[a_num]['affiliations'])
+            affiliations = count_affiliations(auth_records[a_num]['affiliations'])
+            print("***********************************************************")
+            print("Affiliations", affiliations, auth_records[a_num]['affiliations'])
+            #ask is single or multiple affiliations
+            answer = sinlge = False
+            if affiliations > 1:
+                # ask if number of  affiliation is correct
+                while answer == False:
+                    print("a - multiple affiliations")
+                    print("b - single affiliation")
+                    print("Selection:")
+                    usr_select = input()
+                    affi_entry = auth_records[a_num]['affiliations']
+                    if usr_select == 'a':
+                        affiliations = split_mto_affiliation(affi_entry, assigned_list, entries_processed, affi_num, a_num)
+                        print(affiliations)
+                        index_affis = 0
+                        for index_affis in range(0, len(affiliations)):
+                            if index_affis == 0:
+                                auth_records[a_num]['affiliations'] = affiliations[index_affis]
+                            else:
+                                new_id = len(additional_aut_records) + len(auth_records)+1
+                                additional_aut_records[new_id] = auth_records[a_num].copy()
+                                additional_aut_records[new_id]['affiliations'] = affiliations[index_affis]
+                        answer = True
+                    if usr_select == 'b':
+                        # convert to single by replacing separtor for ;
+                        auth_records[a_num]['affiliations'] = affi_entry.replace("|", ";")
+                        print(auth_records[a_num]['affiliations'])
+                        answer = True
+    
+    
+    print(additional_aut_records)
+    auth_records.update(additional_aut_records)
+    write_csv(auth_records, "test01.csv")
+    auth_records, auth_fields = get_data("test01.csv","id")
+    
+    print(len(auth_records),auth_records[len(auth_records)])
+    # second pass look up in DB for similars use full text
+    sql_query = "SELECT affiliations.id, affiliation_addresses.id, trim( affiliations.department ||' '||" + \
+                " affiliations.institution ||' '|| affiliations.faculty ||' '||"+ \
+                " affiliations.work_group) AS affi_str, trim(affiliation_addresses.add_01 ||' '||"+ \
+                " affiliation_addresses.add_02  ||' '|| affiliation_addresses.add_03  ||' '||" + \
+                " affiliation_addresses.add_04) ||' '|| affiliation_addresses.country AS add_str"+ \
+                " FROM affiliations INNER JOIN affiliation_addresses "+ \
+                " ON affiliations.id = affiliation_addresses.affiliation_id "
+    
+    
+    db_affis = db_con.execute(sql_query).fetchall()
+    for a_num in auth_records:
+        auth_records[a_num]['affiliation_id'] =  0
+        auth_records[a_num]['address_id'] = 0
+        if auth_records[a_num]['affiliations'] != "":
+            i_index = 0
+            selected = 0
+            selected_score = 0
+            print(auth_records[a_num])
+            affi_entry = auth_records[a_num]['affiliations']
+            for affi in db_affis:
+                #print(affi, new_affi)
+                similarity = similar(affi_entry.lower(), (affi[2]+" " +affi[3]).lower())
+                if similarity > 0.0:
+                    if similarity > selected_score:
+                        selected = i_index
+                        selected_score = similarity
+                i_index += 1
+            if selected_score > 0:
+                print("Found similar in DB")
+                print(db_affis[selected], selected_score)
+                print(db_affis[selected][0], db_affis[selected][1], db_affis[selected][2]+" " +db_affis[selected][3], selected_score)
+                user_opt = ""
+                while True:
+                    print('Options:\n a) use\n b) skip\n selection:')
+                    user_opt = input()
+                    if user_opt in ['a', 'b']:
+                        break
+                if user_opt == 'a':
+                    auth_records[a_num]['affiliation_id'] = db_affis[selected][0]
+                    auth_records[a_num]['address_id'] = db_affis[selected][1]
+                    #print(db_affis[selected][0]), int(db_affis[selected][1])
+            affi_num = a_num
+    write_csv(auth_records, "test02.csv")
 
     auth_records, auth_fields = get_data("test02.csv","id")
     for indexer in range(1, affi_num):
@@ -997,11 +1078,6 @@ def split_affiliations(db_con, auth_file, link_file):
     print(entries_processed)
     write_csv(assigned_list, "new_affiliations.csv")
     write_csv(auth_records, "test03.csv")
-    #write_csv(entries_processed, "affiliation_emn.csv")
-    
-    
-
-    #print("Countries:", countries_list,"\nInstitutions:", institutions_list,"\nDepartments:", department_list,"\nFaculties", faculty_list,"\nGroups:", group_list)        
     
 dbname = 'ukch_articles.sqlite'
 db_con = sqlite.connect(dbname)
@@ -1048,10 +1124,15 @@ faculty_list = get_value_list(db_con, "Affiliations","faculty")
 # get research group list from affiliations table
 group_list = get_value_list(db_con, "Affiliations", "work_group")
 address_list = []
-affiliations = split_affiliations(db_con, auts_file, link_file)
+#affiliations = split_affiliations(db_con, auts_file, link_file)
+
+#add articles, authors article-author links and affiliations to the DB
+add_articles(db_con, arts_file)
+add_csv_authors(db_con, auts_file, link_file,"test03.csv","new_affiliations.csv")
 
 #add_new_articles(db_con, arts_file)
 #add_new_authors()
+#add_new_affiliations()
 #add_affiliation_author_link(db_con)
 #verify_addresses(db_con)
 #verify_themes(db_con)
