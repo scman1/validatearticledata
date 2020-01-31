@@ -1,3 +1,7 @@
+# code duplication, need to streamline/refactor
+# separate into classes
+# create methods and properties
+
 import csv
 import string
 from sqlite3 import dbapi2 as sqlite
@@ -65,6 +69,8 @@ def add_csv_authors(con, author_file, link_file, affi_link_file = "", affis_file
         new_affi_links = affi_link_fields = None
     if affis_file != "":
         new_affis, affi_fields = get_data(affis_file, "id")
+        add_csv_affiliations(con, affis_file)
+        new_affis, affi_fields = get_data(affis_file[:-4]+"1.csv", "id")
     else:
         new_affis = affi_fields = None
     i_found = 0
@@ -82,7 +88,7 @@ def add_csv_authors(con, author_file, link_file, affi_link_file = "", affis_file
         na_sequence = new_author['sequence']
         # Lookup Authors and if needed add
         author_ID = get_author_id(con, na_fullname,na_name,na_lastname,na_ORCID)
-        top_id = get_max_id(con,"authors")[0]
+        top_id = get_max_id(con,"authors")
         if author_ID == -1:
             i_not_found += 1
             print("Not Found", i_not_found, new_author)
@@ -100,20 +106,39 @@ def add_csv_authors(con, author_file, link_file, affi_link_file = "", affis_file
         # create author link
         new_author['db_id']=author_ID
         max_id = get_max_id(con, "article_author_links")
+        link_doi = ""
         for link in new_links:
-            if new_links[link]["author_id"] == na_num: 
+            if new_links[link]["author_id"] == na_num:
+                link_doi = new_links[link]["doi"]
                 new_link = {'doi':new_links[link]["doi"], "author_id":author_ID,
-                            "author_count":new_links[link]["count"], "author_order":new_links[link]["order"], "status":"Added"+date_stamp,
-                            'sequence':na_sequence, "id":str(max_id[0] + 1)}
+                            "author_count":new_links[link]["count"],
+                            "author_order":new_links[link]["order"],
+                            "status":"Added"+date_stamp,
+                            "sequence":na_sequence, "id":str(max_id + 1)}
                 add_links(con, new_link)
         if new_affi_links != None:
             print("Adding Affiliations")
-            
+            for affi_link_id in new_affi_links:
+                new_affi_link =  new_affi_links[affi_link_id]
+                #print(new_affi_link)
+                if new_affi_link['AuthorNum'] == na_num:
+                    new_affi_link_id = get_max_id(con, "affiliation_links")+1
+                    na_link ={'id':new_affi_link_id, 'doi':link_doi,
+                                        "author_id":author_ID,"sequence":na_sequence}
+                    if new_affi_link['affiliation_id']!='0':
+                        na_link["affiliation_id"] = new_affi_link['affiliation_id']
+                        na_link["address_id"] = new_affi_link['address_id']
+                    else:
+                        #need to lookup ids assigned to new affiliaition
+                        for na_id in new_affis:
+                            if new_affis[na_id]['id'] == new_affi_link['new_afi_id']:
+                                na_link["affiliation_id"] = new_affis[na_id]['db_id']
+                                na_link["address_id"] = new_affis[na_id]['address_id']
+                    add_affi_links(con, na_link)        
+                        
         
     write_csv(new_authors, author_file[:-4]+"1.csv")
     write_csv(new_links, link_file[:-4]+"1.csv")
-
-
 
 
 def add_authors(con, author, fieldnames):
@@ -130,8 +155,9 @@ def add_authors(con, author, fieldnames):
 def add_links(con, art_aut_link):
     art_doi = art_aut_link['doi']
     aut_id = art_aut_link['author_id']
+    affi_id = art_aut_link['affiliation_id']
     link_doi = con.execute(
-         "SELECT DOI from Article_Author_Links where doi='%s' and author_id = '%s'" % (art_doi, aut_id)).fetchone( )
+         "SELECT DOI from Article_author_Links where doi='%s' and author_id = '%s'" % (art_doi, aut_id)).fetchone( )
     if str(type(link_doi)) != "<class 'NoneType'>" and len(link_doi) > 0:
          print("Found:", link_doi[0])
     else:
@@ -142,6 +168,103 @@ def add_links(con, art_aut_link):
         ins = con.execute(
             "INSERT INTO Article_Author_Links %s VALUES  %s " % (columns, values)).fetchone( )
         con.commit()
+
+def add_affi_links(con, affi_link):
+    art_doi = affi_link['doi']
+    aut_id = affi_link['author_id']
+    link_doi = con.execute(
+         "SELECT DOI from affiliation_Links where doi='%s' and author_id = '%s' and affiliation_id = '%s'" % (art_doi, aut_id, affi_id)).fetchone( )
+    if str(type(link_doi)) != "<class 'NoneType'>" and len(link_doi) > 0:
+         print("Found:", link_doi[0])
+    else:
+        print("Not Found:", art_doi, "inserting", affi_link)
+        # build column list
+        columns = str(tuple(affi_link.keys())).replace("'", "")
+        values = str(tuple(affi_link.values()))
+        ins = con.execute(
+            "INSERT INTO affiliation_links %s VALUES  %s " % (columns, values)).fetchone( )
+        con.commit()
+
+def add_affiliation(con, affiliation):
+        print("adding:", affiliation)
+        # build column list
+        columns = str(tuple(affiliation.keys())).replace("'", "")
+        values = str(tuple(affiliation.values()))
+        con.execute(
+            "INSERT INTO affiliations %s VALUES  %s " % (columns, values)).fetchone( )
+        con.commit()
+        
+def add_address(con, address):
+        print("adding:", address)
+        # build column list
+        columns = str(tuple(address.keys())).replace("'", "")
+        values = str(tuple(address.values()))
+        con.execute(
+            "INSERT INTO affiliation_addresses %s VALUES  %s " % (columns, values)).fetchone( )
+        con.commit()
+        
+def add_csv_affiliations(con, affis_file):
+    # Need to add affiliation before authors
+    # becuase need the DB affiliation ids
+    # for the links to authors and publications
+    
+    # look up in article link
+    # if article added then
+    #    look up in authors,
+    #    if found then get ID for creating Author-Article Link
+    #    if not found then add author and create Author-Article Link
+
+    # open the affiliation file
+    if affis_file != "":
+        new_affis, affi_fields = get_data(affis_file, "id")
+    else:
+        new_affis = affi_fields = None
+    i_found = 0
+    i_not_found = 0
+    date_stamp = datetime.datetime.now().date().strftime('%Y%m%d')
+    processed = {}
+    counter = 1
+    keys = {}
+    for afi_index in new_affis:
+        new_affi = new_affis[afi_index]
+        str_affi = ",".join(list(new_affi.values())[2:])
+        #print(str_affi)
+        if not str_affi in processed.values():
+            affi_id = get_max_id(con, 'affiliations') + 1
+            add_id = get_max_id(con, 'affiliation_addresses') + 1
+            processed[counter] = str_affi
+            counter +=1
+            affiliation = {'id':affi_id, 'institution':new_affi['Institution'], 'department':new_affi['Department'],
+                           'faculty':new_affi['Faculty'],
+                           'work_group':new_affi['ResearchGroup'],
+                           'country':new_affi['Country']}
+            address = {'id':add_id,'country':new_affi['Country'],'affiliation_id':affi_id}
+            if new_affi['Address'] != '':
+                address['add_01'] = new_affi['Address']
+            elif new_affi['City'] != '':
+                address['add_01'] = new_affi['City']
+            else:
+                address['add_01'] = new_affi['Address']
+                address['add_02'] = new_affi['City']
+                
+            print('New Affiliation:', affiliation)
+            #add affiliation to db
+            add_affiliation(con, affiliation)
+            print('New Address:', address)
+            # add address to db
+            add_address(con, address)
+            new_affi['db_id'] = affi_id
+            new_affi['address_id'] = add_id
+            keys[str_affi] = [affi_id, add_id]
+
+        else:
+            new_affi['db_id'] = keys[str_affi][0]
+            new_affi['address_id'] = keys[str_affi][1]
+            
+    # write back to csv with new keys
+    for afi_index in new_affis:
+        print(new_affis[afi_index])
+    write_csv(new_affis, affis_file[:-4]+"1.csv")    
 
 
 def get_data(input_file, id_field):
@@ -157,7 +280,7 @@ def get_data(input_file, id_field):
 
 def get_max_id(con, table_name):
     max_id = con.execute("SELECT MAX(id) FROM "+ table_name).fetchone( )
-    return max_id
+    return max_id[0]
 
 def get_max_aut_id(con):
     db_author = con.execute("SELECT MAX(id) FROM Authors").fetchone( )
@@ -1132,7 +1255,6 @@ add_csv_authors(db_con, auts_file, link_file,"test03.csv","new_affiliations.csv"
 
 #add_new_articles(db_con, arts_file)
 #add_new_authors()
-#add_new_affiliations()
 #add_affiliation_author_link(db_con)
 #verify_addresses(db_con)
 #verify_themes(db_con)
