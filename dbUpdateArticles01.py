@@ -20,6 +20,27 @@ cr = Crossref()
 def similar(a, b):
     return SequenceMatcher(None, a,b).ratio()
 
+
+def getHTMLPage(url):
+    soup = None
+    try:
+        req_head = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.113 Safari/537.36'}
+        response = requests.get(url, headers = req_head)
+        soup = BeautifulSoup(response.text,'html.parser')
+    except Exception as e:
+        print(e)
+    return soup
+
+def getParagraphs(soup):
+    result = []
+    try:
+        for para in soup.find_all('p'):
+            result.append(para)
+    except Exception as e:
+        print(e)
+    return result
+
+
 def add_articles(con, input_file):
     catalysis_articles = {}
     fieldnames=[]
@@ -604,7 +625,32 @@ def insert_record(db_con, new_record, table):
     ins = db_con.execute(
             "INSERT INTO %s %s VALUES  %s " % (table, columns, values)).fetchone( )
     db_con.commit()
+        
 
+def map_themes(db_con, input_file, output_file):
+    site_articles, article_fileds = get_data(input_file, "Num")
+    i_counter = 0
+    for pub_url in pub_urls:
+        print(pub_url, pub_urls.index(pub_url))
+        group_index = pub_urls.index(pub_url)
+        parsed_page = getHTMLPage(pub_url)
+        list_of_paragraphs = getParagraphs(parsed_page)
+        for num in site_articles:
+            if not 'Themes' in site_articles[num].keys():
+                site_articles[num]['Themes']=""
+            #print(site_articles[num]['Title'])
+            str_title = site_articles[num]['Title']
+            for x in list_of_paragraphs:
+                #print(x)
+                if str_title in str(x):
+                    if site_articles[num]['Themes'] == "":
+                        site_articles[num]['Themes'] =  str(group_index)
+                    else: 
+                        site_articles[num]['Themes'] +=  "," +str(group_index)
+                    
+    write_csv(site_articles, output_file)
+    
+    
 
 def verify_themes(db_con):
     article_list = db_con.execute(
@@ -1325,7 +1371,14 @@ address_list = []
 #add articles, authors article-author links and affiliations to the DB
 #add_articles(db_con, arts_file)
 #add_csv_authors(db_con, auts_file, link_file,"test03.csv","new_affiliations.csv")
-add_address_id_to_affi_link(db_con)
+#add_address_id_to_affi_link(db_con)
+
+# Map DOIS to themes and mark articles not in website
+input_file = "UKCH202001f.csv"
+output_file = "UKCH202001g.csv"
+map_themes(db_con, input_file, output_file)
+
+
 
 
 #add_new_articles(db_con, arts_file)
