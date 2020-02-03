@@ -468,6 +468,79 @@ def add_affiliation_author_link(db_con):
     db_con.commit()
     print("Found:", i_found, "Not Found:", i_not_found)
 
+
+def add_address_id_to_affi_link(db_con):
+    # Lookup Affiliation link in affiliations and add affiliation address ids
+    # 
+    # records from affiliation links whith no address_id
+    affi_links = \
+                    db_con.execute(
+                        "SELECT id, affiliation_id FROM affiliation_links WHERE address_id is null ").fetchall( )
+    # records from address linked to only one affilition
+    one_add_affis = \
+                    db_con.execute(
+                        "SELECT affiliation_addresses.id, affiliation_addresses.affiliation_id FROM affiliation_addresses group by affiliation_addresses.affiliation_id HAVING count() = 1").fetchall( )
+    temp = {}
+    for affi_id in one_add_affis:
+        temp[affi_id[1]] = affi_id[0]
+    one_add_affis = temp
+    # records from address linked to only one affilition
+    many_add_affis = db_con.execute(
+                        "SELECT affiliation_addresses.id, affiliation_addresses.affiliation_id FROM affiliation_addresses group by affiliation_addresses.affiliation_id HAVING count() > 1").fetchall( )
+    temp = {}
+    for affi_id in many_add_affis:
+        temp[affi_id[1]] = affi_id[0]
+    many_add_affis = temp
+    # records  from temp affilitions table with original affiliation string
+    affi_strings = db_con.execute(
+                        "SELECT AffiLinkID, UniqueID, affiliations FROM Affiliation_Links20191218").fetchall( )
+    
+    i_found = 0
+    i_not_found = 0
+    for link_id_affi in affi_links:
+        link_id = link_id_affi[0]
+        affi_id = link_id_affi[1]
+        #verify if affiliation has unique address registered
+        if affi_id in one_add_affis.keys():
+            # set the address to the unique address in DB
+            add_id = one_add_affis[affi_id]
+            db_con.execute("UPDATE affiliation_links SET address_id = '%s' WHERE id = '%s'" %(add_id, link_id)).fetchone( )
+            db_con.commit()
+        else:
+            #get all addresses for affi
+            address_for_affi = db_con.execute(
+                        "SELECT id, add_01, add_02, add_03, add_04, affiliation_id FROM affiliation_addresses WHERE affiliation_id = '%s'"% affi_id).fetchall( )
+            #get the original string for affi
+            affi_string = db_con.execute(
+                        "SELECT affiliations FROM Affiliation_Links20191218 WHERE AffiLinkID = '%s'" % link_id).fetchone( )[0]
+            #print("AFFILIATION:", affi_string)
+            likely = 0
+            likely_count = 0
+            max_likely = 0
+            for address in address_for_affi:
+                add_id = address[0]
+                add_01 = address[1]
+                add_02 = address[2]
+                add_03 = address[3]
+                add_04 = address[4]
+                #print (address)
+                if add_01 != "" and add_01 in affi_string:
+                    likely_count +=1
+                if add_02 != "" and add_02 in affi_string:
+                    likely_count +=1
+                if add_03 != "" and add_03 in affi_string:
+                    likely_count +=1
+                if add_04 != "" and add_04 in affi_string:
+                    likely_count +=1
+                if likely_count > max_likely:
+                    max_likely = likely_count
+                    likely = add_id
+                likely_count = 0      
+            if likely != 0:
+                #print (likely)
+                db_con.execute("UPDATE affiliation_links SET address_id = '%s' WHERE id = '%s'" %(likely, link_id)).fetchone( )
+                db_con.commit()
+            
 def verify_addresses(db_con):
     # Lookup Affiliation link affiliations and affiliation address
     # 
@@ -1250,8 +1323,10 @@ address_list = []
 #affiliations = split_affiliations(db_con, auts_file, link_file)
 
 #add articles, authors article-author links and affiliations to the DB
-add_articles(db_con, arts_file)
-add_csv_authors(db_con, auts_file, link_file,"test03.csv","new_affiliations.csv")
+#add_articles(db_con, arts_file)
+#add_csv_authors(db_con, auts_file, link_file,"test03.csv","new_affiliations.csv")
+add_address_id_to_affi_link(db_con)
+
 
 #add_new_articles(db_con, arts_file)
 #add_new_authors()
