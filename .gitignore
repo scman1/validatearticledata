@@ -6,3 +6,5 @@
 *.txt
 *.html
 *.odt
+*.json
+.ipynb_checkpoints/

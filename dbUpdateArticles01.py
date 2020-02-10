@@ -1330,53 +1330,53 @@ title = db_con.execute(
 # open update actions file
 arts_file = 'UKCH202001b.csv'
 
-input_file = "UKCH202001c.csv"
-output_file = "UKCH202001d.csv"
+input_file = "UKCH202001Missing.csv"
+output_file = "UKCH202001MissingA.csv"
 # Check if article in DB
-#check_articles_db(db_con, input_file, output_file)
+check_articles_db(db_con, input_file, output_file)
 
-# Get DOIS for articles not in DB
-input_file = "UKCH202001d.csv"
-output_file = "UKCH202001e.csv"
-#get_articles_doi(input_file, output_file)
-
-# Verify DOIS for articles not in DB
-input_file = "UKCH202001e.csv"
-output_file = "UKCH202001f.csv"
-#verify_articles_doi(input_file, output_file)
-
-input_file = "UKCH202001f.csv"
-# build the records ready to load into DB
-#buildDBfromJSON(input_file)
-
-arts_file = input_file[:-4]+"Articles.csv"
-auts_file = input_file[:-4]+"Authors.csv"
-link_file = input_file[:-4]+"ArtAutLink.csv"
-afi_file = "affiliations201912.csv"
-addr_file = "affiliations201912.csv"
-
-# get institutions list from affiliations table
-institutions_list = get_value_list(db_con, "Affiliations", "institution")
-# get coutries from affiliations table
-countries_list = get_value_list(db_con, "Affiliations","country")
-# get department list from affiliations table
-department_list = get_value_list(db_con, "Affiliations","department")
-# get faculty list from affiliations table
-faculty_list = get_value_list(db_con, "Affiliations","faculty")
-# get research group list from affiliations table
-group_list = get_value_list(db_con, "Affiliations", "work_group")
-address_list = []
-#affiliations = split_affiliations(db_con, auts_file, link_file)
-
-#add articles, authors article-author links and affiliations to the DB
-#add_articles(db_con, arts_file)
-#add_csv_authors(db_con, auts_file, link_file,"test03.csv","new_affiliations.csv")
-#add_address_id_to_affi_link(db_con)
-
-# Map DOIS to themes and mark articles not in website
-input_file = "UKCH202001f.csv"
-output_file = "UKCH202001g.csv"
-map_themes(db_con, input_file, output_file)
+### Get DOIS for articles not in DB
+##input_file = "UKCH202001d.csv"
+##output_file = "UKCH202001e.csv"
+###get_articles_doi(input_file, output_file)
+##
+### Verify DOIS for articles not in DB
+##input_file = "UKCH202001e.csv"
+##output_file = "UKCH202001f.csv"
+###verify_articles_doi(input_file, output_file)
+##
+##input_file = "UKCH202001f.csv"
+### build the records ready to load into DB
+###buildDBfromJSON(input_file)
+##
+##arts_file = input_file[:-4]+"Articles.csv"
+##auts_file = input_file[:-4]+"Authors.csv"
+##link_file = input_file[:-4]+"ArtAutLink.csv"
+##afi_file = "affiliations201912.csv"
+##addr_file = "affiliations201912.csv"
+##
+### get institutions list from affiliations table
+##institutions_list = get_value_list(db_con, "Affiliations", "institution")
+### get coutries from affiliations table
+##countries_list = get_value_list(db_con, "Affiliations","country")
+### get department list from affiliations table
+##department_list = get_value_list(db_con, "Affiliations","department")
+### get faculty list from affiliations table
+##faculty_list = get_value_list(db_con, "Affiliations","faculty")
+### get research group list from affiliations table
+##group_list = get_value_list(db_con, "Affiliations", "work_group")
+##address_list = []
+###affiliations = split_affiliations(db_con, auts_file, link_file)
+##
+###add articles, authors article-author links and affiliations to the DB
+###add_articles(db_con, arts_file)
+###add_csv_authors(db_con, auts_file, link_file,"test03.csv","new_affiliations.csv")
+###add_address_id_to_affi_link(db_con)
+##
+### Map DOIS to themes and mark articles not in website
+##input_file = "UKCH202001f.csv"
+##output_file = "UKCH202001g.csv"
+##map_themes(db_con, input_file, output_file)
 
 
 
