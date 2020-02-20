@@ -9,4 +9,4 @@
 *.json
 .ipynb_checkpoints/
 pop_searches
-
+lib/__pycache__
