@@ -35,12 +35,18 @@ article_authour_columns = ["DOI","AuthorNum"]
 for art_num in csv_articles:
     article_title = csv_articles[art_num]['Title']
     doi_text = csv_articles[art_num]['DOI']
+    
     while True:
+        try_n = 1
         article_data = cr_api.getBibData(doi_text)
-        print("****************************************************")
-        print(article_data)
         if article_data != {}:
             break
+        else:
+            
+            print("****************************************************")
+            print("retry", try_n, article_data)
+            try_n += 1
+            
     data_keys = list(article_data.keys())
     for key in data_keys:
         if not (key in article_columns) and \
