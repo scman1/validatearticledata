@@ -1,4 +1,7 @@
 from habanero import Crossref
+from habanero import cn
+import json
+
 import lib.text_comp as txtc
 
 cr = Crossref()
@@ -23,7 +26,6 @@ def getDOIForTitle(article_title):
 ##        print("closest match:", closest_title, "with DOI:", closest_doi)
 ##        print("use it?")
     return doi_text
-
 
 def getBibData(doi_text):
     try:
