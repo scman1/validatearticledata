@@ -39,6 +39,12 @@ class DataBaseAdapter:
         str_query = "SELECT %s FROM %s WHERE %s = '%s'" % (field, table, id_field, id_value)
         one_value = self.connection.execute(str_query).fetchone( )
         return one_value
+    
+    # get a values from the table using filter string
+    def get_values(self, table, field, filer_str):
+        str_query = "SELECT %s FROM %s WHERE %s" % (field, table, filer_str)
+        value_list = self.connection.execute(str_query).fetchall( )
+        return value_list
 
 
     def get_title(self, art_doi=""):

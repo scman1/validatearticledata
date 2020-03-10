@@ -3,7 +3,7 @@
 import lib.handle_csv as csvh
 # library for getting data from crossref
 import lib.crossref_api as cr_api
-import lib.handle_json as hnd_json
+import lib.handle_json as hjson
 
 
 input_file = "processed_csv/AddNewArticles202002.csv"
@@ -53,7 +53,7 @@ for art_num in csv_articles:
             new_row['NumUKCH'] = art_num
         else:
             if key in article_data.keys():
-                new_row[key] = hnd_json.jsonToPlainText(article_data[key])
+                new_row[key] = hjson.jsonToPlainText(article_data[key])
     print("*******************ARTICLE DATA*********************")
     print(new_row)
     
@@ -72,11 +72,28 @@ for art_num in csv_articles:
             new_author['ORCID'] = author['ORCID']
         else:
             new_author['ORCID'] = "None"
+        #here need to create affiliation links tables
         if 'affiliation'in author.keys():
             affiliations=""
             for affl in author['affiliation']:
                 affiliations += affl['name'] + "|"
             new_author['affiliations'] = affiliations
+            inspected = False
+            while not inspected:
+                #new_title = working_file[art_num]['Title']
+                print('Affiliation:', affiliations)
+                print('***************************************************************')
+                print("Options:\n\ta) single\n\tb) multiple")
+                print("selection:")
+                usr_select = input()
+                if usr_select == 'b':
+                    #working_file[art_num]['ignore']=3 # visual inspection
+                    inspected = True
+                    print("parse multiple")
+                elif usr_select == 'a':
+                    inspected = True
+                    prin("parse single")
+            
         cr_authors[aut_num] = new_author
         art_auth_link = len(cr_article_authour_link)+1
         new_art_auth_link={}
@@ -86,3 +103,14 @@ for art_num in csv_articles:
         
     print("********************AUTHOR DATA*********************")
     print(article_data['author'])
+
+    # write back to a new csv file
+    # create three files
+    arts_file = input_file[:-4]+"Articles.csv"
+    auts_file = input_file[:-4]+"Authors.csv"
+    link_file = input_file[:-4]+"ArtAutLink.csv"
+
+    csvh.write_csv_data(cr_articles, arts_file)
+    csvh.write_csv_data(cr_authors, auts_file)
+    csvh.write_csv_data(cr_article_authour_link, link_file)
+    
