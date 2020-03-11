@@ -3,8 +3,60 @@
 import lib.handle_csv as csvh
 # library for getting data from crossref
 import lib.crossref_api as cr_api
+# library for mapping json data
 import lib.handle_json as hjson
+# library for connecting to the db
+import lib.handle_db as dbh
 
+def get_afi_id(affiliation):
+    country_synonyms = {'UK':'United Kingdom','U.K.':'United Kingdom','G.B.':'United Kingdom', 
+                        "USA":"United States", "U.S.A.":"United States", "China":"P. R. China",
+                        "P.R.C.":"P. R. China"}
+    print (affiliation, len(affiliation))
+    inst_str = dept_str = faculty_str = group_str = ctry_str = ""
+    qry_where_str = ""
+    addr_list=[]
+    for indx in range(0, len(affiliation)):
+        checking_this = affiliation[indx]['name']
+        #print (affiliation[indx]['name'])
+        if checking_this in institutions_list:
+            inst_str = checking_this
+        elif checking_this in department_list:
+            dept_str = checking_this
+        elif checking_this in faculty_list:
+            faculty_str = checking_this
+        elif checking_this in group_list: 
+            group_str = checking_this
+        elif checking_this in countries_list:
+            ctry_str = checking_this
+        elif checking_this in country_synonyms:
+            ctry_str = country_synonyms[checking_this]
+        else:
+            addr_list.append(checking_this)
+    qry_where_str += "institution = '" + inst_str + "'"        
+    if dept_str != "":
+        qry_where_str += " AND department = '" + dept_str + "'"
+    if faculty_str != "":
+        qry_where_str += " AND faculty = '" + faculty_str + "'"
+    if group_str != "":
+        qry_where_str += " AND group = '" + group_str + "'"
+    if ctry_str != "":
+        qry_where_str += " AND country = '" + ctry_str + "'"
+    print ('Institution:', inst_str)
+    print ('Department:', dept_str)
+    print ('Faculty:', faculty_str)
+    print ('Group:', group_str)
+    print ('Country:', ctry_str) 
+    print ('Address',  addr_list)
+    print (qry_where_str)
+    result = db_conn.get_values("affiliations","id",qry_where_str)
+    if len(result) == 1 :
+        return result[0][0]
+    else:
+        # add new affiliation
+        result = add_new_affiliation(affiliation)
+
+db_conn = dbh.DataBaseAdapter('ukch_articles.sqlite')
 
 input_file = "processed_csv/AddNewArticles202002.csv"
 
@@ -19,6 +71,19 @@ author_columns = ["AuthorNum", "FirstName", "MiddleName", "LastName"]
 # list of article-author links
 cr_article_authour_link = {} # AuthorNum, DOI
 article_authour_columns = ["DOI","AuthorNum"]
+
+
+# get institutions list from affiliations table
+institutions_list = db_conn.get_value_list("Affiliations", "institution")
+# get coutries from affiliations table
+countries_list = db_conn.get_value_list("Affiliations","country")
+# get department list from affiliations table
+department_list = db_conn.get_value_list("Affiliations","department")
+# get faculty list from affiliations table
+faculty_list = db_conn.get_value_list("Affiliations","faculty")
+# get research group list from affiliations table
+group_list = db_conn.get_value_list("Affiliations", "work_group")
+
 
 for art_num in csv_articles:
     article_title = csv_articles[art_num]['Title']
@@ -81,6 +146,7 @@ for art_num in csv_articles:
             inspected = False
             while not inspected:
                 #new_title = working_file[art_num]['Title']
+                print('***************************************************************')
                 print('Affiliation:', affiliations)
                 print('***************************************************************')
                 print("Options:\n\ta) single\n\tb) multiple")
@@ -92,7 +158,9 @@ for art_num in csv_articles:
                     print("parse multiple")
                 elif usr_select == 'a':
                     inspected = True
-                    prin("parse single")
+                    print("parse single")
+                    id = get_afi_id(author['affiliation'])
+                    print("Found:",id)
             
         cr_authors[aut_num] = new_author
         art_auth_link = len(cr_article_authour_link)+1
