@@ -10,13 +10,6 @@ import lib.handle_json as hjson
 import lib.handle_db as dbh
 
 
-def add_affiliation(affiliation):
-    affiliation, address = split_and_assign(affiliation)
-    new_id = len(affi_records) + 1
-    affi_records[new_id] = affiliation
-    affi_records[new_id]["ID"] = new_id
-    return affi_records, new_id
-
 def db_split(affiliation):
     fields={'a':'institution', 'b':'country', 'c':'department','d':'faculty',
             'e':'work_group','f':'address'}
@@ -93,8 +86,27 @@ def db_split(affiliation):
             
             find_or_add(ins_str, dept_str, faculty_str, group_str, ctry_str, addr_list)
             
-def find_or_add(inst_str, dept_str, faculty_str, group_str, ctry_str, addr_list):
+def add_affi_to_db(inst_str, dept_str, faculty_str, group_str, ctry_str, addr_list,qry_where):
     ret_parsed = {}
+    ret_parsed['institution'] = inst_str
+    ret_parsed['department'] = dept_str
+    ret_parsed['faculty'] = faculty_str
+    ret_parsed['work_group'] = group_str
+    ret_parsed['country'] = ctry_str
+    print("** Will Add:", ret_parsed, " with address ", addr_list)
+    db_conn.put_values_table("affiliations", ret_parsed.keys(), ret_parsed.values())
+    result = db_conn.get_values("affiliations","id",qry_where)
+    affi_id = result[0][0]
+    print("Added:", result, len(result))
+    addr_str = "; ".join(addr_list)
+    affi_address = {'add_01':addr_str,"affiliation_id":affi_id,'country':ctry_str}
+    db_conn.put_values_table("affiliation_addresses", affi_address.keys(), affi_address.values())
+    add_id = db_conn.get_value("affiliation_addresses", "id", "affiliation_id", affi_id)[0]
+    print('affiliation id:', affi_id, " address id: ", add_id)
+    return affi_id, add_id
+
+
+def find_or_add(inst_str, dept_str, faculty_str, group_str, ctry_str, addr_list):
     qry_where = ""
     if inst_str != "":
         qry_where += "institution = '" + inst_str + "'"
@@ -116,20 +128,7 @@ def find_or_add(inst_str, dept_str, faculty_str, group_str, ctry_str, addr_list)
             return affi_id, add_id
         # not found, add new institution record
         else:
-            ret_parsed['institution'] = inst_str
-            ret_parsed['department'] = dept_str
-            ret_parsed['faculty'] = faculty_str
-            ret_parsed['work_group'] = group_str
-            ret_parsed['country'] = ctry_str
-            print("** Will Add:", ret_parsed, " with address ", addr_list)
-            db_conn.put_values_table("affiliations", ret_parsed.keys(), ret_parsed.values())
-            result = db_conn.get_values("affiliations","id",qry_where)
-            affi_id = result[0][0]
-            print("Added:", result, len(result))
-            affi_address = {'add_01':addr_list[0],"affiliation_id":affi_id,'country':ctry_str}
-            db_conn.put_values_table("affiliation_addresses", affi_address.keys(), affi_address.values())
-            add_id = db_conn.get_value("affiliation_addresses", "id", "affiliation_id", affi_id)[0]
-            print('affiliation id:', affi_id, " address id: ", add_id)
+            affi_id, add_id = add_affi_to_db(inst_str, dept_str, faculty_str, group_str, ctry_str, addr_list,qry_where)
             return affi_id, add_id
     return 0, 0
 
@@ -162,9 +161,11 @@ def get_afi_id(affiliation):
         checking_this = affiliation[indx]['name']
         #print (affiliation[indx]['name'])
         if checking_this in institutions_list:
-            inst_str = checking_this
+            if inst_str == "":
+                inst_str = checking_this
         elif checking_this in department_list:
-            dept_str = checking_this
+            if inst_str == "":
+                dept_str = checking_this
         elif checking_this in faculty_list:
             faculty_str = checking_this
         elif checking_this in group_list: 
@@ -178,14 +179,11 @@ def get_afi_id(affiliation):
         else:
             addr_list.append(checking_this)
     qry_where_str += "institution = '" + inst_str + "'"        
-    if dept_str != "":
-        qry_where_str += " AND department = '" + dept_str + "'"
-    if faculty_str != "":
-        qry_where_str += " AND faculty = '" + faculty_str + "'"
-    if group_str != "":
-        qry_where_str += " AND group = '" + group_str + "'"
-    if ctry_str != "":
-        qry_where_str += " AND country = '" + ctry_str + "'"
+    qry_where_str += " AND department = '" + dept_str + "'"
+    qry_where_str += " AND faculty = '" + faculty_str + "'"
+    qry_where_str += " AND work_group = '" + group_str + "'"
+    qry_where_str += " AND country = '" + ctry_str + "'"
+
     print ('Institution:', inst_str)
     print ('Department:', dept_str)
     print ('Faculty:', faculty_str)
@@ -194,11 +192,18 @@ def get_afi_id(affiliation):
     print ('Address',  addr_list)
     print (qry_where_str)
     result = db_conn.get_values("affiliations","id",qry_where_str)
-    if len(result) == 1 :
-        return result[0][0]
+    print("found",result)
+    if result != []:
+            affi_id = result[0][0]
+            print("Found:", affi_id, len(result))
+            add_id = db_conn.get_value("affiliation_addresses", "id", "affiliation_id", affi_id)[0]
+            print('affiliation id:', affi_id, " address id: ", add_id)
+            return affi_id, add_id
     else:
         # add new affiliation
-        result = db_split(affiliation)
+        affi_id, add_id = add_affi_to_db(inst_str, dept_str, faculty_str, group_str, ctry_str, addr_list,qry_where_str)
+        return affi_id, add_id
+         
         
 
 db_conn = dbh.DataBaseAdapter('ukch_articles.sqlite')
@@ -249,14 +254,21 @@ affis = [[{'name': 'Department of ChemistryUniversity of Cambridge Cambridge CB2
          [{'name': 'Department of Chemical and Biomolecular Engineering'}, {'name': 'Yonsei University'}, {'name': 'Seoul 03722'}, {'name': 'South Korea'}],
          [{'name': 'Department of Chemical and Biomolecular Engineering'}, {'name': 'Yonsei University'}, {'name': 'Seoul 03722'}, {'name': 'South Korea'}],
          [{'name': 'School of Chemistry'}, {'name': 'University of Bristol'}, {'name': 'Bristol'}, {'name': 'UK'}],[{'name': 'School of Chemistry'}, {'name': 'University of Bristol'}, {'name': 'Bristol'}, {'name': 'UK'}],
-         [{'name': 'Department of Chemical Engineering'}, {'name': 'University of Bath'}, {'name': 'Bath'}, {'name': 'UK'}, {'name': 'Department of Chemical Engineering'}],[{'name': 'Department of Chemical Engineering'}, {'name': 'University of Bath'}, {'name': 'Bath'}, {'name': 'UK'}, {'name': 'Department of Chemical Engineering'}],[{'name': 'Department of Chemical Engineering'}, {'name': 'University of Bath'}, {'name': 'Bath'}, {'name': 'UK'}, {'name': 'Department of Chemical Engineering'}],[{'name': 'Department of Chemical Engineering'}, {'name': 'University of Bath'}, {'name': 'Bath'}, {'name': 'UK'}, {'name': 'Department of Chemical Engineering'}],[{'name': 'Department of Chemical Engineering'}, {'name': 'University of Bath'}, {'name': 'Bath'}, {'name': 'UK'}, {'name': 'School of Chemistry'}],[{'name': 'Department of Chemical Engineering'}, {'name': 'University of Bath'}, {'name': 'Bath'}, {'name': 'UK'}, {'name': 'School of Chemistry'}],[{'name': 'Department of Chemistry'}, {'name': 'University College London'}, {'name': 'London'}, {'name': 'UK'}, {'name': 'UK Catalysis Hub'}],[{'name': 'Department of Chemistry'}, {'name': 'University College London'}, {'name': 'London'}, {'name': 'UK'}, {'name': 'UK Catalysis Hub'}],[{'name': 'Department of Chemistry'}, {'name': 'University College London'}, {'name': 'London'}, {'name': 'UK'}, {'name': 'UK Catalysis Hub'}],[{'name': 'Department of Chemistry'}, {'name': 'University College London'}, {'name': 'London'}, {'name': 'UK'}, {'name': 'UK Catalysis Hub'}],[{'name': 'Johnson Matthey Technology Centre'}, {'name': 'Reading RG4 9NH'}, {'name': 'UK'}, {'name': 'Electron Physical Sciences Imaging Centre (ePSIC)'}, {'name': 'Diamond Light source Ltd'}],[{'name': 'UK Catalysis Hub'}, {'name': 'Research Complex at Harwell'}, {'name': 'Rutherford Appleton Laboratories'}, {'name': 'Harwell Science & Innovation Campus'}, {'name': 'Didcot'}],[{'name': 'UK Catalysis Hub'}, {'name': 'Research Complex at Harwell'}, {'name': 'Rutherford Appleton Laboratories'}, {'name': 'Harwell Science & Innovation Campus'}, {'name': 'Didcot'}],[{'name': 'UK Catalysis Hub'}, {'name': 'Research Complex at Harwell'}, {'name': 'Rutherford Appleton Laboratory'}, {'name': 'Didcot OX11 0FA'}, {'name': 'UK'}],[{'name': 'UK Catalysis Hub'}, {'name': 'Research Complex at Harwell'}, {'name': 'Rutherford Appleton Laboratory'}, {'name': 'Didcot OX11 0FA'}, {'name': 'UK'}],[{'name': 'UK Catalysis Hub'}, {'name': 'Research Complex at Harwell'}, {'name': 'Rutherford Appleton Laboratory'}, {'name': 'Didcot OX11 0FA'}, {'name': 'UK'}],[{'name': 'UK Catalysis Hub'}, {'name': 'Research Complex at Harwell'}, {'name': 'Rutherford Appleton Laboratory'}, {'name': 'Didcot OX11 0FA'}, {'name': 'UK'}],[{'name': 'UK Catalysis Hub'}, {'name': 'Research Complex at Harwell'}, {'name': 'Rutherford Appleton Laboratory'}, {'name': 'Didcot OX11 0FA'}, {'name': 'UK'}],[{'name': 'UK Catalysis Hub'}, {'name': 'Research Complex at Harwell'}, {'name': 'Rutherford Appleton Laboratory'}, {'name': 'Didcot OX11 0FA'}, {'name': 'UK'}]]
-#affis = [[{'name': 'Department of ChemistryUniversity of Reading Reading RG6 6AD UK'}]]
+         [{'name': 'Department of Chemical Engineering'}, {'name': 'University of Bath'}, {'name': 'Bath'}, {'name': 'UK'}, {'name': 'Department of Chemical Engineering'}],
+         [{'name': 'Department of Chemical Engineering'}, {'name': 'University of Bath'}, {'name': 'Bath'}, {'name': 'UK'}, {'name': 'Department of Chemical Engineering'}],
+         [{'name': 'Department of Chemical Engineering'}, {'name': 'University of Bath'}, {'name': 'Bath'}, {'name': 'UK'}, {'name': 'Department of Chemical Engineering'}],
+         [{'name': 'Department of Chemical Engineering'}, {'name': 'University of Bath'}, {'name': 'Bath'}, {'name': 'UK'}, {'name': 'Department of Chemical Engineering'}],
+         [{'name': 'Department of Chemical Engineering'}, {'name': 'University of Bath'}, {'name': 'Bath'}, {'name': 'UK'}, {'name': 'School of Chemistry'}],
+         [{'name': 'Department of Chemical Engineering'}, {'name': 'University of Bath'}, {'name': 'Bath'}, {'name': 'UK'}, {'name': 'School of Chemistry'}],
+         [{'name': 'Department of Chemistry'}, {'name': 'University College London'}, {'name': 'London'}, {'name': 'UK'}, {'name': 'UK Catalysis Hub'}],
+         [{'name': 'Department of Chemistry'}, {'name': 'University College London'}, {'name': 'London'}, {'name': 'UK'}, {'name': 'UK Catalysis Hub'}],[{'name': 'Department of Chemistry'}, {'name': 'University College London'}, {'name': 'London'}, {'name': 'UK'}, {'name': 'UK Catalysis Hub'}],[{'name': 'Department of Chemistry'}, {'name': 'University College London'}, {'name': 'London'}, {'name': 'UK'}, {'name': 'UK Catalysis Hub'}],[{'name': 'Johnson Matthey Technology Centre'}, {'name': 'Reading RG4 9NH'}, {'name': 'UK'}, {'name': 'Electron Physical Sciences Imaging Centre (ePSIC)'}, {'name': 'Diamond Light source Ltd'}],[{'name': 'UK Catalysis Hub'}, {'name': 'Research Complex at Harwell'}, {'name': 'Rutherford Appleton Laboratories'}, {'name': 'Harwell Science & Innovation Campus'}, {'name': 'Didcot'}],[{'name': 'UK Catalysis Hub'}, {'name': 'Research Complex at Harwell'}, {'name': 'Rutherford Appleton Laboratories'}, {'name': 'Harwell Science & Innovation Campus'}, {'name': 'Didcot'}],[{'name': 'UK Catalysis Hub'}, {'name': 'Research Complex at Harwell'}, {'name': 'Rutherford Appleton Laboratory'}, {'name': 'Didcot OX11 0FA'}, {'name': 'UK'}],[{'name': 'UK Catalysis Hub'}, {'name': 'Research Complex at Harwell'}, {'name': 'Rutherford Appleton Laboratory'}, {'name': 'Didcot OX11 0FA'}, {'name': 'UK'}],[{'name': 'UK Catalysis Hub'}, {'name': 'Research Complex at Harwell'}, {'name': 'Rutherford Appleton Laboratory'}, {'name': 'Didcot OX11 0FA'}, {'name': 'UK'}],[{'name': 'UK Catalysis Hub'}, {'name': 'Research Complex at Harwell'}, {'name': 'Rutherford Appleton Laboratory'}, {'name': 'Didcot OX11 0FA'}, {'name': 'UK'}],[{'name': 'UK Catalysis Hub'}, {'name': 'Research Complex at Harwell'}, {'name': 'Rutherford Appleton Laboratory'}, {'name': 'Didcot OX11 0FA'}, {'name': 'UK'}],[{'name': 'UK Catalysis Hub'}, {'name': 'Research Complex at Harwell'}, {'name': 'Rutherford Appleton Laboratory'}, {'name': 'Didcot OX11 0FA'}, {'name': 'UK'}]]
+affis = [[{'name': 'Department of Chemistry'}, {'name': 'University College London'}, {'name': 'London'}, {'name': 'UK'}, {'name': 'UK Catalysis Hub'}]]
 
 for affi in affis:
     if len(affi) == 1:
         db_split(affi)
-    if len(affi) == 2:
-        print(affi)
+    elif len(affi) == 2:
         db_split(affi)
-
+    elif len(affi) > 2:
+        get_afi_id(affi)
 
