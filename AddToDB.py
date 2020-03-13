@@ -8,10 +8,88 @@ import lib.handle_json as hjson
 # library for connecting to the db
 import lib.handle_db as dbh
 
+
+def add_affiliation(affiliation):
+    affiliation, address = split_and_assign(affiliation)
+    new_id = len(affi_records) + 1
+    affi_records[new_id] = affiliation
+    affi_records[new_id]["ID"] = new_id
+    return affi_records, new_id
+
+
+
+def db_split(affiliation):
+    ret_parsed = {}
+    fields={'a':'institution', 'b':'country', 'c':'department','d':'faculty',
+            'e':'work_group','f':'address'}
+    print (affiliation, len(affiliation))
+    inst_str = dept_str = faculty_str = group_str = ctry_str = ""
+    qry_where_str = ""
+    addr_list=[]
+    for indx in range(0, len(affiliation)):
+        checking_this = affiliation[indx]['name']
+        #print (affiliation[indx]['name'])
+        for inst in institution_synonyms.keys():
+            if inst in checking_this:
+                inst_str = institution_synonyms[inst]
+                checking_this = checking_this.replace(inst,'')
+                break
+        for inst in institutions_list:
+            if inst in checking_this:
+                if inst_str == "":
+                    inst_str = inst
+                    checking_this = checking_this.replace(inst,'')
+                elif len(inst) > len(inst_str):
+                    rep_str = inst.replace(inst_str, "")
+                    inst_str = inst
+                    checking_this = checking_this.replace(rep_str,'')
+        for ctry in country_synonyms.keys():
+            if ctry in checking_this:
+                ctry_str = country_synonyms[ctry]
+                checking_this = checking_this.replace(ctry,'')
+                break
+        for ctry in countries_list:
+            if ctry in checking_this:
+                ctry_str = inst
+                checking_this = checking_this.replace(ctry,'')
+                break
+        for dept in department_list:
+            if dept in checking_this:
+                dept_str = dept
+                checking_this = checking_this.replace(dept,'')
+                break
+        for fclty in faculty_list:
+            if fclty in checking_this:
+                faculty_str = fclty
+                checking_this = checking_this.replace(dept,'')
+                break
+        for grp in group_list:
+            if grp in checking_this:
+                group_str = grp
+                checking_this = checking_this.replace(grp,'')
+                break
+        checking_this = checking_this.strip()
+        checking_this = checking_this.replace("  ", " ")
+        addr_list.append(checking_this)
+        qry_where = ""
+        result=-1
+        if inst_str != "":
+            qry_where += "institution = '" + inst_str + "'"
+            if dept_str != "":
+                qry_where += " AND department = '" + dept_str + "'"
+            if faculty_str != "":
+                qry_where += " AND faculty = '" + faculty_str + "'"
+            if group_str != "":
+                qry_where += " AND group = '" + group_str + "'"
+            if ctry_str != "":
+                qry_where += " AND country = '" + ctry_str + "'"
+            result = db_conn.get_values("affiliations","id",qry_where)
+            print(result)
+    print("Will Add:", ret_parsed, " with address ", addr_list)
+    return ret_parsed, addr_list
+    
+
 def get_afi_id(affiliation):
-    country_synonyms = {'UK':'United Kingdom','U.K.':'United Kingdom','G.B.':'United Kingdom', 
-                        "USA":"United States", "U.S.A.":"United States", "China":"P. R. China",
-                        "P.R.C.":"P. R. China"}
     print (affiliation, len(affiliation))
     inst_str = dept_str = faculty_str = group_str = ctry_str = ""
     qry_where_str = ""
@@ -31,6 +109,8 @@ def get_afi_id(affiliation):
             ctry_str = checking_this
         elif checking_this in country_synonyms:
             ctry_str = country_synonyms[checking_this]
+        elif checking_this in institution_synonyms:
+            inst_str = institution_synonyms[checking_this]
         else:
             addr_list.append(checking_this)
     qry_where_str += "institution = '" + inst_str + "'"        
@@ -54,7 +134,8 @@ def get_afi_id(affiliation):
         return result[0][0]
     else:
         # add new affiliation
-        result = add_new_affiliation(affiliation)
+        result = db_split(affiliation)
+        
 
 db_conn = dbh.DataBaseAdapter('ukch_articles.sqlite')
 
@@ -83,6 +164,16 @@ department_list = db_conn.get_value_list("Affiliations","department")
 faculty_list = db_conn.get_value_list("Affiliations","faculty")
 # get research group list from affiliations table
 group_list = db_conn.get_value_list("Affiliations", "work_group")
+
+
+country_synonyms = {'UK':'United Kingdom','U.K.':'United Kingdom',
+                    'G.B.':'United Kingdom', "USA":"United States",
+                    "U.S.A.":"United States", "China":"P. R. China",
+                    "P.R.C.":"P. R. China"}
+institution_synonyms = {"Paul Scherrer Institut":"Paul Scherrer Institute",
+                        "PSI":"Paul Scherrer Institute",
+                        "Diamond Light Source": "Diamond Light Source Ltd.",
+                        "University of St Andrews": "University of St. Andrews"}
 
 
 for art_num in csv_articles:

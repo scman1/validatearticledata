@@ -10,3 +10,4 @@
 .ipynb_checkpoints/
 pop_searches
 lib/__pycache__
+processed_csv/*
