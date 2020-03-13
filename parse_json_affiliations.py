@@ -178,6 +178,7 @@ def get_afi_id(affiliation):
             inst_str = institution_synonyms[checking_this]
         else:
             addr_list.append(checking_this)
+            
     qry_where_str += "institution = '" + inst_str + "'"        
     qry_where_str += " AND department = '" + dept_str + "'"
     qry_where_str += " AND faculty = '" + faculty_str + "'"
@@ -198,13 +199,29 @@ def get_afi_id(affiliation):
             print("Found:", affi_id, len(result))
             add_id = db_conn.get_value("affiliation_addresses", "id", "affiliation_id", affi_id)[0]
             print('affiliation id:', affi_id, " address id: ", add_id)
+            addr_row = list(db_conn.get_row("affiliation_addresses", add_id)[0])
+            print(addr_row)
+            another_affi=[]
+            for indx in range(0, len(affiliation)):
+                checking_this = affiliation[indx]['name']
+                print(checking_this)
+                if not checking_this in [inst_str, dept_str, faculty_str, group_str, ctry_str]:
+                    if not(checking_this in country_synonyms.keys()):
+                        skip = False
+                        for add_itm in addr_row:
+                            if str(add_itm) in checking_this:
+                                skip = True
+                                break;
+                        if not skip:
+                            another_affi.append({'name':checking_this})     
+            if another_affi != []:
+                get_afi_id(another_affi)
             return affi_id, add_id
     else:
         # add new affiliation
         affi_id, add_id = add_affi_to_db(inst_str, dept_str, faculty_str, group_str, ctry_str, addr_list,qry_where_str)
         return affi_id, add_id
-         
-        
+          
 
 db_conn = dbh.DataBaseAdapter('ukch_articles.sqlite')
 
@@ -228,6 +245,7 @@ country_synonyms = {'UK':'United Kingdom','U.K.':'United Kingdom',
 institution_synonyms = {"Paul Scherrer Institut":"Paul Scherrer Institute",
                         "PSI":"Paul Scherrer Institute",
                         "Diamond Light Source": "Diamond Light Source Ltd.",
+                        "Diamond Light source Ltd": "Diamond Light Source Ltd.",
                         "University of St Andrews": "University of St. Andrews"}
 
 affis = [[{'name': 'Department of ChemistryUniversity of Cambridge Cambridge CB2 1EW UK'}],[{'name': 'Department of ChemistryUniversity of Cambridge Cambridge CB2 1EW UK'}],[{'name': 'Department of ChemistryUniversity of Reading Reading RG6 6AD UK'}],
@@ -261,8 +279,13 @@ affis = [[{'name': 'Department of ChemistryUniversity of Cambridge Cambridge CB2
          [{'name': 'Department of Chemical Engineering'}, {'name': 'University of Bath'}, {'name': 'Bath'}, {'name': 'UK'}, {'name': 'School of Chemistry'}],
          [{'name': 'Department of Chemical Engineering'}, {'name': 'University of Bath'}, {'name': 'Bath'}, {'name': 'UK'}, {'name': 'School of Chemistry'}],
          [{'name': 'Department of Chemistry'}, {'name': 'University College London'}, {'name': 'London'}, {'name': 'UK'}, {'name': 'UK Catalysis Hub'}],
-         [{'name': 'Department of Chemistry'}, {'name': 'University College London'}, {'name': 'London'}, {'name': 'UK'}, {'name': 'UK Catalysis Hub'}],[{'name': 'Department of Chemistry'}, {'name': 'University College London'}, {'name': 'London'}, {'name': 'UK'}, {'name': 'UK Catalysis Hub'}],[{'name': 'Department of Chemistry'}, {'name': 'University College London'}, {'name': 'London'}, {'name': 'UK'}, {'name': 'UK Catalysis Hub'}],[{'name': 'Johnson Matthey Technology Centre'}, {'name': 'Reading RG4 9NH'}, {'name': 'UK'}, {'name': 'Electron Physical Sciences Imaging Centre (ePSIC)'}, {'name': 'Diamond Light source Ltd'}],[{'name': 'UK Catalysis Hub'}, {'name': 'Research Complex at Harwell'}, {'name': 'Rutherford Appleton Laboratories'}, {'name': 'Harwell Science & Innovation Campus'}, {'name': 'Didcot'}],[{'name': 'UK Catalysis Hub'}, {'name': 'Research Complex at Harwell'}, {'name': 'Rutherford Appleton Laboratories'}, {'name': 'Harwell Science & Innovation Campus'}, {'name': 'Didcot'}],[{'name': 'UK Catalysis Hub'}, {'name': 'Research Complex at Harwell'}, {'name': 'Rutherford Appleton Laboratory'}, {'name': 'Didcot OX11 0FA'}, {'name': 'UK'}],[{'name': 'UK Catalysis Hub'}, {'name': 'Research Complex at Harwell'}, {'name': 'Rutherford Appleton Laboratory'}, {'name': 'Didcot OX11 0FA'}, {'name': 'UK'}],[{'name': 'UK Catalysis Hub'}, {'name': 'Research Complex at Harwell'}, {'name': 'Rutherford Appleton Laboratory'}, {'name': 'Didcot OX11 0FA'}, {'name': 'UK'}],[{'name': 'UK Catalysis Hub'}, {'name': 'Research Complex at Harwell'}, {'name': 'Rutherford Appleton Laboratory'}, {'name': 'Didcot OX11 0FA'}, {'name': 'UK'}],[{'name': 'UK Catalysis Hub'}, {'name': 'Research Complex at Harwell'}, {'name': 'Rutherford Appleton Laboratory'}, {'name': 'Didcot OX11 0FA'}, {'name': 'UK'}],[{'name': 'UK Catalysis Hub'}, {'name': 'Research Complex at Harwell'}, {'name': 'Rutherford Appleton Laboratory'}, {'name': 'Didcot OX11 0FA'}, {'name': 'UK'}]]
-affis = [[{'name': 'Department of Chemistry'}, {'name': 'University College London'}, {'name': 'London'}, {'name': 'UK'}, {'name': 'UK Catalysis Hub'}]]
+         [{'name': 'Department of Chemistry'}, {'name': 'University College London'}, {'name': 'London'}, {'name': 'UK'}, {'name': 'UK Catalysis Hub'}],
+         [{'name': 'Department of Chemistry'}, {'name': 'University College London'}, {'name': 'London'}, {'name': 'UK'}, {'name': 'UK Catalysis Hub'}],
+         [{'name': 'Department of Chemistry'}, {'name': 'University College London'}, {'name': 'London'}, {'name': 'UK'}, {'name': 'UK Catalysis Hub'}],
+         [{'name': 'Johnson Matthey Technology Centre'}, {'name': 'Reading RG4 9NH'}, {'name': 'UK'}, {'name': 'Electron Physical Sciences Imaging Centre (ePSIC)'}, {'name': 'Diamond Light source Ltd'}],
+         [{'name': 'UK Catalysis Hub'}, {'name': 'Research Complex at Harwell'}, {'name': 'Rutherford Appleton Laboratories'}, {'name': 'Harwell Science & Innovation Campus'}, {'name': 'Didcot'}],[{'name': 'UK Catalysis Hub'}, {'name': 'Research Complex at Harwell'}, {'name': 'Rutherford Appleton Laboratories'}, {'name': 'Harwell Science & Innovation Campus'}, {'name': 'Didcot'}],[{'name': 'UK Catalysis Hub'}, {'name': 'Research Complex at Harwell'}, {'name': 'Rutherford Appleton Laboratory'}, {'name': 'Didcot OX11 0FA'}, {'name': 'UK'}],[{'name': 'UK Catalysis Hub'}, {'name': 'Research Complex at Harwell'}, {'name': 'Rutherford Appleton Laboratory'}, {'name': 'Didcot OX11 0FA'}, {'name': 'UK'}],[{'name': 'UK Catalysis Hub'}, {'name': 'Research Complex at Harwell'}, {'name': 'Rutherford Appleton Laboratory'}, {'name': 'Didcot OX11 0FA'}, {'name': 'UK'}],[{'name': 'UK Catalysis Hub'}, {'name': 'Research Complex at Harwell'}, {'name': 'Rutherford Appleton Laboratory'}, {'name': 'Didcot OX11 0FA'}, {'name': 'UK'}],[{'name': 'UK Catalysis Hub'}, {'name': 'Research Complex at Harwell'}, {'name': 'Rutherford Appleton Laboratory'}, {'name': 'Didcot OX11 0FA'}, {'name': 'UK'}],[{'name': 'UK Catalysis Hub'}, {'name': 'Research Complex at Harwell'}, {'name': 'Rutherford Appleton Laboratory'}, {'name': 'Didcot OX11 0FA'}, {'name': 'UK'}]]
+
+affis = [[{'name': 'Johnson Matthey Technology Centre'}, {'name': 'Reading RG4 9NH'}, {'name': 'UK'}, {'name': 'Electron Physical Sciences Imaging Centre (ePSIC)'}, {'name': 'Diamond Light source Ltd'}],[{'name': 'Department of Chemistry'}, {'name': 'University College London'}, {'name': 'London'}, {'name': 'UK'}, {'name': 'UK Catalysis Hub'}]]
 
 for affi in affis:
     if len(affi) == 1:

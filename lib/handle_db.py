@@ -47,6 +47,12 @@ class DataBaseAdapter:
         return value_list
 
 
+    # get row values from the table using filter string
+    def get_row(self, table, id_val):
+        str_query = "SELECT * FROM %s WHERE id = %s" % (table, id_val)
+        value_list = self.connection.execute(str_query).fetchall( )
+        return value_list
+
     def get_title(self, art_doi=""):
         title = self.connection.execute(
             "SELECT title FROM articles WHERE doi='%s'" % art_doi).fetchone( )
