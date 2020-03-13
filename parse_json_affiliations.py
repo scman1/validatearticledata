@@ -1,4 +1,3 @@
-
 # Libraries
 # library containign functions that read and write to csv files
 import lib.handle_csv as csvh
@@ -152,6 +151,116 @@ def extract_custom(split_this):
     str_end = int(input())
     return split_this[str_start:str_end+1]
 
+def is_address(affi_element):
+    while True:
+        print ("************************SELECT OPTION*************************")
+        print (affi_element,": \n a) address \n b) new affi \n c) str affi")
+        print ("selection:", end=" ")
+        user_select = input().lower()
+        if user_select == 'a':
+            return 1
+        elif user_select == 'b':
+            return 0
+        elif user_select == 'c':
+            return -1
+
+def assing_keyword(affi_element):
+    while True:
+        print ("****************ASSIGN KEYWORD TO ELEMENT****************")
+        print ("* Element:",affi_element)
+        for opt in affi_keys:
+            print (opt+")", affi_keys[opt])
+        print ("x) None")
+        print ("selection:", end=" ")
+        user_select = input().lower()
+        if user_select in affi_keys:
+            return affi_keys[user_select]
+        elif user_select == "x":
+            return ""
+
+def assign_not_mapped(list_affis, not_mapped):
+    for element in not_mapped:
+        print(element)
+        print ("************************MAPPED AFFIS*************************")
+        affi_keyword = assing_keyword(element)
+        for i, affi in enumerate(list_affis):
+            print (i, affi)
+        while True:
+            print ("******************ASSIGN NOT MAPPED TO AFFIS******************")
+            print(element)
+            print ("select number to assing to from above or 9 to assign to new affiliation")
+            print ("selection:", end=" ")
+            user_select = input()
+            try:
+                user_select = int(user_select)
+                if user_select < len(list_affis):
+                    if not affi_keyword in list_affis[user_select].keys():
+                        list_affis[user_select][affi_keyword] = element
+                        break;
+                    else:
+                        print ("cannot add")
+                elif user_select == 9:
+                    list_affis.append({affi_keyword:element})
+                    break
+            except:
+                print("select a valid index")
+        return list_affis
+    
+def get_keyword(affi_element):
+    if affi_element in institutions_list:
+        return "institution"
+    elif affi_element in institution_synonyms:
+        return "institution"
+    elif affi_element in department_list:
+        return "department"
+    elif affi_element in faculty_list:
+        return "faculty"
+    elif affi_element in group_list: 
+        return "work_group"
+    elif affi_element in countries_list:
+        return "country"
+    elif affi_element in country_synonyms:
+        return "country"
+    else:
+        return ""
+
+# returns a list of dictionaries with affiliation values
+def map_split_affi(affiliation):
+    parsed_affi = { }
+    affis_count = 0
+    list_affis = []
+    addr_list = []
+    not_mapped = []
+    for affi_element in affiliation:
+        element_value = affi_element['name']
+        element_key = get_keyword(element_value)
+        if element_key == "":
+            # Not found it could be a single string or an address element
+            # ask if address or new affi
+            is_addr = is_address(element_value)
+            if is_addr == 1: # address part
+                addr_list.append(element_value)
+            elif is_addr == 0: # new affi part
+                not_mapped.append(element_value)
+            elif is_addr == -1: # new affi part
+                print("not handled", element_value)
+        else:
+            if not element_key in parsed_affi:
+                parsed_affi[element_key] = element_value
+            else:
+                # There is more than one affiliation
+                parsed_affi['addr'] = addr_list
+                list_affis.append(parsed_affi)
+                parsed_affi = {}
+                addr_list = []
+                parsed_affi[element_key] = element_value
+                affis_count += 1
+        if affis_count > 0 and parsed_affi != {}:
+            if addr_list != []:
+                parsed_affi['addr'] = addr_list
+            list_affis.append(parsed_affi)
+    return list_affis, not_mapped
+
 def get_afi_id(affiliation):
     print (affiliation, len(affiliation))
     inst_str = dept_str = faculty_str = group_str = ctry_str = ""
@@ -213,7 +322,8 @@ def get_afi_id(affiliation):
                                 skip = True
                                 break;
                         if not skip:
-                            another_affi.append({'name':checking_this})     
+                            another_affi.append({'name':checking_this})
+                        
             if another_affi != []:
                 get_afi_id(another_affi)
             return affi_id, add_id
@@ -236,6 +346,8 @@ faculty_list = db_conn.get_value_list("Affiliations","faculty")
 # get research group list from affiliations table
 group_list = db_conn.get_value_list("Affiliations", "work_group")
 
+affi_keys = {'a':'institution', 'b':'country', 'c':'department','d':'faculty',
+             'e':'work_group'}
 
 country_synonyms = {'UK':'United Kingdom','U.K.':'United Kingdom',
                     'G.B.':'United Kingdom', "USA":"United States",
@@ -288,10 +400,16 @@ affis = [[{'name': 'Department of ChemistryUniversity of Cambridge Cambridge CB2
 affis = [[{'name': 'Johnson Matthey Technology Centre'}, {'name': 'Reading RG4 9NH'}, {'name': 'UK'}, {'name': 'Electron Physical Sciences Imaging Centre (ePSIC)'}, {'name': 'Diamond Light source Ltd'}],[{'name': 'Department of Chemistry'}, {'name': 'University College London'}, {'name': 'London'}, {'name': 'UK'}, {'name': 'UK Catalysis Hub'}]]
 
 for affi in affis:
-    if len(affi) == 1:
-        db_split(affi)
-    elif len(affi) == 2:
-        db_split(affi)
-    elif len(affi) > 2:
-        get_afi_id(affi)
+    print("PARSING", affi)
+    list_affis, not_mapped = map_split_affi(affi)
+    if not_mapped != []:
+        list_affis = assign_not_mapped(list_affis, not_mapped)
+    print (list_affis)
+    #print(map_split_affi(affi))
+##    if len(affi) == 1:
+##        db_split(affi)
+##    elif len(affi) == 2:
+##        db_split(affi)
+##    elif len(affi) > 2:
+##        get_afi_id(affi)
 
