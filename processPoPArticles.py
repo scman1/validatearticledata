@@ -13,7 +13,7 @@ from pathlib import Path
 
 
 # input files
-new_results_file = 'pop_searches/PoPCites3.csv'
+new_results_file = 'pop_searches/PoPCites20200624.csv'
 previous_results = 'pop_searches/ukch_pop_2VT.csv'
 
 #output files
@@ -25,7 +25,8 @@ if Path(nr_wf).is_file():
     for art_num in working_file:
         if current_pass < int(working_file[art_num]['ignore']) :
             current_pass = int(working_file[art_num]['ignore'])
-#print(nr_wf)
+
+print("Started:", nr_wf)
 
 if not Path(nr_wf).is_file():
     csv_articles, fn_articles = csvh.get_csv_data(new_results_file,'Num')
@@ -53,6 +54,7 @@ if not Path(nr_wf).is_file():
     csvh.write_csv_data(csv_articles, nr_wf)
         
 if current_pass > 0 and current_pass < 2:
+    print("pass 2")
     # pass 2
     # check titles for likelihood of being catalysis articles using keywords from titles in current DB 
     print("Get word list from DB")
@@ -84,6 +86,7 @@ if current_pass > 0 and current_pass < 2:
     csvh.write_csv_data(working_file, nr_wf)
 
 if current_pass == 2:
+    print("still pass 2")
     i = 0
     for art_num in working_file:
         #print('Title:', working_file[art_num]['Title'],working_file[art_num]['ignore'])
@@ -106,6 +109,7 @@ if current_pass == 2:
     csvh.write_csv_data(working_file, nr_wf)
 
 if current_pass == 3:
+    print("pass 3")
     i = 0
     for art_num in working_file:
         if working_file[art_num]['ignore']=='0':
@@ -123,6 +127,7 @@ if current_pass == 3:
     csvh.write_csv_data(working_file, nr_wf)
             
 if current_pass == 4:
+    print("Pass 4")
     i = 0
     db_conn = dbh.DataBaseAdapter('ukch_articles.sqlite')
     for art_num in working_file:
@@ -138,7 +143,8 @@ if current_pass == 4:
     print("without DOI:", i)
     csvh.write_csv_data(working_file, nr_wf)
 
-if current_pass > 5:
+if current_pass == 5:
+    print("Pass 5")
     i = 0
     for art_num in working_file:
         if working_file[art_num]['ignore']=='0':

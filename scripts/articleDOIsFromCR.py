@@ -8,7 +8,7 @@ def similar(a, b):
 
 cr = Crossref()
 
-
+# get the DOI from crossref
 def getArticleDOIFromCrossref(article_title):
     doi_text=""
     try:
@@ -24,8 +24,9 @@ def getArticleDOIFromCrossref(article_title):
 
 # working with csv data files
 catalysis_articles = {}
-input_file = 'UKCH201911c.csv'
-output_file = 'UKCH201911cDOI.csv'
+input_file = '../processed_csv/AddNewArticles202006UKCHPubs.csv' #'UKCH201911c.csv'
+output_file = input_file[:-4]+'_DOI.csv'
+
 # open input csv file
 with open(input_file, newline='') as csvfile:
      reader = csv.DictReader(csvfile)

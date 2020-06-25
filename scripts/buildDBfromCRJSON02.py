@@ -95,7 +95,8 @@ def jsonToPlainText(element):
 # open articles csv file
 ###############################################################################
 
-input_file = 'UKCH201911DOIOnly.csv'
+input_file = '../processed_csv/AddNewArticles202006UKCHPubs_DOI.csv'
+base_name = "../processed_csv/AddNewArticles202006UKCHPubs"
 catalysis_articles = {}
 fieldnames=[]
 with open(input_file, newline='') as csvfile:
@@ -103,7 +104,7 @@ with open(input_file, newline='') as csvfile:
      for row in reader:
          if fieldnames==[]:
              fieldnames=list(row.keys())
-         catalysis_articles[int(row['Num'])]=row
+         catalysis_articles[int(row['CatArtNum'])]=row
          if row['DOI'] == "":
              print("Missing Identifier", row['Title'], row['Identifier'])
 
@@ -215,20 +216,20 @@ for cat_art_num in catalysis_articles.keys():
 # write back to a new csv file
 # create three files
 
-with open('UKCCHArticles201911.csv', 'w', newline='') as csvfile:
+with open(base_name+'Articles.csv', 'w', newline='') as csvfile:
     writer = csv.DictWriter(csvfile, fieldnames = article_columns)
     writer.writeheader()
     for cat_art_num in cr_articles.keys():
         writer.writerow(cr_articles[cat_art_num])
 
-with open('UKCCHAuthors201911.csv', 'w', newline='') as csvfile:
+with open(base_name+'Authors.csv', 'w', newline='') as csvfile:
     writer = csv.DictWriter(csvfile, fieldnames = author_columns)
     writer.writeheader()
     for aut_num in cr_authors.keys():
         writer.writerow(cr_authors[aut_num])
 
 
-with open('UKCCHArtAutLink201911.csv', 'w', newline='') as csvfile:
+with open(base_name+'ArtAutLink.csv', 'w', newline='') as csvfile:
     writer = csv.DictWriter(csvfile, fieldnames = article_authour_columns)
     writer.writeheader()
     for link_num in cr_article_authour_link.keys():

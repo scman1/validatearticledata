@@ -18,6 +18,7 @@ import datetime
 cr = Crossref()
 
 def similar(a, b):
+    print("&&&Similarity:", a,b)
     return SequenceMatcher(None, a,b).ratio()
 
 
@@ -65,9 +66,10 @@ def add_articles(con, input_file):
             # build column list
             csv_id = catalysis_articles[new_art_id]['id']
             catalysis_articles[new_art_id]['id'] = int(top_id) + 1
-            catalysis_articles[new_art_id]['action'] = "added " + date_stamp 
+            catalysis_articles[new_art_id]['status'] = "added " + date_stamp 
             columns = str(tuple(catalysis_articles[new_art_id].keys())).replace("'", "")
             values = str(tuple(catalysis_articles[new_art_id].values()))
+            print("INSERT INTO Articles %s VALUES  %s " % (columns, values))
             ins = con.execute(
              "INSERT INTO Articles %s VALUES  %s " % (columns, values)).fetchone( )
             catalysis_articles[new_art_id]['csv_id'] = csv_id
@@ -110,9 +112,10 @@ def add_csv_authors(con, author_file, link_file, affi_link_file = "", affis_file
         # Lookup Authors and if needed add
         author_ID = get_author_id(con, na_fullname,na_name,na_lastname,na_ORCID)
         top_id = get_max_id(con,"authors")
-        if author_ID == -1:
+        print("Author DB ID:", author_ID)
+        if author_ID == None or author_ID == -1:
             i_not_found += 1
-            print("Not Found", i_not_found, new_author)
+            print("&&&Not Found", i_not_found, new_author)
             top_id += 1
             author_ID = top_id
             # Need to add to the DB, before creating article-author-link
@@ -176,13 +179,13 @@ def add_authors(con, author, fieldnames):
 def add_links(con, art_aut_link):
     art_doi = art_aut_link['doi']
     aut_id = art_aut_link['author_id']
-    affi_id = art_aut_link['affiliation_id']
+    #affi_id = art_aut_link['affiliation_id']
     link_doi = con.execute(
          "SELECT DOI from Article_author_Links where doi='%s' and author_id = '%s'" % (art_doi, aut_id)).fetchone( )
     if str(type(link_doi)) != "<class 'NoneType'>" and len(link_doi) > 0:
          print("Found:", link_doi[0])
     else:
-        print("Not Found:", art_doi, "inserting", art_aut_link)
+        print("&&&Not Found:", art_doi, "inserting", art_aut_link)
         # build column list
         columns = str(tuple(art_aut_link.keys())).replace("'", "")
         values = str(tuple(art_aut_link.values()))
@@ -198,7 +201,7 @@ def add_affi_links(con, affi_link):
     if str(type(link_doi)) != "<class 'NoneType'>" and len(link_doi) > 0:
          print("Found:", link_doi[0])
     else:
-        print("Not Found:", art_doi, "inserting", affi_link)
+        print("===Not Found:", art_doi, "inserting", affi_link)
         # build column list
         columns = str(tuple(affi_link.keys())).replace("'", "")
         values = str(tuple(affi_link.values()))
@@ -357,7 +360,8 @@ def get_author_id(con, fullname, givenname, lastname, ORCID = ""):
             "SELECT * FROM Authors WHERE given_name LIKE '"+"%"+ givenname.replace("'","''")+"%"+"'").fetchall( )
         if not db_authors is None:
             for db_author in db_authors:
-                similarity = similar(fullname, db_author[0])
+                print ("&&&DB Author", db_author)
+                similarity = similar(fullname, db_author[1]) # index of full name changed
                 if similarity > 0.8:
                     print("GIVENNAME MATCH",fullname, givenname, db_author)
                     id = db_author[5]
@@ -438,7 +442,7 @@ def add_new_authors():
         top_id = get_max_aut_id()
         if author_ID == -1:
             i_not_found += 1
-            print("Not Found", i_not_found, new_author)
+            print("** Not Found", i_not_found, new_author)
             top_id += 1
             author_ID = top_id
             # Need to add to the DB, before creating article-author-link
@@ -513,8 +517,8 @@ def add_address_id_to_affi_link(db_con):
         temp[affi_id[1]] = affi_id[0]
     many_add_affis = temp
     # records  from temp affilitions table with original affiliation string
-    affi_strings = db_con.execute(
-                        "SELECT AffiLinkID, UniqueID, affiliations FROM Affiliation_Links20191218").fetchall( )
+    affi_strings = ""#hack # db_con.execute(
+                     #   "SELECT AffiLinkID, UniqueID, affiliations FROM Affiliation_Links20191218").fetchall( )
     
     i_found = 0
     i_not_found = 0
@@ -709,7 +713,8 @@ def check_articles_db(db_con, in_file, out_file):
         for row in reader:
             if fieldnames==[]:
                 fieldnames=list(row.keys())
-            catalysis_articles[int(row['CatArtNum'])]=row
+            print(row.keys())
+            catalysis_articles[int(row['NumUKCH'])]=row
         article_list = db_con.execute(
                         "SELECT articles.doi, articles.title "+
                         "  FROM articles WHERE articles.action <> 'Remove'").fetchall( )
@@ -1327,14 +1332,17 @@ art_doi = "10.1038/s41929-019-0334-3"
 title = db_con.execute(
     "SELECT title from Articles where DOI='%s'" % art_doi).fetchone( )
 
-# open update actions file
-arts_file = 'UKCH202001b.csv'
+### open update actions file
+##arts_file = 'processed_csv/AddNewArticles202002.csv' #'UKCH202001b.csv'
 
-input_file = "UKCH202001Missing.csv"
-output_file = "UKCH202001MissingA.csv"
-# Check if article in DB
-check_articles_db(db_con, input_file, output_file)
+#the name of the root file from wich Arts, auts and links were generated
+## 20200624 input_file = 'processed_csv/AddNewArticles202002.csv' #UKCH202001Missing.csv
+input_file = 'processed_csv/AddNewArticles202006UKCHPubs.csv' #UKCH202001Missing.csv
 
+##output_file = input_file[:-4]+"A.csv"
+### Check if article in DB
+### check_articles_db(db_con, input_file, output_file)
+##
 ### Get DOIS for articles not in DB
 ##input_file = "UKCH202001d.csv"
 ##output_file = "UKCH202001e.csv"
@@ -1348,30 +1356,30 @@ check_articles_db(db_con, input_file, output_file)
 ##input_file = "UKCH202001f.csv"
 ### build the records ready to load into DB
 ###buildDBfromJSON(input_file)
-##
-##arts_file = input_file[:-4]+"Articles.csv"
-##auts_file = input_file[:-4]+"Authors.csv"
-##link_file = input_file[:-4]+"ArtAutLink.csv"
-##afi_file = "affiliations201912.csv"
-##addr_file = "affiliations201912.csv"
-##
-### get institutions list from affiliations table
-##institutions_list = get_value_list(db_con, "Affiliations", "institution")
-### get coutries from affiliations table
-##countries_list = get_value_list(db_con, "Affiliations","country")
-### get department list from affiliations table
-##department_list = get_value_list(db_con, "Affiliations","department")
-### get faculty list from affiliations table
-##faculty_list = get_value_list(db_con, "Affiliations","faculty")
-### get research group list from affiliations table
-##group_list = get_value_list(db_con, "Affiliations", "work_group")
-##address_list = []
-###affiliations = split_affiliations(db_con, auts_file, link_file)
-##
-###add articles, authors article-author links and affiliations to the DB
-###add_articles(db_con, arts_file)
-###add_csv_authors(db_con, auts_file, link_file,"test03.csv","new_affiliations.csv")
-###add_address_id_to_affi_link(db_con)
+
+arts_file = input_file[:-4]+"Articles.csv"
+auts_file = input_file[:-4]+"Authors.csv"
+link_file = input_file[:-4]+"ArtAutLink.csv"
+afi_file = "processed_csv/affiliations201912.csv"
+addr_file = "processed_csv/affiliations201912.csv"
+
+# get institutions list from affiliations table
+institutions_list = get_value_list(db_con, "Affiliations", "institution")
+# get coutries from affiliations table
+countries_list = get_value_list(db_con, "Affiliations","country")
+# get department list from affiliations table
+department_list = get_value_list(db_con, "Affiliations","department")
+# get faculty list from affiliations table
+faculty_list = get_value_list(db_con, "Affiliations","faculty")
+# get research group list from affiliations table
+group_list = get_value_list(db_con, "Affiliations", "work_group")
+address_list = []
+#affiliations = split_affiliations(db_con, auts_file, link_file)
+
+#add articles, authors article-author links and affiliations to the DB
+add_articles(db_con, arts_file)
+add_csv_authors(db_con, auts_file, link_file)#,"test03.csv","new_affiliations.csv")
+add_address_id_to_affi_link(db_con)
 ##
 ### Map DOIS to themes and mark articles not in website
 ##input_file = "UKCH202001f.csv"
