@@ -613,7 +613,7 @@ def verify_addresses(db_con):
 # Read the publications page from UKCH and get a list of articles
 pub_urls = ['https://ukcatalysishub.co.uk/publications', 'https://ukcatalysishub.co.uk/biocatalysis-publications-2018/',
             'https://ukcatalysishub.co.uk/design-publications-2018/','https://ukcatalysishub.co.uk/energy-publications-2018/',
-            'https://ukcatalysishub.co.uk/transformations-publications-2018/','https://ukcatalysishub.co.uk/environment-publications-2018/'
+            'https://ukcatalysishub.co.uk/transformations-publications-2018/','https://ukcatalysishub.co.uk/environment-publications-2018/',
             'https://ukcatalysishub.co.uk/biocatalysis-publications-2017/',
             'https://ukcatalysishub.co.uk/design-publications-2013/', 'https://ukcatalysishub.co.uk/design-publications-2014/',
             'https://ukcatalysishub.co.uk/design-publications-2015/', 'https://ukcatalysishub.co.uk/design-publications-2016/',
