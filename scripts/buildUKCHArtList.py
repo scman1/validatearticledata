@@ -76,25 +76,36 @@ def findFromDOI(name, doi, referents):
 
 
 # Read the publications page from UKCH and get a list of articles
-pub_urls = ['https://ukcatalysishub.co.uk/publications', 'https://ukcatalysishub.co.uk/biocatalysis-publications-2017/',
-            'https://ukcatalysishub.co.uk/design-publications-2013/', 'https://ukcatalysishub.co.uk/design-publications-2014/',
-            'https://ukcatalysishub.co.uk/design-publications-2015/', 'https://ukcatalysishub.co.uk/design-publications-2016/',
-            'https://ukcatalysishub.co.uk/design-publications-2017/', 'https://ukcatalysishub.co.uk/energy-publications-2014/',
-            'https://ukcatalysishub.co.uk/energy-publications-2015/', 'https://ukcatalysishub.co.uk/energy-publications-2016/',
-            'https://ukcatalysishub.co.uk/energy-publications-2017/', 'https://ukcatalysishub.co.uk/environment-publications-2014/',
-            'https://ukcatalysishub.co.uk/environment-publications-2015/', 'https://ukcatalysishub.co.uk/environment-publications-2016/',
-            'https://ukcatalysishub.co.uk/environment-publications-2017/', 'https://ukcatalysishub.co.uk/transformations-publications-2014/',
-            'https://ukcatalysishub.co.uk/transformations-publications-2015/', 'https://ukcatalysishub.co.uk/transformations-publications-2016/',
-            'https://ukcatalysishub.co.uk/transformations-publications-2017/']
+base_url = 'https://ukcatalysishub.co.uk/'
+pub_frags = ['publications', 'biocatalysis-publications-2017/',
+            'biocatalysis-publications-2018/', 'design-publications-2013/',
+            'design-publications-2014/','design-publications-2015/',
+            'design-publications-2016/', 'design-publications-2017/',
+            'design-publications-2018/', 'energy-publications-2014/',
+            'energy-publications-2015/', 'energy-publications-2016/',
+            'energy-publications-2017/', 'energy-publications-2018/',
+            'environment-publications-2014/', 'environment-publications-2015/',
+            'environment-publications-2016/', 'environment-publications-2017/',
+            'environment-publications-2018/', 'transformations-publications-2014/',
+            'transformations-publications-2015/', 'transformations-publications-2016/',
+            'transformations-publications-2017/', 'transformations-publications-2018/']
 
 
-output_file = 'UKCH202006.csv'
+output_file = 'UKCH202010.csv'
 
 
 catalysis_articles = {}
 single_article = {}
 i = 0
-for pub_url in pub_urls:
+for pub_frag in pub_frags:
+    pub_url = base_url + pub_frag
+    proyect_theme = "look_it_up"
+    proyect_year = "2020"
+    if pub_frag != 'publications':
+        proyect_theme = pub_frag.replace('publications-','')
+        proyect_year = proyect_theme[-5:-1]
+        proyect_theme = proyect_theme[:-6]
+    
     parsed_page = getHTMLPage(pub_url)
     list_of_links = getLinks(parsed_page)
     list_of_paragraphs = getParagraphs(parsed_page)
@@ -119,6 +130,8 @@ for pub_url in pub_urls:
             single_article['PubData'] = pub_data
             single_article['LinkText'] = link_text
             single_article['ArtRef'] = art_ref
+            single_article['theme'] = proyect_theme
+            single_article['p_year'] = proyect_year
             catalysis_articles[i] = single_article
         elif para.find('strong') and i > 80:
             # non standard formating, title but no link
@@ -135,12 +148,16 @@ for pub_url in pub_urls:
             single_article['PubData'] = pub_data
             single_article['LinkText'] = link_text
             single_article['ArtRef'] = art_ref
+            single_article['theme'] = proyect_theme
+            single_article['p_year'] = proyect_year
             catalysis_articles[i] = single_article
         elif i >= 102:
             i += 1
             #get non formated on main page (will bring some trash)
             single_article['CatArtNum'] = i
             single_article['blob'] = para.get_text()
+            single_article['theme'] = proyect_theme
+            single_article['p_year'] = proyect_year
             catalysis_articles[i] = single_article
 
 fieldnames = []

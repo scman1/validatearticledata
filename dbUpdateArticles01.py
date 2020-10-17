@@ -611,7 +611,10 @@ def verify_addresses(db_con):
                 print("INSTITUTION:", affiLinkID, Affiliation_ID, an_affiliation, "match not found in:", affiliation_text)
 
 # Read the publications page from UKCH and get a list of articles
-pub_urls = ['https://ukcatalysishub.co.uk/publications', 'https://ukcatalysishub.co.uk/biocatalysis-publications-2017/',
+pub_urls = ['https://ukcatalysishub.co.uk/publications', 'https://ukcatalysishub.co.uk/biocatalysis-publications-2018/',
+            'https://ukcatalysishub.co.uk/design-publications-2018/','https://ukcatalysishub.co.uk/energy-publications-2018/',
+            'https://ukcatalysishub.co.uk/transformations-publications-2018/','https://ukcatalysishub.co.uk/environment-publications-2018/'
+            'https://ukcatalysishub.co.uk/biocatalysis-publications-2017/',
             'https://ukcatalysishub.co.uk/design-publications-2013/', 'https://ukcatalysishub.co.uk/design-publications-2014/',
             'https://ukcatalysishub.co.uk/design-publications-2015/', 'https://ukcatalysishub.co.uk/design-publications-2016/',
             'https://ukcatalysishub.co.uk/design-publications-2017/', 'https://ukcatalysishub.co.uk/energy-publications-2014/',
@@ -651,7 +654,6 @@ def map_themes(db_con, input_file, output_file):
                         site_articles[num]['Themes'] =  str(group_index)
                     else: 
                         site_articles[num]['Themes'] +=  "," +str(group_index)
-                    
     write_csv(site_articles, output_file)
     
     
