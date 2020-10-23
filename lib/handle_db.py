@@ -67,3 +67,6 @@ class DataBaseAdapter:
         self.connection.execute(str_query)
         self.connection.commit()
         return 0
+        
+    def close(self):
+        self.connection.close()

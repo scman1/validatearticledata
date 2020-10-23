@@ -2,7 +2,7 @@
 *.csv
 *.csv#
 *.xlsx
-*.sqlite
+*.sqlite*
 *.ods
 *.txt
 *.html
@@ -12,3 +12,5 @@
 pop_searches
 lib/__pycache__
 processed_csv/*
+pdf_files/*
+
