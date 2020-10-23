@@ -33,10 +33,3 @@ def getBibData(doi_text):
         return art_bib
     except:
         return {}
-
-def getJSONFile(doi_text):
-    try:
-        art_bib = json.loads(cn.content_negotiation(ids = doi_text))
-        return art_bib
-    except:
-        return {}

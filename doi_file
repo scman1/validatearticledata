@@ -1,0 +1,946 @@
+{
+    "indexed": {
+        "date-parts": [
+            [
+                2020,
+                8,
+                7
+            ]
+        ],
+        "date-time": "2020-08-07T10:27:28Z",
+        "timestamp": 1596796048789
+    },
+    "reference-count": 55,
+    "publisher": "Springer Science and Business Media LLC",
+    "issue": "1",
+    "license": [
+        {
+            "URL": "https://creativecommons.org/licenses/by/4.0",
+            "start": {
+                "date-parts": [
+                    [
+                        2018,
+                        9,
+                        17
+                    ]
+                ],
+                "date-time": "2018-09-17T00:00:00Z",
+                "timestamp": 1537142400000
+            },
+            "delay-in-days": 0,
+            "content-version": "tdm"
+        },
+        {
+            "URL": "https://creativecommons.org/licenses/by/4.0",
+            "start": {
+                "date-parts": [
+                    [
+                        2018,
+                        9,
+                        17
+                    ]
+                ],
+                "date-time": "2018-09-17T00:00:00Z",
+                "timestamp": 1537142400000
+            },
+            "delay-in-days": 0,
+            "content-version": "vor"
+        }
+    ],
+    "funder": [
+        {
+            "DOI": "10.13039/100000001",
+            "name": "National Science Foundation",
+            "doi-asserted-by": "publisher",
+            "award": [
+                "DGE-1122492"
+            ]
+        },
+        {
+            "DOI": "10.13039/501100004359",
+            "name": "Vetenskapsrådet",
+            "doi-asserted-by": "publisher",
+            "award": [
+                "2012-2802"
+            ]
+        },
+        {
+            "DOI": "10.13039/100000002",
+            "name": "National Institutes of Health",
+            "doi-asserted-by": "publisher",
+            "award": [
+                "GM097348"
+            ]
+        }
+    ],
+    "content-domain": {
+        "domain": [
+            "link.springer.com"
+        ],
+        "crossmark-restriction": false
+    },
+    "published-print": {
+        "date-parts": [
+            [
+                2018,
+                12
+            ]
+        ]
+    },
+    "DOI": "10.1038/s41467-018-06194-1",
+    "type": "article-journal",
+    "created": {
+        "date-parts": [
+            [
+                2018,
+                9,
+                11
+            ]
+        ],
+        "date-time": "2018-09-11T13:36:56Z",
+        "timestamp": 1536673016000
+    },
+    "update-policy": "http://dx.doi.org/10.1007/springer_crossmark_policy",
+    "source": "Crossref",
+    "is-referenced-by-count": 10,
+    "title": "14-3-3 proteins activate Pseudomonas exotoxins-S and -T by chaperoning a hydrophobic surface",
+    "prefix": "10.1038",
+    "volume": "9",
+    "author": [
+        {
+            "given": "Tobias",
+            "family": "Karlberg",
+            "sequence": "first",
+            "affiliation": []
+        },
+        {
+            "given": "Peter",
+            "family": "Hornyak",
+            "sequence": "additional",
+            "affiliation": []
+        },
+        {
+            "given": "Ana Filipa",
+            "family": "Pinto",
+            "sequence": "additional",
+            "affiliation": []
+        },
+        {
+            "given": "Stefina",
+            "family": "Milanova",
+            "sequence": "additional",
+            "affiliation": []
+        },
+        {
+            "given": "Mahsa",
+            "family": "Ebrahimi",
+            "sequence": "additional",
+            "affiliation": []
+        },
+        {
+            "given": "Mikael",
+            "family": "Lindberg",
+            "sequence": "additional",
+            "affiliation": []
+        },
+        {
+            "given": "Nikolai",
+            "family": "Püllen",
+            "sequence": "additional",
+            "affiliation": []
+        },
+        {
+            "ORCID": "http://orcid.org/0000-0003-2314-3322",
+            "authenticated-orcid": false,
+            "given": "Axel",
+            "family": "Nordström",
+            "sequence": "additional",
+            "affiliation": []
+        },
+        {
+            "given": "Elinor",
+            "family": "Löverli",
+            "sequence": "additional",
+            "affiliation": []
+        },
+        {
+            "given": "Rémi",
+            "family": "Caraballo",
+            "sequence": "additional",
+            "affiliation": []
+        },
+        {
+            "given": "Emily V.",
+            "family": "Wong",
+            "sequence": "additional",
+            "affiliation": []
+        },
+        {
+            "given": "Katja",
+            "family": "Näreoja",
+            "sequence": "additional",
+            "affiliation": []
+        },
+        {
+            "given": "Ann-Gerd",
+            "family": "Thorsell",
+            "sequence": "additional",
+            "affiliation": []
+        },
+        {
+            "given": "Mikael",
+            "family": "Elofsson",
+            "sequence": "additional",
+            "affiliation": []
+        },
+        {
+            "given": "Enrique M.",
+            "family": "De La Cruz",
+            "sequence": "additional",
+            "affiliation": []
+        },
+        {
+            "ORCID": "http://orcid.org/0000-0001-7354-9270",
+            "authenticated-orcid": false,
+            "given": "Camilla",
+            "family": "Björkegren",
+            "sequence": "additional",
+            "affiliation": []
+        },
+        {
+            "ORCID": "http://orcid.org/0000-0003-4059-3501",
+            "authenticated-orcid": false,
+            "given": "Herwig",
+            "family": "Schüler",
+            "sequence": "additional",
+            "affiliation": []
+        }
+    ],
+    "member": "297",
+    "published-online": {
+        "date-parts": [
+            [
+                2018,
+                9,
+                17
+            ]
+        ]
+    },
+    "reference": [
+        {
+            "key": "6194_CR1",
+            "doi-asserted-by": "publisher",
+            "first-page": "991",
+            "DOI": "10.1046/j.1365-2958.1996.01554.x",
+            "volume": "22",
+            "author": "TL Yahr",
+            "year": "1996",
+            "unstructured": "Yahr, T. L., Goranson, J. & Frank, D. W. Exoenzyme S of Pseudomonas aeruginosa is secreted by a type III pathway. Mol. Microbiol. 22, 991–1003 (1996).",
+            "journal-title": "Mol. Microbiol."
+        },
+        {
+            "key": "6194_CR2",
+            "doi-asserted-by": "publisher",
+            "first-page": "1125",
+            "DOI": "10.1046/j.1365-2958.1997.5411905.x",
+            "volume": "25",
+            "author": "E Frithz-Lindsten",
+            "year": "1997",
+            "unstructured": "Frithz-Lindsten, E., Du, Y., Rosqvist, R. & Forsberg, A. Intracellular targeting of exoenzyme S of Pseudomonas aeruginosa via type III-dependent translocation induces phagocytosis resistance, cytotoxicity and disruption of actin microfilaments. Mol. Microbiol. 25, 1125–1139 (1997).",
+            "journal-title": "Mol. Microbiol."
+        },
+        {
+            "key": "6194_CR3",
+            "doi-asserted-by": "publisher",
+            "first-page": "599",
+            "DOI": "10.1038/nrmicro3310",
+            "volume": "12",
+            "author": "NC Simon",
+            "year": "2014",
+            "unstructured": "Simon, N. C., Aktories, K. & Barbieri, J. T. Novel bacterial ADP-ribosylating toxins: structure and function. Nat. Rev. Microbiol. 12, 599–611 (2014).",
+            "journal-title": "Nat. Rev. Microbiol."
+        },
+        {
+            "key": "6194_CR4",
+            "doi-asserted-by": "publisher",
+            "first-page": "654",
+            "DOI": "10.1038/nrmicro2199",
+            "volume": "7",
+            "author": "AR Hauser",
+            "year": "2009",
+            "unstructured": "Hauser, A. R. The type III secretion system of Pseudomonas aeruginosa: infection by injection. Nat. Rev. Microbiol. 7, 654–665 (2009).",
+            "journal-title": "Nat. Rev. Microbiol."
+        },
+        {
+            "key": "6194_CR5",
+            "first-page": "9004",
+            "volume": "264",
+            "author": "J Coburn",
+            "year": "1989",
+            "unstructured": "Coburn, J., Wyatt, R. T., Iglewski, B. H. & Gill, D. M. Several GTP-binding proteins, including p21c-H-ras, are preferred substrates of Pseudomonas aeruginosa exoenzyme S. J. Biol. Chem. 264, 9004–9008 (1989).",
+            "journal-title": "J. Biol. Chem."
+        },
+        {
+            "key": "6194_CR6",
+            "doi-asserted-by": "publisher",
+            "first-page": "617",
+            "DOI": "10.1042/bj20020714",
+            "volume": "367",
+            "author": "ML Henriksson",
+            "year": "2002",
+            "unstructured": "Henriksson, M. L. et al. Exoenzyme S shows selective ADP-ribosylation and GTPase-activating protein (GAP) activities towards small GTPases in vivo. Biochem. J. 367, 617–628 (2002).",
+            "journal-title": "Biochem. J."
+        },
+        {
+            "key": "6194_CR7",
+            "doi-asserted-by": "publisher",
+            "first-page": "38402",
+            "DOI": "10.1074/jbc.M405707200",
+            "volume": "279",
+            "author": "AW Maresso",
+            "year": "2004",
+            "unstructured": "Maresso, A. W., Baldwin, M. R. & Barbieri, J. T. Ezrin/radixin/moesin proteins are high affinity targets for ADP-ribosylation by Pseudomonas aeruginosa ExoS. J. Biol. Chem. 279, 38402–38408 (2004).",
+            "journal-title": "J. Biol. Chem."
+        },
+        {
+            "key": "6194_CR8",
+            "doi-asserted-by": "crossref",
+            "first-page": "996",
+            "DOI": "10.1128/IAI.57.3.996-998.1989",
+            "volume": "57",
+            "author": "J Coburn",
+            "year": "1989",
+            "unstructured": "Coburn, J., Dillon, S. T., Iglewski, B. H. & Gill, D. M. Exoenzyme S of Pseudomonas aeruginosa ADP-ribosylates the intermediate filament protein vimentin. Infect. Immun. 57, 996–998 (1989).",
+            "journal-title": "Infect. Immun."
+        },
+        {
+            "key": "6194_CR9",
+            "doi-asserted-by": "publisher",
+            "first-page": "815",
+            "DOI": "10.1111/j.1462-5822.2005.00668.x",
+            "volume": "8",
+            "author": "AL Jansson",
+            "year": "2006",
+            "unstructured": "Jansson, A. L. et al. Exoenzyme S of Pseudomonas aeruginosa is not able to induce apoptosis when cells express activated proteins, such as Ras or protein kinase B/Akt. Cell Microbiol. 8, 815–822 (2006).",
+            "journal-title": "Cell Microbiol."
+        },
+        {
+            "key": "6194_CR10",
+            "doi-asserted-by": "publisher",
+            "first-page": "35953",
+            "DOI": "10.1074/jbc.M504901200",
+            "volume": "280",
+            "author": "Q Deng",
+            "year": "2005",
+            "unstructured": "Deng, Q., Sun, J. & Barbieri, J. T. Uncoupling Crk signal transduction by Pseudomonas exoenzyme T. J. Biol. Chem. 280, 35953–35960 (2005).",
+            "journal-title": "J. Biol. Chem."
+        },
+        {
+            "key": "6194_CR11",
+            "doi-asserted-by": "publisher",
+            "first-page": "236",
+            "DOI": "10.1038/nchembio.2568",
+            "volume": "14",
+            "author": "MS Cohen",
+            "year": "2018",
+            "unstructured": "Cohen, M. S. & Chang, P. Insights into the biogenesis, function, and regulation of ADP-ribosylation. Nat. Chem. Biol. 14, 236–243 (2018).",
+            "journal-title": "Nat. Chem. Biol."
+        },
+        {
+            "key": "6194_CR12",
+            "doi-asserted-by": "publisher",
+            "first-page": "e1004945",
+            "DOI": "10.1371/journal.ppat.1004945",
+            "volume": "11",
+            "author": "SM Rangel",
+            "year": "2015",
+            "unstructured": "Rangel, S. M., Diaz, M. H., Knoten, C. A., Zhang, A. & Hauser, A. R. The role of ExoS in dissemination of Pseudomonas aeruginosa during pneumonia. PLoS Pathog. 11, e1004945 (2015).",
+            "journal-title": "PLoS Pathog."
+        },
+        {
+            "key": "6194_CR13",
+            "doi-asserted-by": "publisher",
+            "first-page": "2320",
+            "DOI": "10.1073/pnas.90.6.2320",
+            "volume": "90",
+            "author": "H Fu",
+            "year": "1993",
+            "unstructured": "Fu, H., Coburn, J. & Collier, R. J. The eukaryotic host factor that activates exoenzyme S of Pseudomonas aeruginosa is a member of the 14-3-3 protein family. Proc. Natl. Acad. Sci. USA 90, 2320–2324 (1993).",
+            "journal-title": "Proc. Natl. Acad. Sci. USA"
+        },
+        {
+            "key": "6194_CR14",
+            "doi-asserted-by": "publisher",
+            "first-page": "1609",
+            "DOI": "10.1128/jb.179.5.1609-1613.1997",
+            "volume": "179",
+            "author": "S Liu",
+            "year": "1997",
+            "unstructured": "Liu, S., Yahr, T. L., Frank, D. W. & Barbieri, J. T. Biochemical relationships between the 53-kilodalton (Exo53) and 49-kilodalton (ExoS) forms of exoenzyme S of Pseudomonas aeruginosa. J. Bacteriol. 179, 1609–1613 (1997).",
+            "journal-title": "J. Bacteriol."
+        },
+        {
+            "key": "6194_CR15",
+            "doi-asserted-by": "publisher",
+            "first-page": "1279",
+            "DOI": "10.1111/febs.13986",
+            "volume": "284",
+            "author": "NN Sluchanko",
+            "year": "2017",
+            "unstructured": "Sluchanko, N. N. & Gusev, N. B. Moonlighting chaperone-like activity of the universal regulatory 14-3-3 proteins. FEBS J. 284, 1279–1295 (2017).",
+            "journal-title": "FEBS J."
+        },
+        {
+            "key": "6194_CR16",
+            "doi-asserted-by": "publisher",
+            "first-page": "688",
+            "DOI": "10.1016/j.semcdb.2011.09.008",
+            "volume": "22",
+            "author": "AK Gardino",
+            "year": "2011",
+            "unstructured": "Gardino, A. K. & Yaffe, M. B. 14-3-3 proteins as signaling integration points for cell cycle control and apoptosis. Semin. Cell Dev. Biol. 22, 688–695 (2011).",
+            "journal-title": "Semin. Cell Dev. Biol."
+        },
+        {
+            "key": "6194_CR17",
+            "doi-asserted-by": "publisher",
+            "first-page": "663",
+            "DOI": "10.1016/j.semcdb.2011.09.001",
+            "volume": "22",
+            "author": "T Obsil",
+            "year": "2011",
+            "unstructured": "Obsil, T. & Obsilova, V. Structural basis of 14-3-3 protein functions. Semin. Cell Dev. Biol. 22, 663–672 (2011).",
+            "journal-title": "Semin. Cell Dev. Biol."
+        },
+        {
+            "key": "6194_CR18",
+            "doi-asserted-by": "publisher",
+            "first-page": "32",
+            "DOI": "10.1016/j.abb.2014.03.008",
+            "volume": "549",
+            "author": "NN Sluchanko",
+            "year": "2014",
+            "unstructured": "Sluchanko, N. N., Roman, S. G., Chebotareva, N. A. & Gusev, N. B. Chaperone-like activity of monomeric human 14-3-3zeta on different protein substrates. Arch. Biochem. Biophys. 549, 32–39 (2014).",
+            "journal-title": "Arch. Biochem. Biophys."
+        },
+        {
+            "key": "6194_CR19",
+            "doi-asserted-by": "publisher",
+            "first-page": "5216",
+            "DOI": "10.1021/bi982492m",
+            "volume": "38",
+            "author": "SC Masters",
+            "year": "1999",
+            "unstructured": "Masters, S. C., Pederson, K. J., Zhang, L., Barbieri, J. T. & Fu, H. Interaction of 14-3-3 with a nonphosphorylated protein ligand, exoenzyme S of Pseudomonas aeruginosa. Biochemistry 38, 5216–5221 (1999).",
+            "journal-title": "Biochemistry"
+        },
+        {
+            "key": "6194_CR20",
+            "doi-asserted-by": "publisher",
+            "first-page": "4921",
+            "DOI": "10.1046/j.1432-1033.2002.03191.x",
+            "volume": "269",
+            "author": "ML Henriksson",
+            "year": "2002",
+            "unstructured": "Henriksson, M. L. et al. A nonphosphorylated 14-3-3 binding motif on exoenzyme S that is functional in vivo. Eur. J. Biochem. 269, 4921–4929 (2002).",
+            "journal-title": "Eur. J. Biochem."
+        },
+        {
+            "key": "6194_CR21",
+            "doi-asserted-by": "publisher",
+            "first-page": "17237",
+            "DOI": "10.1073/pnas.0605779103",
+            "volume": "103",
+            "author": "X Yang",
+            "year": "2006",
+            "unstructured": "Yang, X. et al. Structural basis for protein-protein interactions in the 14-3-3 protein family. Proc. Natl. Acad. Sci. USA 103, 17237–17242 (2006).",
+            "journal-title": "Proc. Natl. Acad. Sci. USA"
+        },
+        {
+            "key": "6194_CR22",
+            "doi-asserted-by": "publisher",
+            "first-page": "638",
+            "DOI": "10.1111/j.1742-4658.2005.05100.x",
+            "volume": "273",
+            "author": "L Yasmin",
+            "year": "2006",
+            "unstructured": "Yasmin, L. et al. Delineation of exoenzyme S residues that mediate the interaction with 14-3-3 and its biological activity. FEBS J. 273, 638–646 (2006).",
+            "journal-title": "FEBS J."
+        },
+        {
+            "key": "6194_CR23",
+            "doi-asserted-by": "publisher",
+            "first-page": "902",
+            "DOI": "10.1038/sj.emboj.7601530",
+            "volume": "26",
+            "author": "C Ottmann",
+            "year": "2007",
+            "unstructured": "Ottmann, C. et al. Phosphorylation-independent interaction between 14-3-3 and exoenzyme S: from structure to pathogenesis. EMBO J. 26, 902–913 (2007).",
+            "journal-title": "EMBO J."
+        },
+        {
+            "key": "6194_CR24",
+            "doi-asserted-by": "publisher",
+            "first-page": "217",
+            "DOI": "10.1042/BJ20100043",
+            "volume": "427",
+            "author": "L Yasmin",
+            "year": "2010",
+            "unstructured": "Yasmin, L. et al. Electrostatic interactions play a minor role in the binding of ExoS to 14-3-3 proteins. Biochem. J. 427, 217–224 (2010).",
+            "journal-title": "Biochem. J."
+        },
+        {
+            "key": "6194_CR25",
+            "doi-asserted-by": "publisher",
+            "first-page": "1851",
+            "DOI": "10.1128/JB.184.7.1851-1858.2002",
+            "volume": "184",
+            "author": "M Braun",
+            "year": "2002",
+            "unstructured": "Braun, M. et al. Characterization of an ADP-ribosyltransferase toxin (AexT) from Aeromonas salmonicida subsp. salmonicida. J. Bacteriol. 184, 1851–1858 (2002).",
+            "journal-title": "J. Bacteriol."
+        },
+        {
+            "key": "6194_CR26",
+            "doi-asserted-by": "publisher",
+            "first-page": "2598",
+            "DOI": "10.1111/j.1462-5822.2007.00980.x",
+            "volume": "9",
+            "author": "T Kodama",
+            "year": "2007",
+            "unstructured": "Kodama, T. et al. Identification and characterization of VopT, a novel ADP-ribosyltransferase effector protein secreted via the Vibrio parahaemolyticus type III secretion system 2. Cell Microbiol. 9, 2598–2609 (2007).",
+            "journal-title": "Cell Microbiol."
+        },
+        {
+            "key": "6194_CR27",
+            "doi-asserted-by": "publisher",
+            "first-page": "2489",
+            "DOI": "10.1002/anie.201310082",
+            "volume": "53",
+            "author": "A Glas",
+            "year": "2014",
+            "unstructured": "Glas, A. et al. Constrained peptides with target-adapted cross-links as inhibitors of a pathogenic protein-protein interaction. Angew. Chem. Int. Ed. 53, 2489–2493 (2014).",
+            "journal-title": "Angew. Chem. Int. Ed."
+        },
+        {
+            "key": "6194_CR28",
+            "doi-asserted-by": "publisher",
+            "first-page": "8982",
+            "DOI": "10.1021/acs.jmedchem.7b01221",
+            "volume": "60",
+            "author": "DM Kruger",
+            "year": "2017",
+            "unstructured": "Kruger, D. M. et al. Structure-based design of non-natural macrocyclic peptides that inhibit protein-protein interactions. J. Med. Chem. 60, 8982–8988 (2017).",
+            "journal-title": "J. Med. Chem."
+        },
+        {
+            "key": "6194_CR29",
+            "doi-asserted-by": "publisher",
+            "first-page": "5920",
+            "DOI": "10.1021/acs.biochem.5b00921",
+            "volume": "54",
+            "author": "R Ravulapalli",
+            "year": "2015",
+            "unstructured": "Ravulapalli, R. et al. Characterization of Vis toxin, a novel ADP-ribosyltransferase from Vibrio splendidus. Biochemistry 54, 5920–5936 (2015).",
+            "journal-title": "Biochemistry"
+        },
+        {
+            "key": "6194_CR30",
+            "doi-asserted-by": "publisher",
+            "first-page": "590",
+            "DOI": "10.1177/1087057116629923",
+            "volume": "21",
+            "author": "AF Pinto",
+            "year": "2016",
+            "unstructured": "Pinto, A. F. et al. Identification of inhibitors of Pseudomonas aeruginosa exotoxin-S ADP-ribosyltransferase activity. J. Biomol. Screen. 21, 590–595 (2016).",
+            "journal-title": "J. Biomol. Screen."
+        },
+        {
+            "key": "6194_CR31",
+            "doi-asserted-by": "publisher",
+            "first-page": "W590",
+            "DOI": "10.1093/nar/gkh477",
+            "volume": "32",
+            "author": "R Maiti",
+            "year": "2004",
+            "unstructured": "Maiti, R., Van Domselaar, G. H., Zhang, H. & Wishart, D. S. SuperPose: a simple server for sophisticated structural superposition. Nucl. Acids Res. 32, W590–W594 (2004).",
+            "journal-title": "Nucl. Acids Res."
+        },
+        {
+            "key": "6194_CR32",
+            "doi-asserted-by": "publisher",
+            "first-page": "W314",
+            "DOI": "10.1093/nar/gkv314",
+            "volume": "43",
+            "author": "E Krissinel",
+            "year": "2015",
+            "unstructured": "Krissinel, E. Stock-based detection of protein oligomeric states in jsPISA. Nucl. Acids Res. 43, W314–W319 (2015).",
+            "journal-title": "Nucl. Acids Res."
+        },
+        {
+            "key": "6194_CR33",
+            "doi-asserted-by": "publisher",
+            "first-page": "3972",
+            "DOI": "10.1021/acs.biochem.7b00153",
+            "volume": "56",
+            "author": "E Sijbesma",
+            "year": "2017",
+            "unstructured": "Sijbesma, E. et al. Identification of two secondary ligand bninding sites in 14-3-3 proteins using fragment screening. Biochemistry 56, 3972–3982 (2017).",
+            "journal-title": "Biochemistry"
+        },
+        {
+            "key": "6194_CR34",
+            "doi-asserted-by": "publisher",
+            "first-page": "e1001029",
+            "DOI": "10.1371/journal.pcbi.1001029",
+            "volume": "6",
+            "author": "RJ Fieldhouse",
+            "year": "2010",
+            "unstructured": "Fieldhouse, R. J., Turgeon, Z., White, D. & Merrill, A. R. Cholera- and anthrax-like toxins are among several new ADP-ribosyltransferases. PLoS Comp. Biol. 6, e1001029 (2010).",
+            "journal-title": "PLoS Comp. Biol."
+        },
+        {
+            "key": "6194_CR35",
+            "doi-asserted-by": "publisher",
+            "first-page": "82",
+            "DOI": "10.1038/nsmb.2722",
+            "volume": "21",
+            "author": "J Radics",
+            "year": "2014",
+            "unstructured": "Radics, J., Konigsmaier, L. & Marlovits, T. C. Structure of a pathogenic type 3 secretion system in action. Nat. Struct. Mol. Biol. 21, 82–87 (2014).",
+            "journal-title": "Nat. Struct. Mol. Biol."
+        },
+        {
+            "key": "6194_CR36",
+            "doi-asserted-by": "publisher",
+            "first-page": "E9811",
+            "DOI": "10.1073/pnas.1714491114",
+            "volume": "114",
+            "author": "M Alblova",
+            "year": "2017",
+            "unstructured": "Alblova, M. et al. Molecular basis of the 14-3-3 protein-dependent activation of yeast neutral trehalase Nth1. Proc. Natl. Acad. Sci. USA 114, E9811–E9820 (2017).",
+            "journal-title": "Proc. Natl. Acad. Sci. USA"
+        },
+        {
+            "key": "6194_CR37",
+            "doi-asserted-by": "publisher",
+            "first-page": "257",
+            "DOI": "10.1016/S0092-8674(01)00316-6",
+            "volume": "105",
+            "author": "T Obsil",
+            "year": "2001",
+            "unstructured": "Obsil, T., Ghirlando, R., Klein, D. C., Ganguly, S. & Dyda, F. Crystal structure of the 14-3-3zeta:serotonin N-acetyltransferase complex. a role for scaffolding in enzyme regulation. Cell 105, 257–267 (2001).",
+            "journal-title": "Cell"
+        },
+        {
+            "key": "6194_CR38",
+            "doi-asserted-by": "publisher",
+            "first-page": "305",
+            "DOI": "10.1016/j.str.2016.12.005",
+            "volume": "25",
+            "author": "NN Sluchanko",
+            "year": "2017",
+            "unstructured": "Sluchanko, N. N. et al. Structural basis for the interaction of a human small heat shock protein with the 14-3-3 universal signaling regulator. Structure 25, 305–316 (2017).",
+            "journal-title": "Structure"
+        },
+        {
+            "key": "6194_CR39",
+            "doi-asserted-by": "publisher",
+            "first-page": "332",
+            "DOI": "10.1038/nature10272",
+            "volume": "476",
+            "author": "K Taoka",
+            "year": "2011",
+            "unstructured": "Taoka, K. et al. 14-3-3 proteins act as intracellular receptors for rice Hd3a florigen. Nature 476, 332–335 (2011).",
+            "journal-title": "Nature"
+        },
+        {
+            "key": "6194_CR40",
+            "doi-asserted-by": "publisher",
+            "first-page": "20",
+            "DOI": "10.1016/j.jmb.2017.11.010",
+            "volume": "430",
+            "author": "NN Sluchanko",
+            "year": "2018",
+            "unstructured": "Sluchanko, N. N. Association of multiple phosphorylated proteins with the 14-3-3 regulatory hubs: problems and perspectives. J. Mol. Biol. 430, 20–26 (2018).",
+            "journal-title": "J. Mol. Biol."
+        },
+        {
+            "key": "6194_CR41",
+            "doi-asserted-by": "publisher",
+            "first-page": "868",
+            "DOI": "10.1038/nsmb818",
+            "volume": "11",
+            "author": "J Sun",
+            "year": "2004",
+            "unstructured": "Sun, J., Maresso, A. W., Kim, J. J. & Barbieri, J. T. How bacterial ADP-ribosylating toxins recognize substrates. Nat. Struct. Mol. Biol. 11, 868–876 (2004).",
+            "journal-title": "Nat. Struct. Mol. Biol."
+        },
+        {
+            "key": "6194_CR42",
+            "doi-asserted-by": "publisher",
+            "first-page": "3755",
+            "DOI": "10.1021/acs.jmedchem.7b00574",
+            "volume": "61",
+            "author": "LM Stevers",
+            "year": "2017",
+            "unstructured": "Stevers, L. M. et al. Modulators of 14-3-3 protein-protein interactions. J. Med. Chem. 61, 3755–3778 (2017).",
+            "journal-title": "J. Med. Chem."
+        },
+        {
+            "key": "6194_CR43",
+            "doi-asserted-by": "publisher",
+            "first-page": "7319",
+            "DOI": "10.1021/jo301067e",
+            "volume": "77",
+            "author": "BG Szczepankiewicz",
+            "year": "2012",
+            "unstructured": "Szczepankiewicz, B. G. et al. Synthesis of carba-NAD and the structures of its ternary complexes with SIRT3 and SIRT5. J. Org. Chem. 77, 7319–7329 (2012).",
+            "journal-title": "J. Org. Chem."
+        },
+        {
+            "key": "6194_CR44",
+            "doi-asserted-by": "publisher",
+            "first-page": "16",
+            "DOI": "10.1016/j.pep.2008.10.003",
+            "volume": "64",
+            "author": "J Bogomolovas",
+            "year": "2009",
+            "unstructured": "Bogomolovas, J., Simon, B., Sattler, M. & Stier, G. Screening of fusion partners for high yield expression and purification of bioactive viscotoxins. Protein Expr. Purif. 64, 16–23 (2009).",
+            "journal-title": "Protein Expr. Purif."
+        },
+        {
+            "key": "6194_CR45",
+            "doi-asserted-by": "publisher",
+            "first-page": "515",
+            "DOI": "10.1016/j.nbt.2011.10.007",
+            "volume": "29",
+            "author": "T Keates",
+            "year": "2012",
+            "unstructured": "Keates, T. et al. Expressing the human proteome for affinity proteomics: optimising expression of soluble protein domains and in vivo biotinylation. New Biotechnol. 29, 515–525 (2012).",
+            "journal-title": "New Biotechnol."
+        },
+        {
+            "key": "6194_CR46",
+            "doi-asserted-by": "publisher",
+            "first-page": "1085",
+            "DOI": "10.1107/S1600576716004416",
+            "volume": "49",
+            "author": "KM Sparta",
+            "year": "2016",
+            "unstructured": "Sparta, K. M., Krug, M., Heinemann, U., Mueller, U. & Weiss, M. S. XDSAPP2.0. J. Appl. Crystallogr. 49, 1085–1092 (2016).",
+            "journal-title": "J. Appl. Crystallogr."
+        },
+        {
+            "key": "6194_CR47",
+            "doi-asserted-by": "publisher",
+            "first-page": "125",
+            "DOI": "10.1107/S0907444909047337",
+            "volume": "66",
+            "author": "W Kabsch",
+            "year": "2010",
+            "unstructured": "Kabsch, W. Xds. Acta Crystallogr. D Biol. Crystallogr. 66, 125–132 (2010).",
+            "journal-title": "Acta Crystallogr. D Biol. Crystallogr."
+        },
+        {
+            "key": "6194_CR48",
+            "doi-asserted-by": "publisher",
+            "first-page": "72",
+            "DOI": "10.1107/S0907444905036693",
+            "volume": "62",
+            "author": "P Evans",
+            "year": "2006",
+            "unstructured": "Evans, P. Scaling and assessment of data quality. Acta Crystallogr. D Biol. Crystallogr. 62, 72–82 (2006).",
+            "journal-title": "Acta Crystallogr. D Biol. Crystallogr."
+        },
+        {
+            "key": "6194_CR49",
+            "doi-asserted-by": "publisher",
+            "first-page": "658",
+            "DOI": "10.1107/S0021889807021206",
+            "volume": "40",
+            "author": "AJ McCoy",
+            "year": "2007",
+            "unstructured": "McCoy, A. J. et al. Phaser crystallographic software. J. Appl. Crystallogr. 40, 658–674 (2007).",
+            "journal-title": "J. Appl. Crystallogr."
+        },
+        {
+            "key": "6194_CR50",
+            "doi-asserted-by": "publisher",
+            "first-page": "352",
+            "DOI": "10.1107/S0907444912001308",
+            "volume": "68",
+            "author": "PV Afonine",
+            "year": "2012",
+            "unstructured": "Afonine, P. V. et al. Towards automated crystallographic structure refinement with phenix.refine. Acta Crystallogr. D Biol. Crystallogr. 68, 352–367 (2012).",
+            "journal-title": "Acta Crystallogr. D Biol. Crystallogr."
+        },
+        {
+            "key": "6194_CR51",
+            "author": "G Bricogne",
+            "year": "2016",
+            "unstructured": "Bricogne, G. et al. Buster Version 2.10.2 (Global Phasing Ltd, Cambridge, UK, 2016).",
+            "volume-title": "Buster Version 2.10.2"
+        },
+        {
+            "key": "6194_CR52",
+            "doi-asserted-by": "publisher",
+            "first-page": "486",
+            "DOI": "10.1107/S0907444910007493",
+            "volume": "66",
+            "author": "P Emsley",
+            "year": "2010",
+            "unstructured": "Emsley, P., Lohkamp, B., Scott, W. G. & Cowtan, K. Features and development of Coot. Acta Crystallogr. D Biol. Crystallogr. 66, 486–501 (2010).",
+            "journal-title": "Acta Crystallogr. D Biol. Crystallogr."
+        },
+        {
+            "key": "6194_CR53",
+            "doi-asserted-by": "publisher",
+            "first-page": "87",
+            "DOI": "10.1016/S0076-6879(02)50957-5",
+            "volume": "350",
+            "author": "RD Gietz",
+            "year": "2002",
+            "unstructured": "Gietz, R. D. & Woods, R. A. Transformation of yeast by lithium acetate/single-stranded carrier DNA/polyethylene glycol method. Meth. Enzymol. 350, 87–96 (2002).",
+            "journal-title": "Meth. Enzymol."
+        },
+        {
+            "key": "6194_CR54",
+            "doi-asserted-by": "publisher",
+            "first-page": "392",
+            "DOI": "10.1107/S0108767391001071",
+            "volume": "47",
+            "author": "RA Engh",
+            "year": "1991",
+            "unstructured": "Engh, R. A. & Huber, R. Accurate bond and angle parameters for X-ray protein-structure refinement. Acta Crystallogr. A. 47, 392–400 (1991).",
+            "journal-title": "Acta Crystallogr. A."
+        },
+        {
+            "key": "6194_CR55",
+            "doi-asserted-by": "publisher",
+            "first-page": "12",
+            "DOI": "10.1107/S0907444909042073",
+            "volume": "66",
+            "author": "VB Chen",
+            "year": "2010",
+            "unstructured": "Chen, V. B. et al. MolProbity: all-atom structure validation for macromolecular crystallography. Acta Crystallogr. D Biol. Crystallogr. 66, 12–21 (2010).",
+            "journal-title": "Acta Crystallogr. D Biol. Crystallogr."
+        }
+    ],
+    "container-title": "Nature Communications",
+    "original-title": [],
+    "language": "en",
+    "link": [
+        {
+            "URL": "http://www.nature.com/articles/s41467-018-06194-1.pdf",
+            "content-type": "application/pdf",
+            "content-version": "vor",
+            "intended-application": "text-mining"
+        },
+        {
+            "URL": "http://www.nature.com/articles/s41467-018-06194-1",
+            "content-type": "text/html",
+            "content-version": "vor",
+            "intended-application": "text-mining"
+        },
+        {
+            "URL": "http://www.nature.com/articles/s41467-018-06194-1.pdf",
+            "content-type": "application/pdf",
+            "content-version": "vor",
+            "intended-application": "similarity-checking"
+        }
+    ],
+    "deposited": {
+        "date-parts": [
+            [
+                2020,
+                5,
+                17
+            ]
+        ],
+        "date-time": "2020-05-17T18:31:53Z",
+        "timestamp": 1589740313000
+    },
+    "score": 1.0,
+    "subtitle": [],
+    "short-title": [],
+    "issued": {
+        "date-parts": [
+            [
+                2018,
+                9,
+                17
+            ]
+        ]
+    },
+    "references-count": 55,
+    "journal-issue": {
+        "published-print": {
+            "date-parts": [
+                [
+                    2018,
+                    12
+                ]
+            ]
+        },
+        "issue": "1"
+    },
+    "alternative-id": [
+        "6194"
+    ],
+    "URL": "http://dx.doi.org/10.1038/s41467-018-06194-1",
+    "relation": {
+        "cites": []
+    },
+    "ISSN": [
+        "2041-1723"
+    ],
+    "subject": [
+        "General Biochemistry, Genetics and Molecular Biology",
+        "General Physics and Astronomy",
+        "General Chemistry"
+    ],
+    "container-title-short": "Nat Commun",
+    "assertion": [
+        {
+            "value": "19 April 2018",
+            "order": 1,
+            "name": "received",
+            "label": "Received",
+            "group": {
+                "name": "ArticleHistory",
+                "label": "Article History"
+            }
+        },
+        {
+            "value": "15 August 2018",
+            "order": 2,
+            "name": "accepted",
+            "label": "Accepted",
+            "group": {
+                "name": "ArticleHistory",
+                "label": "Article History"
+            }
+        },
+        {
+            "value": "17 September 2018",
+            "order": 3,
+            "name": "first_online",
+            "label": "First Online",
+            "group": {
+                "name": "ArticleHistory",
+                "label": "Article History"
+            }
+        },
+        {
+            "value": "The authors declare no competing interests.",
+            "order": 1,
+            "name": "Ethics",
+            "group": {
+                "name": "EthicsHeading",
+                "label": "Competing interests"
+            }
+        }
+    ],
+    "article-number": "3785"
+}
