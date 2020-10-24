@@ -1,4 +1,5 @@
 import requests
+import urllib
 from bs4 import BeautifulSoup
 
 def findFromURI(name, uri, referents):
@@ -55,4 +56,25 @@ def findFromDOI(name, doi, referents):
     result = findFromURI(name, doi_url, referents)        
     return result
 
+def getPageFromDOI (doi):
+    doi_url = 'https://dx.doi.org/'+ doi
+    page_text = ""
+    try:
+        req = urllib.request.Request(doi_url)
+        req.add_header('User-Agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.113 Safari/537.36')
+        article_page = urllib.request.urlopen(req)
+        page_text = article_page.read()
+    except Exception as e:
+        print(e)
+    return page_text
+
+def getPageFromURL(url_text):
+    page_text = ""
+    try:
+        req_head = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.113 Safari/537.36'}
+        response = requests.get(uri, headers = req_head)
+        page_text = response.text
+    except Exception as e:
+        print(e)
+    return page_text
 
