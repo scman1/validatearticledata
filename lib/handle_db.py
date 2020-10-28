@@ -67,6 +67,13 @@ class DataBaseAdapter:
         self.connection.execute(str_query)
         self.connection.commit()
         return 0
-        
+
+    def set_value_table(self, table, field_id, column, value):
+        str_query = "UPDATE %s SET %s = '%s' WHERE id = %s" % (table, column, value, field_id)
+        print(str_query)
+        self.connection.execute(str_query)
+        self.connection.commit()
+        return 0
+    
     def close(self):
         self.connection.close()
