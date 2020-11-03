@@ -21,7 +21,7 @@ def write_csv_data(values, filename):
             if not key in fieldnames:
                 fieldnames.append(key)
     #write back to a new csv file
-    with open(filename, 'w', newline='') as csvfile:
+    with open(filename, 'w', newline='', encoding="utf-8") as csvfile:
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
         writer.writeheader()
         for key in values.keys():
