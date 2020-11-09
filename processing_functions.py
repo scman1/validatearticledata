@@ -219,3 +219,15 @@ def get_not_matched_files(db_name):
         if not found_in_db:
            missing.append(file) 
     return missing
+
+# verify if statement refers to supporting data
+def is_data_stmt(statement=""):
+    support_keys = ["data", "underpin", "support", "result", "found", "find", "obtain", "doi","raw", "information"
+                    "provide", "availabe", "online", "supplement"]
+    count = 0
+    for a_word in support_keys:
+        if a_word in statement:
+            count += 1
+    if count > 2:
+        return True
+    return False
