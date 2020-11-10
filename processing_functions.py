@@ -222,8 +222,8 @@ def get_not_matched_files(db_name):
 
 # verify if statement refers to supporting data
 def is_data_stmt(statement=""):
-    support_keys = ["data", "underpin", "support", "result", "found", "find", "obtain", "doi","raw", "information"
-                    "provide", "availabe", "online", "supplement"]
+    support_keys = ["data", "underpin", "support", "result", "found", "find", "obtain", "doi","raw", "information",
+                    "provide", "available", "online", "supplement"]
     count = 0
     for a_word in support_keys:
         if a_word in statement:
