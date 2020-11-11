@@ -4,12 +4,12 @@ import csv
 # get the data from the csv_file, assuming first column is integer id
 def get_csv_data(input_file, id_field):
     csv_data = {}
-    fieldnames=[]
-    with open(input_file, newline='') as csvfile:
+    fieldnames = []
+    with open(input_file, newline='', encoding="utf-8") as csvfile:
         reader = csv.DictReader(csvfile)
         for row in reader:
-            if fieldnames==[]:
-                fieldnames=list(row.keys())
+            if fieldnames == []:
+                fieldnames = list(row.keys())
             csv_data[int(row[id_field])]=row
     return csv_data, fieldnames
 
