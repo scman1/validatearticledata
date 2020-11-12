@@ -5,9 +5,9 @@ import csv
 def get_csv_data(input_file, id_field):
     csv_data = {}
     fieldnames = []
-    with open(input_file, newline='', encoding="utf-8") as csvfile:
+    with open(input_file, newline='') as csvfile:
         reader = csv.DictReader(csvfile)
-        for row in reader:
+        for row in reader:  
             if fieldnames == []:
                 fieldnames = list(row.keys())
             csv_data[int(row[id_field])]=row
