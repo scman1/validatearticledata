@@ -72,9 +72,19 @@ def getPageFromURL(url_text):
     page_text = ""
     try:
         req_head = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.113 Safari/537.36'}
-        response = requests.get(uri, headers = req_head)
+        response = requests.get(url_text, headers = req_head)
         page_text = response.text
     except Exception as e:
         print(e)
     return page_text
+
+def getPageHeader(url_text):
+    response = None
+    try:
+        req_head = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.113 Safari/537.36'}
+        response = requests.head(url_text, headers = req_head)
+    except Exception as e:
+        print(e)
+    return response
+
 
