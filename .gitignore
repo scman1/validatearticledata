@@ -14,4 +14,5 @@ lib/__pycache__
 processed_csv/*
 pdf_files/*
 si_files/*
+do_files/*
 config/*
