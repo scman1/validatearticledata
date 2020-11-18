@@ -8,7 +8,7 @@ def get_csv_data(input_file, id_field):
     with open(input_file, encoding="utf8") as csvfile:
         reader = csv.DictReader(csvfile)
         for row in reader:  
-            print(row)
+            #print(row)
             if fieldnames == []:
                 fieldnames = list(row.keys())
             csv_data[int(row[id_field])]=row
