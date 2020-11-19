@@ -120,7 +120,7 @@ def getObjectMetadata(url_text, req_accept = 2):
     try:
         req_head = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.113 Safari/537.36'}
         req_head['Accept'] = req_accepts[req_accept]
-        print('trying to recover object from', url_text)
+        print('trying to recover object metadata from', url_text)
         response = requests.get(url_text, headers = req_head)
         if response.status_code == 200:
             print ('got something back')
