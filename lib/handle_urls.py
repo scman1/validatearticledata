@@ -140,3 +140,8 @@ def getObjectMetadata(url_text, req_accept = 2):
         print(e)
     finally:
         return ret_object
+
+def getBaseUrl(response_url):
+    parsed_uri = urllib.parse.urlparse(response_url)  # returns six components
+    base_url = parsed_uri.scheme + "://" + parsed_uri.netloc
+    return base_url

@@ -97,7 +97,7 @@ def get_working_file(nr_wf):
     print("Current pass:", current_pass)
     return working_file, wf_fields, current_pass
 
-# get an htm file saved locally in the html_file folder 
+# get an html file saved locally in the html_file folder 
 def get_pub_html_url(text_url, entry_id):
     html_file = 'html_files/' +  entry_id + '.html'
     if not Path(html_file).is_file():
