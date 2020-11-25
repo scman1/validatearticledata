@@ -63,6 +63,7 @@ class DataBaseAdapter:
         values = str(tuple(values))
         if ' None, ' in values:
             values = values.replace(" None,", " NULL,").replace("(None,", "(NULL,").replace(", None)", ", NULL)")
+        #print (table, columns, values)
         str_query = "INSERT INTO %s %s VALUES %s " % (table, columns, values)
         self.connection.execute(str_query)
         self.connection.commit()
@@ -70,7 +71,7 @@ class DataBaseAdapter:
 
     def set_value_table(self, table, field_id, column, value):
         str_query = "UPDATE %s SET %s = '%s' WHERE id = %s" % (table, column, value, field_id)
-        print(str_query)
+        #print(str_query)
         self.connection.execute(str_query)
         self.connection.commit()
         return 0
