@@ -9,8 +9,6 @@ import lib.crossref_api as cr_api
 import lib.handle_urls as urlh
 # managing files and file paths
 from pathlib import Path
-# add aprogress bar
-from tqdm import tqdm_notebook 
 #library for handling json files
 import json
 # library for using regular expressions
@@ -72,11 +70,22 @@ def get_titles_and_dois(str_pub_title, db_name = "app_db.sqlite3"):
     return db_titles
 
 # get a list of ids, titles, dois, links, pdf_file and 
+# html_file names from the data database
+def get_pub_data(db_name = "app_db.sqlite3"):
+    db_conn = dbh.DataBaseAdapter(db_name)
+    search_in = 'articles'
+    fields_required = "id, title, doi, link, pdf_file, html_file"
+    filter_str = "status = 'Added'"
+    db_titles = db_conn.get_values(search_in, fields_required, filter_str)
+    db_conn.close()
+    return db_titles
+
+# get a list of ids, titles, dois, links, pdf_file and 
 # html_file names from the app database
 def get_pub_app_data(db_name = "app_db.sqlite3"):
     db_conn = dbh.DataBaseAdapter(db_name)
     search_in = 'articles'
-    fields_required = "id, title, doi, link, pdf_file, html_file"
+    fields_required = "id, title, doi, link"
     filter_str = "status = 'Added'"
     db_titles = db_conn.get_values(search_in, fields_required, filter_str)
     db_conn.close()
@@ -88,7 +97,7 @@ def get_working_file(nr_wf):
     current_pass = 0
     if Path(nr_wf).is_file():
         working_file, wf_fields = csvh.get_csv_data(nr_wf,'Num')
-        for art_num in tqdm_notebook(working_file):
+        for art_num in working_file:
             if 'ignore' in working_file[art_num].keys():
                 if current_pass < int(working_file[art_num]['ignore']):
                     current_pass = int(working_file[art_num]['ignore'])
