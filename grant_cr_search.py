@@ -1,6 +1,7 @@
 from crossref.restful import Works
 
 import csv
+import time
 
 def award_in_crossref(wk):
     
@@ -33,8 +34,10 @@ def affi_in_crossref(aw):
 
 
 works = Works()
-# get all the documents from 2012 which have a funder from 2012 and see if they list ukch grant numbers
-pyear = '2015'
+# get all the documents which have a funder and award from year
+# verify if they list ukch grant numbers
+pyear = '2016'
+total_srch =  works.filter(has_funder='true').filter(has_award='true').filter(from_pub_date=pyear).filter(until_pub_date=pyear).count()
 pub_w_grant = works.filter(has_funder='true').filter(has_award='true').filter(from_pub_date=pyear).filter(until_pub_date=pyear)
 
 #ukch_grant = award_in_crossref(pub_w_grant)
@@ -44,7 +47,10 @@ counter = 0
 for wk in pub_w_grant:
     counter +=1
     has_award = award_in_crossref(wk)
-    print("{:09d}".format(counter), "DOI: ", wk['DOI'], "Has award", has_award)     
+    print("{:09d}".format(counter), "DOI: ", wk['DOI'], "Has award", has_award)
+    if counter % 100 == 0:
+        print("Advance: {:3.6f} %".format(counter/total_srch*100))
+        time.sleep(60)
     if has_award:
         art_authors = ""
         if 'author' in wk.keys() :
