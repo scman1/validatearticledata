@@ -1,4 +1,4 @@
-from crossref.restful import Works
+from crossref.restful import Works, Etiquette
 
 import csv
 import time
@@ -32,8 +32,9 @@ def affi_in_crossref(aw):
                         
     return  ukch_wks
 
+my_etiquette = Etiquette('UK Catalysis Hub Pub. Database', '0.1', 'https://github.com/scman1/validatearticledata', 'nievadelahidalgaa@cardiff.ac.uk')
 
-works = Works()
+works = Works(etiquette=my_etiquette)
 # get all the documents which have a funder and award from year
 # verify if they list ukch grant numbers
 pyear = '2016'
@@ -50,7 +51,7 @@ for wk in pub_w_grant:
     print("{:09d}".format(counter), "DOI: ", wk['DOI'], "Has award", has_award)
     if counter % 100 == 0:
         print("Advance: {:3.6f} %".format(counter/total_srch*100))
-        time.sleep(60)
+        time.sleep(1)
     if has_award:
         art_authors = ""
         if 'author' in wk.keys() :
