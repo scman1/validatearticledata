@@ -34,14 +34,17 @@ def affi_in_crossref(aw):
 
 works = Works()
 # get all the documents from 2012 which have a funder from 2012 and see if they list ukch grant numbers
-pub_w_grant = works.filter(has_funder='true').filter(from_online_pub_date='2012')
+pyear = '2015'
+pub_w_grant = works.filter(has_funder='true').filter(has_award='true').filter(from_pub_date=pyear).filter(until_pub_date=pyear)
 
 #ukch_grant = award_in_crossref(pub_w_grant)
 
 foud_pubs = {}
+counter = 0
 for wk in pub_w_grant:
+    counter +=1
     has_award = award_in_crossref(wk)
-    print("DOI: ", wk['DOI'], "Has award", has_award)     
+    print("{:09d}".format(counter), "DOI: ", wk['DOI'], "Has award", has_award)     
     if has_award:
         art_authors = ""
         if 'author' in wk.keys() :
@@ -87,6 +90,6 @@ for wk in pub_w_grant:
              foud_pubs[wk['DOI']]= this_pub
         this_pub['award'] = fund_award 
       
-        with open(r'name.csv', 'a', newline='',encoding='utf8') as f:
+        with open(r'name_'+pyear+'.csv', 'a', newline='',encoding='utf8') as f:
             writer = csv.writer(f)
             writer.writerow(this_pub.values())
