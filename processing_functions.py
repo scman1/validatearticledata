@@ -229,6 +229,25 @@ def get_not_matched_files(db_name):
            missing.append(file) 
     return missing
 
+def get_db_id(doi_value, db_name = "app_db.sqlite3"):
+    db_conn = dbh.DataBaseAdapter(db_name)
+    table = 'articles'   
+    id_val = db_conn.get_value(table, "id", "doi", doi_value)
+    db_conn.close()
+    if id_val != None:
+        return id_val[0]
+    else:
+        return 0
+
+def get_authors_list(db_name = "app_db.sqlite3"):
+    db_conn = dbh.DataBaseAdapter(db_name)
+    search_in = 'authors'
+    fields_required = "last_name, given_name"
+    filter_str = "isap = 1"
+    db_names = db_conn.get_values(search_in, fields_required, filter_str)
+    db_conn.close()
+    return db_names
+    
 # verify if statement refers to supporting data
 def is_data_stmt(statement=""):
     support_keys = ["data", "underpin", "support", "result", "found", "find", "obtain", "doi","raw", "information",
@@ -240,3 +259,4 @@ def is_data_stmt(statement=""):
     if count > 2:
         return True
     return False
+

@@ -16,3 +16,5 @@ pdf_files/*
 si_files/*
 do_files/*
 config/*
+__pycache__/processing_functions.cpython-36.pyc
+*.pyc
