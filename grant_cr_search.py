@@ -37,9 +37,12 @@ my_etiquette = Etiquette('UK Catalysis Hub Pub. Database', '0.1', 'https://githu
 works = Works(etiquette=my_etiquette)
 # get all the documents which have a funder and award from year
 # verify if they list ukch grant numbers
-pyear = '2016'
-total_srch =  works.filter(has_funder='true').filter(has_award='true').filter(from_pub_date=pyear).filter(until_pub_date=pyear).count()
-pub_w_grant = works.filter(has_funder='true').filter(has_award='true').filter(from_pub_date=pyear).filter(until_pub_date=pyear)
+pyear = '2021'
+d_from = pyear + '-09'
+d_to = pyear + '-12'
+
+total_srch =  works.filter(has_funder='true').filter(has_award='true').filter(from_pub_date=d_from).filter(until_pub_date=d_to).count()
+pub_w_grant = works.filter(has_funder='true').filter(has_award='true').filter(from_pub_date=d_from).filter(until_pub_date=d_to)
 
 #ukch_grant = award_in_crossref(pub_w_grant)
 
