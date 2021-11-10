@@ -16,6 +16,19 @@ import re
 # library for handling http requests
 import requests
 
+# manage configuration files (*.ini)
+import configparser
+
+# Read key value from a configuration file
+def read_keys():
+    ini_file = Path().absolute() /  "config/config.ini"
+    api_keys ={}
+    if ini_file.exists():
+        seg_config = configparser.ConfigParser()
+        seg_config.read(ini_file)
+        api_keys['elsevier'] = seg_config['ApiKeys']["ElsevierMining"]
+        api_keys['wiley'] = seg_config['ApiKeys']["WileyMining"]
+    return api_keys
 
 # Custom Functions
 # ** will migrate to lib if needed for more than one notebook
@@ -203,16 +216,56 @@ def set_pdf_file_value(file_name, pub_id, db_name = "app_db.sqlite3"):
     return done
 
 # try to get a pdf from elsevier
-def get_elsevier_pdf(doi):
-    pdf_url = f'http://api.elsevier.com/content/article/doi:{doi}?view=FULL'
-    print("\t", pdf_url) 
-    return get_pdf_from_url(pdf_url)
+def get_elsevier_pdf(a_doi):
+    api_key = read_keys()['elsevier']
+    header = {
+        'X-ELS-APIKey': api_key,
+        'httpAccept': 'application/pdf'
+        }
+    url = f'https://api.elsevier.com/content/article/doi/{a_doi}?httpAccept=application/pdf'
+    pdf_file = ""
+    with requests.get(url, headers=header) as r:
+        print(r.status_code)
+        pdf_file = a_doi.replace('/','_')+".pdf"
+        if r.status_code == 200:
+            with open('pdf_files/'+pdf_file,'wb') as f:
+                f.write(r.content)
+    return pdf_file
 
 # try to get a pdf from wiley
-def get_wiley_pdf(doi):
-    pdf_url = f'https://onlinelibrary.wiley.com/doi/pdf/{doi}'
+def get_wiley_pdf(a_doi):
+    
+    api_key = read_keys()['wiley']
+    header = {
+        "Wiley-TDM-Client-Token": api_key,
+        'httpAccept': 'application/pdf'
+        }
+    pdf_url = f"https://api.wiley.com/onlinelibrary/tdm/v1/articles/{a_doi.replace('/','%2F')}?httpAccept=application/pdf"
+    pdf_file = ""
+    with requests.get(pdf_url, headers=header) as r:
+        print(r.status_code)
+        pdf_file = a_doi.replace('/','_')+".pdf"
+        if r.status_code == 200:
+            with open('pdf_files/'+pdf_file,'wb') as f:
+                f.write(r.content)
+    
     print("\t", pdf_url) 
-    return get_pdf_from_url(pdf_url)
+    return pdf_file
+
+# try to get a pdf from ACS
+def get_acs_pdf(a_doi):
+    pdf_url = f"https://pubs.acs.org/doi/pdf/{a_doi}?httpAccept=application/pdf"
+    pdf_file = ""
+    with requests.get(pdf_url) as r:
+        print(r.status_code)
+        pdf_file = a_doi.replace('/','_')+".pdf"
+        if r.status_code == 200:
+            with open('pdf_files/'+pdf_file,'wb') as f:
+                f.write(r.content)
+    
+    print("\t", pdf_url) 
+    return pdf_file
+
 
 def get_not_matched_files(db_name):
     files_list = get_files_list(Path("pdf_files"))

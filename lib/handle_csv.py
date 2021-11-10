@@ -2,16 +2,21 @@
 import csv
 
 # get the data from the csv_file, assuming first column is integer id
-def get_csv_data(input_file, id_field):
+def get_csv_data(input_file, id_field=""):
     csv_data = {}
     fieldnames = []
+    identifier = 0
     with open(input_file, encoding="utf8") as csvfile:
         reader = csv.DictReader(csvfile)
         for row in reader:  
+            if id_field != "":
+                identifier = int(row[id_field])
+            else:
+                identifier += 1 
             #print(row)
             if fieldnames == []:
                 fieldnames = list(row.keys())
-            csv_data[int(row[id_field])]=row
+            csv_data[identifier]=row
     return csv_data, fieldnames
 
 # writes data to the given file name
