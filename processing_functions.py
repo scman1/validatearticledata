@@ -93,8 +93,8 @@ def get_pub_data(db_name = "app_db.sqlite3"):
     db_conn.close()
     return db_titles
 
-# get a list of ids, titles, dois, links, pdf_file and 
-# html_file names from the app database
+# get a list of ids, titles, dois, and links
+# for pubs with no data from the app database
 def get_pub_app_data(db_name = "app_db.sqlite3"):
     db_conn = dbh.DataBaseAdapter(db_name)
     search_in = 'articles'
@@ -103,6 +103,22 @@ def get_pub_app_data(db_name = "app_db.sqlite3"):
     db_titles = db_conn.get_values(search_in, fields_required, filter_str)
     db_conn.close()
     return db_titles
+
+
+def get_pub_app_no_data(db_name = "app_db.sqlite3"):
+    db_conn = dbh.DataBaseAdapter(db_name)
+    search_in = 'articles'
+    fields_required = "id, title, doi, link"
+    filter_str = "status = 'Added'"
+    db_pubs = db_conn.get_values(search_in, fields_required, filter_str)
+    db_data_ids = db_conn.get_values("article_datasets", "article_id", "id > 0")
+    db_data_ids = set(list(sum(db_data_ids,()))) # flatten list of tuples into set
+    no_data_titles = []
+    for a_pub in db_pubs:    
+        if not a_pub[0] in db_data_ids:
+            no_data_titles.append(a_pub)
+    db_conn.close()
+    return no_data_titles
 
 # get the current csv working file
 def get_working_file(nr_wf):
@@ -265,7 +281,6 @@ def get_acs_pdf(a_doi):
     
     print("\t", pdf_url) 
     return pdf_file
-
 
 def get_not_matched_files(db_name):
     files_list = get_files_list(Path("pdf_files"))
