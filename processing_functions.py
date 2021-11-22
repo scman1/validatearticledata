@@ -120,6 +120,14 @@ def get_pub_app_no_data(db_name = "app_db.sqlite3"):
     db_conn.close()
     return no_data_titles
 
+def get_dataset_data(db_name = "app_db.sqlite3"):
+    db_conn = dbh.DataBaseAdapter(db_name)
+    search_in = 'datasets'
+    fields_required = "id, dataset_doi, dataset_location, dataset_name"
+    filter_str = "id > 0 "
+    db_datasets = db_conn.get_values(search_in, fields_required, filter_str)
+    return db_datasets
+
 def get_pub_datasets(db_name = "app_db.sqlite3", db_id = 1):
     db_conn = dbh.DataBaseAdapter(db_name)
     search_in = 'article_datasets'
