@@ -82,12 +82,12 @@ def get_titles_and_dois(str_pub_title, db_name = "app_db.sqlite3"):
     db_conn.close()
     return db_titles
 
-# get a list of ids, titles, dois, links, pdf_file and 
-# html_file names from the data database
+# get a list of ids, titles, dois, links, and pdf_file 
+# names from the data database
 def get_pub_data(db_name = "app_db.sqlite3"):
     db_conn = dbh.DataBaseAdapter(db_name)
     search_in = 'articles'
-    fields_required = "id, title, doi, link, pdf_file, html_file"
+    fields_required = "id, title, doi, link, pdf_file"
     filter_str = "status = 'Added'"
     db_titles = db_conn.get_values(search_in, fields_required, filter_str)
     db_conn.close()
