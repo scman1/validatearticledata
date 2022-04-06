@@ -89,7 +89,7 @@ my_etiquette = Etiquette('UK Catalysis Hub Catalysis Data Infrastructure', 'Prot
 
 works = Works(etiquette=my_etiquette)
 
-start_date = date(2022, 4, 1)
+start_date = date(2013, 1, 1)
 end_date = date(2022, 4, 1)
 
 pubs_with_award = []
