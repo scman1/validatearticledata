@@ -18,6 +18,7 @@ class DataBaseAdapter:
             for item in result:
                 value_list.append(item)
         if '' in value_list: value_list.remove('')
+        if None in value_list: value_list.remove(None)
         return value_list
 
 
@@ -65,9 +66,12 @@ class DataBaseAdapter:
             values = values.replace(" None,", " NULL,").replace("(None,", "(NULL,").replace(", None)", ", NULL)")
         #print (table, columns, values)
         str_query = "INSERT INTO %s %s VALUES %s " % (table, columns, values)
-        self.connection.execute(str_query)
+        # use cursor to get id of last inserted record
+        a_cursor = self.connection.cursor()
+        a_cursor.execute(str_query)
+        ret_id = a_cursor.lastrowid
         self.connection.commit()
-        return 0
+        return ret_id
 
     def set_value_table(self, table, field_id, column, value):
         str_query = "UPDATE %s SET %s = '%s' WHERE id = %s" % (table, column, value, field_id)

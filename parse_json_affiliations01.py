@@ -22,8 +22,16 @@ def check_list(a_string, a_list):
         return_str = temp_str
     return return_str, a_string
 
-
+# Split the affiliation
+# if affiliatin is found in DB:
+#    retrieve affiliation ID and address ID
+# else:
+#    add affiliation and address to the DB
+#    get the IDs of affiliation and address
+# return affiliation ID and address ID
 def db_split(affiliation):
+    affiliation_id = 0
+    address_id = 0
     fields={'a':'institution', 'b':'country', 'c':'department','d':'faculty',
             'e':'work_group','f':'address', 'g':'school'}
     print (affiliation, len(affiliation))
@@ -86,7 +94,7 @@ def db_split(affiliation):
 
         print ('Address',  addr_list)
         if inst_str != "":
-            find_or_add(inst_str, dept_str, faculty_str, group_str, ctry_str, school_str, addr_list)
+            affiliation_id, address_id = find_or_add(inst_str, dept_str, faculty_str, group_str, ctry_str, school_str, addr_list)
         else:        
             print("***************** get institution **************************************")
             print("split and add this: ", checking_this)
@@ -96,8 +104,9 @@ def db_split(affiliation):
             checking_this = checking_this.strip()
             checking_this = checking_this.replace("  ", " ")
             addr_list.append(checking_this)
-            find_or_add(ins_str, dept_str, faculty_str, group_str, ctry_str, school_str, addr_list)
-            
+            affiliation_id, address_id = find_or_add(ins_str, dept_str, faculty_str, group_str, ctry_str, school_str, addr_list)
+    return affiliation_id, address_id
+
 def add_affi_to_db(inst_str, dept_str, faculty_str, group_str, ctry_str, school_str, addr_list, qry_where):
     ret_parsed = {}
     ret_parsed['institution'] = inst_str
@@ -351,20 +360,24 @@ def get_afi_id(affiliation):
         return affi_id, add_id
           
 
-db_conn = dbh.DataBaseAdapter('db_files/production.sqlite3')
+#db_conn = dbh.DataBaseAdapter('db_files/production.sqlite3')
+        
+
+db_conn = dbh.DataBaseAdapter('./db_files/app_db202205.sqlite3')
+
 
 # get institutions list from affiliations table
-institutions_list = db_conn.get_value_list("Affiliations", "institution")
+institutions_list = db_conn.get_value_list("affiliations", "institution")
 # get coutries from affiliations table
-countries_list = db_conn.get_value_list("Affiliations","country")
-# get department list from affiliations table
-department_list = db_conn.get_value_list("Affiliations","department")
+countries_list = db_conn.get_value_list("affiliations","country")
 # get school list from affiliations table
 school_list = db_conn.get_value_list("Affiliations","school")
+# get department list from affiliations table
+department_list = db_conn.get_value_list("affiliations","department")
 # get faculty list from affiliations table
-faculty_list = db_conn.get_value_list("Affiliations","faculty")
+faculty_list = db_conn.get_value_list("affiliations","faculty")
 # get research group list from affiliations table
-group_list = db_conn.get_value_list("Affiliations", "work_group")
+group_list = db_conn.get_value_list("affiliations", "work_group")
 
 affi_keys = {'a':'institution', 'b':'country', 'c':'department','d':'faculty',
              'e':'work_group'}
@@ -378,64 +391,85 @@ institution_synonyms = {"Paul Scherrer Institut":"Paul Scherrer Institute",
                         "PSI":"Paul Scherrer Institute",
                         "Diamond Light Source": "Diamond Light Source Ltd.",
                         "Diamond Light source Ltd": "Diamond Light Source Ltd.",
-                        "University of St Andrews": "University of St. Andrews"}
+                        "University of St Andrews": "University of St. Andrews"}  
+##
 
-affis = [[{'name': 'Department of ChemistryUniversity of Cambridge Cambridge CB2 1EW UK'}],[{'name': 'Department of ChemistryUniversity of Cambridge Cambridge CB2 1EW UK'}],[{'name': 'Department of ChemistryUniversity of Reading Reading RG6 6AD UK'}],
-         [{'name': 'Department of ChemistryUniversity of Reading Reading RG6 6AD UK'}],[{'name': 'Diamond Light SourceHarwell Science and Innovation Campus Didcot OX11 0DE UK'}],
-         [{'name': 'Diamond Light SourceHarwell Science and Innovation Campus Didcot OX11 0DE UK'}],[{'name': 'Diamond Light SourceHarwell Science and Innovation Campus Didcot OX11 0DE UK'}],
-         [{'name': 'Diamond Light SourceHarwell Science and Innovation Campus Didcot OX11 0DE UK'}],[{'name': 'Diamond Light SourceHarwell Science and Innovation Campus Didcot OX11 0DE UK'}],
-         [{'name': 'Diamond Light SourceHarwell Science and Innovation Campus Didcot OX11 0DE UK'}],[{'name': 'Diamond Light SourceHarwell Science and Innovation Campus Didcot OX11 0DE UK'}],
-         [{'name': 'Diamond Light SourceHarwell Science and Innovation Campus Didcot OX11 0DE UK'}],[{'name': 'ISIS FacilityRutherford Appleton Laboratory Chilton Didcot OX11 0QX UK'}],
-         [{'name': 'ISIS FacilityRutherford Appleton Laboratory Chilton Didcot OX11 0QX UK'}],[{'name': 'Johnson Matthey Technology Centre Reading RG4 9NH UK'}],[{'name': 'Johnson Matthey Technology Centre Reading RG4 9NH UK'}],
-         [{'name': 'School of ChemistryUniversity of St Andrews North Haugh St Andrews KY16 9ST UK'}],[{'name': 'School of ChemistryUniversity of St Andrews North Haugh St Andrews KY16 9ST UK'}],
-         [{'name': 'School of Science Engineering and EnvironmentUniversity of Salford Manchester M5 4WT UK'}],[{'name': 'School of Science Engineering and EnvironmentUniversity of Salford Manchester M5 4WT UK'}],
-         [{'name': 'Department of ChemistryUniversity College London London WC1H 0AJ UK'}, {'name': 'UK Catalysis Hub Research Complex at Harwell (RCaH)Rutherford Appleton Laboratory Harwell Oxon OX11 0FA UK'}],
-         [{'name': 'Department of ChemistryUniversity College London London WC1H 0AJ UK'}, {'name': 'UK Catalysis Hub Research Complex at Harwell (RCaH)Rutherford Appleton Laboratory Harwell Oxon OX11 0FA UK'}],
-         [{'name': 'Diamond Light SourceHarwell Science and Innovation Campus Didcot OX11 0DE UK'}, {'name': 'Department of ChemistryUniversity of Reading Reading RG6 6AD UK'}],
-         [{'name': 'Diamond Light SourceHarwell Science and Innovation Campus Didcot OX11 0DE UK'}, {'name': 'Department of ChemistryUniversity of Reading Reading RG6 6AD UK'}],
-         [{'name': 'Diamond Light Source Ltd.'}, {'name': 'Didcot'}, {'name': 'UK'}],[{'name': 'Johnson Matthey Technology Centre'}, {'name': 'Reading RG4 9NH'}, {'name': 'UK'}],
-         [{'name': 'Johnson Matthey Technology Centre'}, {'name': 'Reading RG4 9NH'}, {'name': 'UK'}],[{'name': 'Johnson Matthey Technology Centre'}, {'name': 'Reading RG4 9NH'}, {'name': 'UK'}],
-         [{'name': 'Johnson Matthey Technology Centre'}, {'name': 'Reading RG4 9NH'}, {'name': 'UK'}],[{'name': 'Johnson Matthey Technology Centre'}, {'name': 'Reading RG4 9NH'}, {'name': 'UK'}],
-         [{'name': 'Johnson Matthey Technology Centre'}, {'name': 'Reading RG4 9NH'}, {'name': 'UK'}],[{'name': 'Johnson Matthey Technology Centre'}, {'name': 'Reading RG4 9NH'}, {'name': 'UK'}],
-         [{'name': 'Paul Scherrer Institut'}, {'name': '5232 Villigen'}, {'name': 'Switzerland'}],[{'name': 'Paul Scherrer Institut'}, {'name': '5232 Villigen'}, {'name': 'Switzerland'}],
-         [{'name': 'Paul Scherrer Institut'}, {'name': '5232 Villigen'}, {'name': 'Switzerland'}],[{'name': 'Paul Scherrer Institut'}, {'name': '5232 Villigen'}, {'name': 'Switzerland'}],
-         [{'name': 'Department of Chemical and Biomolecular Engineering'}, {'name': 'Yonsei University'}, {'name': 'Seoul 03722'}, {'name': 'South Korea'}],
-         [{'name': 'Department of Chemical and Biomolecular Engineering'}, {'name': 'Yonsei University'}, {'name': 'Seoul 03722'}, {'name': 'South Korea'}],
-         [{'name': 'Department of Chemical and Biomolecular Engineering'}, {'name': 'Yonsei University'}, {'name': 'Seoul 03722'}, {'name': 'South Korea'}],
-         [{'name': 'Department of Chemical and Biomolecular Engineering'}, {'name': 'Yonsei University'}, {'name': 'Seoul 03722'}, {'name': 'South Korea'}],
-         [{'name': 'School of Chemistry'}, {'name': 'University of Bristol'}, {'name': 'Bristol'}, {'name': 'UK'}],[{'name': 'School of Chemistry'}, {'name': 'University of Bristol'}, {'name': 'Bristol'}, {'name': 'UK'}],
-         [{'name': 'Department of Chemical Engineering'}, {'name': 'University of Bath'}, {'name': 'Bath'}, {'name': 'UK'}, {'name': 'Department of Chemical Engineering'}],
-         [{'name': 'Department of Chemical Engineering'}, {'name': 'University of Bath'}, {'name': 'Bath'}, {'name': 'UK'}, {'name': 'Department of Chemical Engineering'}],
-         [{'name': 'Department of Chemical Engineering'}, {'name': 'University of Bath'}, {'name': 'Bath'}, {'name': 'UK'}, {'name': 'Department of Chemical Engineering'}],
-         [{'name': 'Department of Chemical Engineering'}, {'name': 'University of Bath'}, {'name': 'Bath'}, {'name': 'UK'}, {'name': 'Department of Chemical Engineering'}],
-         [{'name': 'Department of Chemical Engineering'}, {'name': 'University of Bath'}, {'name': 'Bath'}, {'name': 'UK'}, {'name': 'School of Chemistry'}],
-         [{'name': 'Department of Chemical Engineering'}, {'name': 'University of Bath'}, {'name': 'Bath'}, {'name': 'UK'}, {'name': 'School of Chemistry'}],
-         [{'name': 'Department of Chemistry'}, {'name': 'University College London'}, {'name': 'London'}, {'name': 'UK'}, {'name': 'UK Catalysis Hub'}],
-         [{'name': 'Department of Chemistry'}, {'name': 'University College London'}, {'name': 'London'}, {'name': 'UK'}, {'name': 'UK Catalysis Hub'}],
-         [{'name': 'Department of Chemistry'}, {'name': 'University College London'}, {'name': 'London'}, {'name': 'UK'}, {'name': 'UK Catalysis Hub'}],
-         [{'name': 'Department of Chemistry'}, {'name': 'University College London'}, {'name': 'London'}, {'name': 'UK'}, {'name': 'UK Catalysis Hub'}],
-         [{'name': 'Johnson Matthey Technology Centre'}, {'name': 'Reading RG4 9NH'}, {'name': 'UK'}, {'name': 'Electron Physical Sciences Imaging Centre (ePSIC)'}, {'name': 'Diamond Light source Ltd'}],
-         [{'name': 'UK Catalysis Hub'}, {'name': 'Research Complex at Harwell'}, {'name': 'Rutherford Appleton Laboratories'}, {'name': 'Harwell Science & Innovation Campus'}, {'name': 'Didcot'}],[{'name': 'UK Catalysis Hub'}, {'name': 'Research Complex at Harwell'}, {'name': 'Rutherford Appleton Laboratories'}, {'name': 'Harwell Science & Innovation Campus'}, {'name': 'Didcot'}],[{'name': 'UK Catalysis Hub'}, {'name': 'Research Complex at Harwell'}, {'name': 'Rutherford Appleton Laboratory'}, {'name': 'Didcot OX11 0FA'}, {'name': 'UK'}],[{'name': 'UK Catalysis Hub'}, {'name': 'Research Complex at Harwell'}, {'name': 'Rutherford Appleton Laboratory'}, {'name': 'Didcot OX11 0FA'}, {'name': 'UK'}],[{'name': 'UK Catalysis Hub'}, {'name': 'Research Complex at Harwell'}, {'name': 'Rutherford Appleton Laboratory'}, {'name': 'Didcot OX11 0FA'}, {'name': 'UK'}],[{'name': 'UK Catalysis Hub'}, {'name': 'Research Complex at Harwell'}, {'name': 'Rutherford Appleton Laboratory'}, {'name': 'Didcot OX11 0FA'}, {'name': 'UK'}],[{'name': 'UK Catalysis Hub'}, {'name': 'Research Complex at Harwell'}, {'name': 'Rutherford Appleton Laboratory'}, {'name': 'Didcot OX11 0FA'}, {'name': 'UK'}],[{'name': 'UK Catalysis Hub'}, {'name': 'Research Complex at Harwell'}, {'name': 'Rutherford Appleton Laboratory'}, {'name': 'Didcot OX11 0FA'}, {'name': 'UK'}]]
+##
+##affis = [[{'name': 'Department of ChemistryUniversity of Cambridge Cambridge CB2 1EW UK'}],[{'name': 'Department of ChemistryUniversity of Cambridge Cambridge CB2 1EW UK'}],[{'name': 'Department of ChemistryUniversity of Reading Reading RG6 6AD UK'}],
+##         [{'name': 'Department of ChemistryUniversity of Reading Reading RG6 6AD UK'}],[{'name': 'Diamond Light SourceHarwell Science and Innovation Campus Didcot OX11 0DE UK'}],
+##         [{'name': 'Diamond Light SourceHarwell Science and Innovation Campus Didcot OX11 0DE UK'}],[{'name': 'Diamond Light SourceHarwell Science and Innovation Campus Didcot OX11 0DE UK'}],
+##         [{'name': 'Diamond Light SourceHarwell Science and Innovation Campus Didcot OX11 0DE UK'}],[{'name': 'Diamond Light SourceHarwell Science and Innovation Campus Didcot OX11 0DE UK'}],
+##         [{'name': 'Diamond Light SourceHarwell Science and Innovation Campus Didcot OX11 0DE UK'}],[{'name': 'Diamond Light SourceHarwell Science and Innovation Campus Didcot OX11 0DE UK'}],
+##         [{'name': 'Diamond Light SourceHarwell Science and Innovation Campus Didcot OX11 0DE UK'}],[{'name': 'ISIS FacilityRutherford Appleton Laboratory Chilton Didcot OX11 0QX UK'}],
+##         [{'name': 'ISIS FacilityRutherford Appleton Laboratory Chilton Didcot OX11 0QX UK'}],[{'name': 'Johnson Matthey Technology Centre Reading RG4 9NH UK'}],[{'name': 'Johnson Matthey Technology Centre Reading RG4 9NH UK'}],
+##         [{'name': 'School of ChemistryUniversity of St Andrews North Haugh St Andrews KY16 9ST UK'}],[{'name': 'School of ChemistryUniversity of St Andrews North Haugh St Andrews KY16 9ST UK'}],
+##         [{'name': 'School of Science Engineering and EnvironmentUniversity of Salford Manchester M5 4WT UK'}],[{'name': 'School of Science Engineering and EnvironmentUniversity of Salford Manchester M5 4WT UK'}],
+##         [{'name': 'Department of ChemistryUniversity College London London WC1H 0AJ UK'}, {'name': 'UK Catalysis Hub Research Complex at Harwell (RCaH)Rutherford Appleton Laboratory Harwell Oxon OX11 0FA UK'}],
+##         [{'name': 'Department of ChemistryUniversity College London London WC1H 0AJ UK'}, {'name': 'UK Catalysis Hub Research Complex at Harwell (RCaH)Rutherford Appleton Laboratory Harwell Oxon OX11 0FA UK'}],
+##         [{'name': 'Diamond Light SourceHarwell Science and Innovation Campus Didcot OX11 0DE UK'}, {'name': 'Department of ChemistryUniversity of Reading Reading RG6 6AD UK'}],
+##         [{'name': 'Diamond Light SourceHarwell Science and Innovation Campus Didcot OX11 0DE UK'}, {'name': 'Department of ChemistryUniversity of Reading Reading RG6 6AD UK'}],
+##         [{'name': 'Diamond Light Source Ltd.'}, {'name': 'Didcot'}, {'name': 'UK'}],[{'name': 'Johnson Matthey Technology Centre'}, {'name': 'Reading RG4 9NH'}, {'name': 'UK'}],
+##         [{'name': 'Johnson Matthey Technology Centre'}, {'name': 'Reading RG4 9NH'}, {'name': 'UK'}],[{'name': 'Johnson Matthey Technology Centre'}, {'name': 'Reading RG4 9NH'}, {'name': 'UK'}],
+##         [{'name': 'Johnson Matthey Technology Centre'}, {'name': 'Reading RG4 9NH'}, {'name': 'UK'}],[{'name': 'Johnson Matthey Technology Centre'}, {'name': 'Reading RG4 9NH'}, {'name': 'UK'}],
+##         [{'name': 'Johnson Matthey Technology Centre'}, {'name': 'Reading RG4 9NH'}, {'name': 'UK'}],[{'name': 'Johnson Matthey Technology Centre'}, {'name': 'Reading RG4 9NH'}, {'name': 'UK'}],
+##         [{'name': 'Paul Scherrer Institut'}, {'name': '5232 Villigen'}, {'name': 'Switzerland'}],[{'name': 'Paul Scherrer Institut'}, {'name': '5232 Villigen'}, {'name': 'Switzerland'}],
+##         [{'name': 'Paul Scherrer Institut'}, {'name': '5232 Villigen'}, {'name': 'Switzerland'}],[{'name': 'Paul Scherrer Institut'}, {'name': '5232 Villigen'}, {'name': 'Switzerland'}],
+##         [{'name': 'Department of Chemical and Biomolecular Engineering'}, {'name': 'Yonsei University'}, {'name': 'Seoul 03722'}, {'name': 'South Korea'}],
+##         [{'name': 'Department of Chemical and Biomolecular Engineering'}, {'name': 'Yonsei University'}, {'name': 'Seoul 03722'}, {'name': 'South Korea'}],
+##         [{'name': 'Department of Chemical and Biomolecular Engineering'}, {'name': 'Yonsei University'}, {'name': 'Seoul 03722'}, {'name': 'South Korea'}],
+##         [{'name': 'Department of Chemical and Biomolecular Engineering'}, {'name': 'Yonsei University'}, {'name': 'Seoul 03722'}, {'name': 'South Korea'}],
+##         [{'name': 'School of Chemistry'}, {'name': 'University of Bristol'}, {'name': 'Bristol'}, {'name': 'UK'}],[{'name': 'School of Chemistry'}, {'name': 'University of Bristol'}, {'name': 'Bristol'}, {'name': 'UK'}],
+##         [{'name': 'Department of Chemical Engineering'}, {'name': 'University of Bath'}, {'name': 'Bath'}, {'name': 'UK'}, {'name': 'Department of Chemical Engineering'}],
+##         [{'name': 'Department of Chemical Engineering'}, {'name': 'University of Bath'}, {'name': 'Bath'}, {'name': 'UK'}, {'name': 'Department of Chemical Engineering'}],
+##         [{'name': 'Department of Chemical Engineering'}, {'name': 'University of Bath'}, {'name': 'Bath'}, {'name': 'UK'}, {'name': 'Department of Chemical Engineering'}],
+##         [{'name': 'Department of Chemical Engineering'}, {'name': 'University of Bath'}, {'name': 'Bath'}, {'name': 'UK'}, {'name': 'Department of Chemical Engineering'}],
+##         [{'name': 'Department of Chemical Engineering'}, {'name': 'University of Bath'}, {'name': 'Bath'}, {'name': 'UK'}, {'name': 'School of Chemistry'}],
+##         [{'name': 'Department of Chemical Engineering'}, {'name': 'University of Bath'}, {'name': 'Bath'}, {'name': 'UK'}, {'name': 'School of Chemistry'}],
+##         [{'name': 'Department of Chemistry'}, {'name': 'University College London'}, {'name': 'London'}, {'name': 'UK'}, {'name': 'UK Catalysis Hub'}],
+##         [{'name': 'Department of Chemistry'}, {'name': 'University College London'}, {'name': 'London'}, {'name': 'UK'}, {'name': 'UK Catalysis Hub'}],
+##         [{'name': 'Department of Chemistry'}, {'name': 'University College London'}, {'name': 'London'}, {'name': 'UK'}, {'name': 'UK Catalysis Hub'}],
+##         [{'name': 'Department of Chemistry'}, {'name': 'University College London'}, {'name': 'London'}, {'name': 'UK'}, {'name': 'UK Catalysis Hub'}],
+##         [{'name': 'Johnson Matthey Technology Centre'}, {'name': 'Reading RG4 9NH'}, {'name': 'UK'}, {'name': 'Electron Physical Sciences Imaging Centre (ePSIC)'}, {'name': 'Diamond Light source Ltd'}],
+##         [{'name': 'UK Catalysis Hub'}, {'name': 'Research Complex at Harwell'}, {'name': 'Rutherford Appleton Laboratories'}, {'name': 'Harwell Science & Innovation Campus'}, {'name': 'Didcot'}],[{'name': 'UK Catalysis Hub'}, {'name': 'Research Complex at Harwell'}, {'name': 'Rutherford Appleton Laboratories'}, {'name': 'Harwell Science & Innovation Campus'}, {'name': 'Didcot'}],[{'name': 'UK Catalysis Hub'}, {'name': 'Research Complex at Harwell'}, {'name': 'Rutherford Appleton Laboratory'}, {'name': 'Didcot OX11 0FA'}, {'name': 'UK'}],[{'name': 'UK Catalysis Hub'}, {'name': 'Research Complex at Harwell'}, {'name': 'Rutherford Appleton Laboratory'}, {'name': 'Didcot OX11 0FA'}, {'name': 'UK'}],[{'name': 'UK Catalysis Hub'}, {'name': 'Research Complex at Harwell'}, {'name': 'Rutherford Appleton Laboratory'}, {'name': 'Didcot OX11 0FA'}, {'name': 'UK'}],[{'name': 'UK Catalysis Hub'}, {'name': 'Research Complex at Harwell'}, {'name': 'Rutherford Appleton Laboratory'}, {'name': 'Didcot OX11 0FA'}, {'name': 'UK'}],[{'name': 'UK Catalysis Hub'}, {'name': 'Research Complex at Harwell'}, {'name': 'Rutherford Appleton Laboratory'}, {'name': 'Didcot OX11 0FA'}, {'name': 'UK'}],[{'name': 'UK Catalysis Hub'}, {'name': 'Research Complex at Harwell'}, {'name': 'Rutherford Appleton Laboratory'}, {'name': 'Didcot OX11 0FA'}, {'name': 'UK'}]]
+##
+##affis = [[{'name': 'Johnson Matthey Technology Centre'}, {'name': 'Reading RG4 9NH'}, {'name': 'UK'}, {'name': 'Electron Physical Sciences Imaging Centre (ePSIC)'}, {'name': 'Diamond Light source Ltd'}],[{'name': 'Department of Chemistry'}, {'name': 'University College London'}, {'name': 'London'}, {'name': 'UK'}, {'name': 'UK Catalysis Hub'}]]
+##
+# get list of non parsed article author ids
 
-def get_2():
-    return [[{'name': 'Johnson Matthey Technology Centre'}, {'name': 'Reading RG4 9NH'}, {'name': 'UK'}, {'name': 'Electron Physical Sciences Imaging Centre (ePSIC)'}, {'name': 'Diamond Light source Ltd'}],[{'name': 'Department of Chemistry'}, {'name': 'University College London'}, {'name': 'London'}, {'name': 'UK'}, {'name': 'UK Catalysis Hub'}]]
+aut_affi_ids = db_conn.get_values('cr_affiliations', 'article_author_id', 'author_affiliation_id is NULL')
+flat_list = []
+for sublist in aut_affi_ids:
+    for item in sublist:
+        flat_list.append(item)
 
-def get_1():
-    return [[{'name': 'Department of Chemical Engineering and Analytical Science, School of Engineering The University of Manchester  Manchester UK'}, {'name': 'State Key Laboratory of Materials‐Oriented Chemical Engineering, College of Chemical Engineering Nanjing Tech University  Nanjing China'}]]
+i_idx = 0
+aut_affi_ids = list(set(flat_list))
+for aai in aut_affi_ids:
+    print("Art. author", aai)
+    non_parsed_affis = db_conn.get_values('cr_affiliations', 'name', 'article_author_id = '+ str(aai))
+    json_affis = []
+    for sublist in non_parsed_affis:
+        for item in sublist:
+            json_affis.append({'name':item})
 
-   
-affis = get_1()
-for affi in affis:
-    print("PARSING", affi)
-    list_affis, not_mapped = map_split_affi(affi)
+    print("PARSING", json_affis)
+    list_affis, not_mapped = map_split_affi(json_affis)
     if not_mapped != []:
+        print('****** There are some not mapped affis ******')
+        print('* Not mapped: ', not_mapped)
         list_affis = assign_not_mapped(list_affis, not_mapped)
-    print (list_affis)
-    #print(map_split_affi(affi))
-    if len(affi) == 1:
-        db_split(affi)
-    elif len(affi) == 2:
-        db_split(affi)
-    elif len(affi) > 2:
-        get_afi_id(affi)
-
+    print('* List mapped affis:', list_affis)
+    print('*********************************************')
+##    #print(map_split_affi(affi))
+    if len(json_affis) == 1:
+        affiliation_id, address_id = db_split(json_affis)
+        print("Returned IDs:", affiliation_id, address_id, "for art. author", aai)
+        # got some IDs so map to add article_author
+    elif len(json_affis) == 2:
+        affiliation_id, address_id = db_split(json_affis)
+        print("Returned IDs:", affiliation_id, address_id, "for art. author", aai)
+    elif len(json_affis) > 2:
+        get_afi_id(json_affis)
+    if i_idx == 0:
+        break
+    i_idx+=1
