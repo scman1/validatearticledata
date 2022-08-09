@@ -89,15 +89,16 @@ my_etiquette = Etiquette('UK Catalysis Hub Catalysis Data Infrastructure', 'Prot
 
 works = Works(etiquette=my_etiquette)
 
-start_date = date(2022, 4, 1)
-end_date = date(2022, 6, 1)
+start_date = date(2022, 5, 15)
+end_date = start_date + timedelta(days=6)
+stop_date = date(2022, 7, 1)
 
 pubs_with_award = []
 skiped_works =[]
 wk_keys = {}
 fd_keys = {}
 awds_lst = {}
-while end_date < datetime.now().date():
+while end_date < stop_date:
     end_date = start_date + timedelta(days=6)
     print ("From:", str(start_date), "to",  str(end_date))
     # works with from_published_date and until_published_date 

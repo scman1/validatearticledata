@@ -80,5 +80,12 @@ class DataBaseAdapter:
         self.connection.commit()
         return 0
     
+    def add_column(self, table, column, db_type):
+        str_query="ALTER TABLE %s ADD COLUMN %s %s;" %(table, column, db_type)
+        #print(str_query)
+        self.connection.execute(str_query)
+        self.connection.commit()
+        return 0
+    
     def close(self):
         self.connection.close()
