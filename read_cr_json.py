@@ -8,7 +8,6 @@ from pathlib import Path
 # crossref data download
 # D:\crosreff.archive\crossref_public_data_file_2021_01
 
-
 def award_in_crossref(wk):
     awd_list = [] 
     for fdr in wk['funder']:
@@ -20,25 +19,22 @@ def award_in_crossref(wk):
                    awd_list.append(awd)
     return (len(awd_list) > 0)
 
-def affi_in_crossref(wk, lookup_list):
+def affi_in_crossref(wk):
     ukch_affiliation = False
     if 'author' in wk.keys() :
         for autr in wk['author']:
             if 'affiliation' in autr.keys():
                 for affi in autr['affiliation']:
-                    for an_affi in lookup_list:                        
-                        if an_affi in affi['name']: # "UK Catalysis Hub" in affi['name']:
-                            ukch_affiliation = True
+                    if "UK Catalysis Hub" in affi['name']:
+                        ukch_affiliation = True
                         break
-    return ukch_affiliation
-
-
+    return ukch_affiliation 
 
 
 all_keys = []
 
-for i in range(40228):
-    if i>694:
+for i in range(40229):
+    if i>40227:
       gz_file = "D:/crosreff.archive/crossref_public_data_file_2021_01/"+ str(i) +".json.gz"
       if Path(gz_file).is_file():
         print("Looking into: ", gz_file)
@@ -61,7 +57,7 @@ for i in range(40228):
             if has_award:
               print (an_item['DOI'], "has award")
           if "author" in item_keys:
-            has_affi = affi_in_crossref(an_item, ["UK Catalysis Hub"])
+            has_affi = affi_in_crossref(an_item)
             if has_affi:
               print (an_item['DOI'], "has affiliation")
           if has_award or has_affi:
@@ -111,7 +107,6 @@ for i in range(40228):
                 this_pub['with_affi'] = 1
             else:
                 this_pub['with_affi'] = 0
-                
             with open(r'cr_archive_lookup.csv', 'a', newline='',encoding='utf8') as f:
                 writer = csv.writer(f)
                 writer.writerow(this_pub.values())
