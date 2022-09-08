@@ -186,7 +186,6 @@ class crp:
         return return_parsed
 
     def parse_multiline(self, affi_list):
-        print("Parsing", affi_list)
         return_parsed = []
         parsed_affi = { }
         for a_line in affi_list:
@@ -214,8 +213,11 @@ class crp:
         return_parsed.append(parsed_affi)
         return return_parsed
 
+    def parse_and_map_single(self, single_affi):
+        sl_elements = self.split_single(single_affi[1])
+        return [[sl_elements, [single_affi[0]]]]
+        
     def parse_and_map_multiline(self, affi_list):
-        print("Parsing", affi_list)
         return_parsed = []
         cr_ids =[]
         parsed_affi = { }
@@ -388,3 +390,11 @@ if __name__ == "__main__":
     print(mla_redundant_2)
     print('*************** PARSED AS *****************')
     print(pmla_redundant_2)
+
+    # test parse and map single_affi
+    sla_simple = (1, 'Chemistry─School of Natural and Environmental Sciences, Newcastle University, Newcastle upon Tyne, NE1 7RU, U.K.', 1, 1, '2022-08-23 08:21:07.822289', '2022-08-28 18:40:22.195960')
+    psla_simple = cr_parse.parse_and_map_single(sla_simple)
+    print('********** SINGLE LINE SIMPLE ************')
+    print(sla_simple)
+    print('*************** PARSED AS *****************')
+    print(psla_simple)
