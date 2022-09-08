@@ -213,7 +213,39 @@ class crp:
                         
         return_parsed.append(parsed_affi)
         return return_parsed
-           
+
+    def parse_and_map_multiline(self, affi_list):
+        print("Parsing", affi_list)
+        return_parsed = []
+        cr_ids =[]
+        parsed_affi = { }
+        for a_line in affi_list:
+            sl_elements = self.split_single(a_line[1])
+            cr_ids.append(a_line[0])
+            if parsed_affi == {}:
+                parsed_affi = sl_elements
+            else:
+                sl_elements_no_blanks = {k:v for k,v in sl_elements.items() if v != ''}
+                sl_keys = sl_elements_no_blanks
+                for a_key in sl_keys:
+                    if parsed_affi[a_key] == '':
+                        parsed_affi[a_key] = sl_elements_no_blanks[a_key]
+                    elif parsed_affi[a_key] != '' and a_key == 'address' :
+                        parsed_affi[a_key] += ", " + sl_elements_no_blanks[a_key]
+                    elif parsed_affi[a_key] != '' and a_key == 'institution':
+                        if self.is_hosted(parsed_affi[a_key], sl_elements_no_blanks[a_key]):
+                            parsed_affi["address"] += ", " + sl_elements_no_blanks[a_key]
+                        else:
+                            cr_ids.pop()
+                            return_parsed.append([parsed_affi, cr_ids])
+                            cr_ids = [a_line[0]]
+                            parsed_affi = sl_elements
+                    else:
+                        # Anything left, add it to the address (at the front)
+                        parsed_affi["address"] = sl_elements_no_blanks[a_key] + ", " + parsed_affi["address"]
+                        
+        return_parsed.append([parsed_affi, cr_ids])
+        return return_parsed
 
     def get_from_string(self, string_value, element):
         element_value = ""
@@ -289,6 +321,7 @@ if __name__ == "__main__":
                   (32, 'UK', 80, 3516, '2022-08-24 11:50:08.914753', '2022-08-30 14:01:35.677513')]
     just_affi_lines = [x[1] for x in mla_one_affi]
     pml_one_affi = cr_parse.parse_multiline(just_affi_lines)
+    pml_one_affi = cr_parse.parse_and_map_multiline(mla_one_affi)
     print('********** MULTILINE ONE AFFI *************')
     print(mla_one_affi)
     print('*************** PARSED AS *****************')
@@ -306,6 +339,7 @@ if __name__ == "__main__":
                   (847, 'UK', 693, 1260, '2022-08-24 11:51:20.625922', '2022-08-28 22:12:51.603265')]
     just_affi_lines = [x[1] for x in mla_hosted]
     pmla_hosted = cr_parse.parse_multiline(just_affi_lines)
+    pmla_hosted = cr_parse.parse_and_map_multiline(mla_hosted)
     print('*********** MULTILINE HOSTED **************')
     print(mla_hosted)
     print('*************** PARSED AS *****************')
@@ -319,6 +353,7 @@ if __name__ == "__main__":
                     (926, 'UK Catalysis Hub', 710, 282, '2022-08-24 11:51:23.176635', '2022-08-28 20:34:23.949838')]
     just_affi_lines = [x[1] for x in mla_additional]
     pmla_additional = cr_parse.parse_multiline(just_affi_lines)
+    pmla_additional = cr_parse.parse_and_map_multiline(mla_additional)
     print('********* MULTILINE ADDITIONAL ************')
     print(mla_additional)
     print('*************** PARSED AS *****************')
@@ -333,6 +368,7 @@ if __name__ == "__main__":
                        (1838, 'School of Chemistry', 1210, -1, '2022-08-24 11:52:10.788217', '2022-08-24 11:52:10.788217')]
     just_affi_lines = [x[1] for x in mla_redundant_1]
     pmla_redundant_1 = cr_parse.parse_multiline(just_affi_lines)
+    pmla_redundant_1 = cr_parse.parse_and_map_multiline(mla_redundant_1)
     print('********* MULTILINE DUPLICATED ************')
     print(mla_redundant_1)
     print('*************** PARSED AS *****************')
@@ -347,6 +383,7 @@ if __name__ == "__main__":
                        (3272, 'Department of Materials Science and Engineering', 2289, -1, '2022-08-24 11:54:03.092100', '2022-08-24 11:54:03.092100')]
     just_affi_lines = [x[1] for x in mla_redundant_2]
     pmla_redundant_2 = cr_parse.parse_multiline(just_affi_lines)
+    pmla_redundant_2 = cr_parse.parse_and_map_multiline(mla_redundant_2)
     print('********** MULTILINE NOT FOUND ************')
     print(mla_redundant_2)
     print('*************** PARSED AS *****************')
