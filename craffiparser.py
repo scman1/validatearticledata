@@ -207,6 +207,9 @@ class crp:
                         else:
                             return_parsed.append(parsed_affi)
                             parsed_affi = sl_elements
+                    else:
+                        # Anything left, add it to the address (at the front)
+                        parsed_affi["address"] = sl_elements_no_blanks[a_key] + ", " + parsed_affi["address"]
                         
         return_parsed.append(parsed_affi)
         return return_parsed
@@ -321,8 +324,6 @@ if __name__ == "__main__":
     print('*************** PARSED AS *****************')
     print(pmla_additional)
 
-
-
     # D) Redundant: Duplicate elements or elements which cannot be parsed
     #    1) element duplicated
     mla_redundant_1 = [(1834, 'School of Chemistry', 1210, 469, '2022-08-24 11:52:10.755049', '2022-08-28 21:07:58.823088'),
@@ -330,6 +331,13 @@ if __name__ == "__main__":
                        (1836, 'Leeds LS2 9JT', 1210, 469, '2022-08-24 11:52:10.772644', '2022-08-28 21:07:58.841728'),
                        (1837, 'UK', 1210, 469, '2022-08-24 11:52:10.780377', '2022-08-28 21:07:58.858861'),
                        (1838, 'School of Chemistry', 1210, -1, '2022-08-24 11:52:10.788217', '2022-08-24 11:52:10.788217')]
+    just_affi_lines = [x[1] for x in mla_redundant_1]
+    pmla_redundant_1 = cr_parse.parse_multiline(just_affi_lines)
+    print('********* MULTILINE DUPLICATED ************')
+    print(mla_redundant_1)
+    print('*************** PARSED AS *****************')
+    print(pmla_redundant_1)
+    
 
     #    2) element not found
     mla_redundant_2 = [(3268, 'Department of Materials', 2289, 652, '2022-08-24 11:54:03.060683', '2022-08-28 21:33:57.352289'),
@@ -337,4 +345,9 @@ if __name__ == "__main__":
                        (3270, 'London SW7 2AZ', 2289, 652, '2022-08-24 11:54:03.074129', '2022-08-28 21:33:57.375765'),
                        (3271, 'UK', 2289, 652, '2022-08-24 11:54:03.082660', '2022-08-28 21:33:57.386242'),
                        (3272, 'Department of Materials Science and Engineering', 2289, -1, '2022-08-24 11:54:03.092100', '2022-08-24 11:54:03.092100')]
-
+    just_affi_lines = [x[1] for x in mla_redundant_2]
+    pmla_redundant_2 = cr_parse.parse_multiline(just_affi_lines)
+    print('********** MULTILINE NOT FOUND ************')
+    print(mla_redundant_2)
+    print('*************** PARSED AS *****************')
+    print(pmla_redundant_2)
