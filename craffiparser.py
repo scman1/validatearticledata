@@ -94,8 +94,6 @@ class crp:
         
         self.hosted_institutions= { "UK Catalysis Hub" : "Research Complex at Harwell",
                                     "HarwellXPS" : "Research Complex at Harwell",
-                                    "UK Catalysis Hub" : "Science and Technology Facilities Council",
-                                    "HarwellXPS" : "Science and Technology Facilities Council",
                                     "Research Complex at Harwell":"Science and Technology Facilities Council",
                                     }
 
@@ -106,6 +104,22 @@ class crp:
           self.hosted_institutions[inst] == host:
             return True
         return False
+
+    def get_host_paths(self, affi_list):
+        hostings = []
+        for a_affi in affi_list:
+            for b_affi in affi_list:
+                if self.is_hosted(a_affi, b_affi):
+                    hostings.append([a_affi,b_affi])
+
+        # get three level hostings
+        host_paths = []
+        for a_hosted in hostings:
+            for b_hosted in hostings:
+                if a_hosted[0] == b_hosted[1]:
+                    host_paths.append( [b_hosted[0], b_hosted[1], a_hosted[1]])
+        return host_paths + hostings
+            
 
     # Check the if any of the values in the list is in the given string
     def check_list(self, a_string, a_list):
@@ -422,10 +436,13 @@ if __name__ == "__main__":
     sla_simple2 = (152, 'Department of Chemical Engineering and Analytical Science, The University of Manchester, The Mill, Sackville Street, Manchester M13 9PL, United Kingdom', 204, 499, '2022-08-24 11:50:23.412171', '2022-08-28 21:08:01.089731')
     sla_simple3 = (156, 'UK Catalysis Hub, Research Complex at Harwell, STFC Rutherford Appleton Laboratory, Didcot, Oxfordshire OX11 0FA, United Kingdom', 207, 2221, '2022-08-24 11:50:23.518165', '2022-08-28 20:34:22.457602')
     psla_simple = cr_parse.parse_and_map_single(sla_simple3)
-    print('********** SINGLE LINE NI ************')
+    print('********** SINGLE LINE HOSTED *************')
     print(sla_simple3)
     print('*************** PARSED AS *****************')
     print(psla_simple)
 
-
+    
     psla_simple = cr_parse.get_institutions_in_str(sla_simple3[1])
+    print ("Get institutions:", psla_simple)
+    hosts_list = cr_parse.get_host_paths(psla_simple)
+    print ("Hostings for institutions:", hosts_list)
