@@ -196,11 +196,19 @@ class crp:
         a_institution = longest_path[0]
         return a_institution, non_parsed
 
-    def parse_institutions(self, affiliation_str):
+    def parse_institutions2(self, affiliation_str):
         institutions_list = self.get_institutions_in_str(affiliation_str)
         the_inst = ""
-
-        return the_inst
+        for an_inst in institutions_list:
+            if an_inst in affiliation_str:
+                if the_inst == "":
+                    the_inst = an_inst
+                elif affiliation_str.index(an_inst) < affiliation_str.index(the_inst):
+                    the_inst = an_inst
+                
+        non_parsed = affiliation_str.replace(the_inst, "")
+        
+        return the_inst, non_parsed
             
 
 
