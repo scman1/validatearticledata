@@ -200,30 +200,23 @@ class crp:
         institutions_list = self.get_institutions_in_str(affiliation_str)
         the_inst = ""
         for an_inst in institutions_list:
-            if an_inst in affiliation_str:
+            if an_inst in affiliation_str and an_inst in self.institutions_list:
                 if the_inst == "":
                     the_inst = an_inst
                 elif affiliation_str.index(an_inst) < affiliation_str.index(the_inst):
                     the_inst = an_inst
                 
         non_parsed = affiliation_str.replace(the_inst, "")
-        
         return the_inst, non_parsed
             
-
-
     
     # try to split affiliation
     def split_single(self, affiliation_str):
         inst_str = dept_str = faculty_str = group_str = ctry_str = school_str = ""
 
         splitting_this = affiliation_str
-        # lookup using institution synonyms table
-        inst_str, splitting_this = self.str_has_synonym(splitting_this, self.institution_synonyms)
-        
-        # Lookup using list of institutions 
-        if inst_str == "":
-            inst_str, splitting_this = self.check_list(splitting_this, self.institutions_list)
+        # lookup using institution and institution synonyms list
+        inst_str, splitting_this = self.parse_institutions2(splitting_this)
 
         #  lookup using Country Synonyms table
         ctry_str, splitting_this = self.str_has_synonym(splitting_this, self.country_synonyms)
@@ -396,6 +389,7 @@ if __name__ == "__main__":
     print(mla_one_affi)
     print('*************** PARSED AS *****************')
     print(pml_one_affi)
+    
     # B) Hosted: one institution hosted by another (e.g. UKCH hosted by RCaH)
 ##    mla_hosted = [(647, 'Cardiff Catalysis Institute', 552, 915, '2022-08-24 11:51:02.702859', '2022-08-28 21:59:50.958252'),
 ##                  (648, 'School of Chemistry', 552, 915, '2022-08-24 11:51:02.709894', '2022-08-28 21:59:50.970522'),
@@ -483,3 +477,4 @@ if __name__ == "__main__":
     print ("Get institutions:", psla_simple)
     hosts_list = cr_parse.get_host_paths(psla_simple)
     print ("Hostings for institutions:", hosts_list)
+
