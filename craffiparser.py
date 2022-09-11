@@ -229,24 +229,40 @@ class crp:
         # lookup using institution and institution synonyms list
         inst_str, splitting_this = self.parse_institutions2(splitting_this)
 
+        
+        while True:
+            returned = self.parse_dept_school_faculty_or_group(splitting_this)
+            if returned != []:
+                if returned[0] == 'department':
+                    dept_str = returned[1]
+                if returned[0] == 'school':
+                    school_str = returned[1]
+                if returned[0] == 'work_group':
+                    group_str = returned[1]
+                if returned[0] == 'faculty':
+                    faculty_str = returned[1]
+                splitting_this = returned[2]
+            else:
+                break
+
         #  lookup using Country Synonyms table
         ctry_str, splitting_this = self.str_has_synonym(splitting_this, self.country_synonyms)
         #  lookup using Countries list        
         if ctry_str == "":
             ctry_str, splitting_this = self.check_list(splitting_this, self.countries_list)
 
-        # Lookup using group list
-        group_str, splitting_this = self.check_list(splitting_this, self.groups_list)
-
-        # Lookup using school list
-        school_str, splitting_this = self.check_list(splitting_this, self.schools_list)
-
-        # Lookup using department list
-        dept_str, splitting_this = self.check_list(splitting_this, self.departments_list)
-
-        # Lookup using faculty list
-        faculty_str, splitting_this = self.check_list(splitting_this, self.faculties_list)
-        
+##        # Lookup using group list
+##        group_str, splitting_this = self.check_list(splitting_this, self.groups_list)
+##
+##        # Lookup using school list
+##        school_str, splitting_this = self.check_list(splitting_this, self.schools_list)
+##
+##        # Lookup using department list
+##        dept_str, splitting_this = self.check_list(splitting_this, self.departments_list)
+##
+##        # Lookup using faculty list
+##        faculty_str, splitting_this = self.check_list(splitting_this, self.faculties_list)
+##        
 
         
         splitting_this = self.remove_extra_commas(splitting_this)
@@ -297,7 +313,7 @@ class crp:
         parsed_affi = { }
         for a_line in affi_list:
             sl_elements = self.split_single(a_line[1])
-            print("Parsed:", a_line[1],'as', sl_elements)
+            #print("Parsed:", a_line[1],'as', sl_elements)
             cr_ids.append(a_line[0])
             if parsed_affi == {}:
                 parsed_affi = sl_elements
@@ -320,7 +336,7 @@ class crp:
                     else:
                         # Anything left, add it to the address (at the front)
                         parsed_affi["address"] = sl_elements_no_blanks[a_key] + ", " + parsed_affi["address"]
-                print("Built:", parsed_affi)   
+                #print("Built:", parsed_affi)   
         return_parsed.append([parsed_affi, cr_ids])
         return return_parsed
 
