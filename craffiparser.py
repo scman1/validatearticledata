@@ -126,9 +126,7 @@ class crp:
                 longest_path = a_path
             elif len(longest_path)< len(a_path):
                 longest_path = a_path
-        return longest_path
-
-    
+        return longest_path 
 
     # Check the if any of the values in the list is in the given string
     def check_list(self, a_string, a_list):
@@ -184,6 +182,7 @@ class crp:
         else:
             # if somehing is found return it and look in the rest of the list
             return [an_institution] + self.get_institutions_in_str(remider)
+    
 
     # parse instintutions in a string:
     # takning hostings into account
@@ -208,6 +207,18 @@ class crp:
                 
         non_parsed = affiliation_str.replace(the_inst, "")
         return the_inst, non_parsed
+
+    def parse_dept_school_faculty_or_group(self, affiliation_str):
+        parsing=[]
+        parsing.append(["department"] + list(self.check_list(affiliation_str, self.departments_list)))
+        parsing.append(["school"] + list(self.check_list(affiliation_str, self.schools_list)))
+        parsing.append(["work_group"] +  list(self.check_list(affiliation_str, self.groups_list)))
+        parsing.append(["faculty"] +  list(self.check_list(affiliation_str, self.faculties_list)))
+        longest = []
+        for a_result in parsing:
+            if (longest == [] or len(longest[1])<len(a_result[1])) and a_result[1] != "":
+                longest = a_result
+        return longest            
             
     
     # try to split affiliation
@@ -224,6 +235,9 @@ class crp:
         if ctry_str == "":
             ctry_str, splitting_this = self.check_list(splitting_this, self.countries_list)
 
+        # Lookup using group list
+        group_str, splitting_this = self.check_list(splitting_this, self.groups_list)
+
         # Lookup using school list
         school_str, splitting_this = self.check_list(splitting_this, self.schools_list)
 
@@ -233,8 +247,7 @@ class crp:
         # Lookup using faculty list
         faculty_str, splitting_this = self.check_list(splitting_this, self.faculties_list)
         
-        # Lookup using group list
-        group_str, splitting_this = self.check_list(splitting_this, self.groups_list)
+
         
         splitting_this = self.remove_extra_commas(splitting_this)
 
@@ -284,6 +297,7 @@ class crp:
         parsed_affi = { }
         for a_line in affi_list:
             sl_elements = self.split_single(a_line[1])
+            print("Parsed:", a_line[1],'as', sl_elements)
             cr_ids.append(a_line[0])
             if parsed_affi == {}:
                 parsed_affi = sl_elements
@@ -306,7 +320,7 @@ class crp:
                     else:
                         # Anything left, add it to the address (at the front)
                         parsed_affi["address"] = sl_elements_no_blanks[a_key] + ", " + parsed_affi["address"]
-                        
+                print("Built:", parsed_affi)   
         return_parsed.append([parsed_affi, cr_ids])
         return return_parsed
 
@@ -364,7 +378,7 @@ class crp:
         return split_this[str_start:str_end+1]
 
 if __name__ == "__main__":
-    # Testing parser for single line affiliation
+    # Testing parser methods for single line affiliation
     import craffiparser
     cr_parse = craffiparser.crp("../mcc_data/development.sqlite3")
     cr_parse.start_lists()
@@ -376,105 +390,130 @@ if __name__ == "__main__":
     parsed_list = cr_parse.split_single(affi_string)
     manual_parse = cr_parse.manual_split_address(parsed_list)
     print(manual_parse)
-    # Test parse multiline
-    # A) One affi: one affiliation in more than one line
-    mla_one_affi = [(29, 'School of Science and Technology', 80, 3516, '2022-08-24 11:50:08.873479', '2022-08-30 14:01:35.627024'),
-                  (30, 'Nottingham Trent University', 80, 3516, '2022-08-24 11:50:08.886550', '2022-08-30 14:01:35.640246'),
-                  (31, 'Nottingham', 80, 3516, '2022-08-24 11:50:08.902845', '2022-08-30 14:01:35.661514'),
-                  (32, 'UK', 80, 3516, '2022-08-24 11:50:08.914753', '2022-08-30 14:01:35.677513')]
-    just_affi_lines = [x[1] for x in mla_one_affi]
-    pml_one_affi = cr_parse.parse_multiline(just_affi_lines)
-    pml_one_affi = cr_parse.parse_and_map_multiline(mla_one_affi)
-    print('********** MULTILINE ONE AFFI *************')
-    print(mla_one_affi)
-    print('*************** PARSED AS *****************')
-    print(pml_one_affi)
     
-    # B) Hosted: one institution hosted by another (e.g. UKCH hosted by RCaH)
-##    mla_hosted = [(647, 'Cardiff Catalysis Institute', 552, 915, '2022-08-24 11:51:02.702859', '2022-08-28 21:59:50.958252'),
-##                  (648, 'School of Chemistry', 552, 915, '2022-08-24 11:51:02.709894', '2022-08-28 21:59:50.970522'),
-##                  (649, 'Cardiff University', 552, 915, '2022-08-24 11:51:02.717235', '2022-08-28 21:59:50.979549'),
-##                  (650, 'Cardiff', 552, 915, '2022-08-24 11:51:02.727471', '2022-08-28 21:59:50.996194'),
-##                  (651, 'UK', 552, 915, '2022-08-24 11:51:02.735337', '2022-08-28 21:59:51.004846')]
-    mla_hosted = [(843, 'UK Catalysis Hub', 693, 1260, '2022-08-24 11:51:20.586064', '2022-08-28 22:12:51.545787'),
-                  (844, 'Research Complex at Harwell', 693, 1260, '2022-08-24 11:51:20.593059', '2022-08-28 22:12:51.562326'),
-                  (845, 'Rutherford Appleton Laboratory', 693, 1260, '2022-08-24 11:51:20.608376', '2022-08-28 22:12:51.579334'),
-                  (846, 'Didcot OX11 0FA', 693, 1260, '2022-08-24 11:51:20.616072', '2022-08-28 22:12:51.588762'),
-                  (847, 'UK', 693, 1260, '2022-08-24 11:51:20.625922', '2022-08-28 22:12:51.603265')]
-    just_affi_lines = [x[1] for x in mla_hosted]
-    pmla_hosted = cr_parse.parse_multiline(just_affi_lines)
-    pmla_hosted = cr_parse.parse_and_map_multiline(mla_hosted)
-    print('*********** MULTILINE HOSTED **************')
-    print(mla_hosted)
-    print('*************** PARSED AS *****************')
-    print(pmla_hosted)
-    
-    # C) Additional: More than one affiliation in the set
-    mla_additional =[(922, 'School of Chemistry', 710, 281, '2022-08-24 11:51:23.140779', '2022-08-28 20:34:23.889324'),
-                    (923, 'Cardiff University', 710, 281, '2022-08-24 11:51:23.151003', '2022-08-28 20:34:23.902953'),
-                    (924, 'Cardiff CF10 3AT', 710, 281, '2022-08-24 11:51:23.159050', '2022-08-28 20:34:23.921712'),
-                    (925, 'UK', 710, 281, '2022-08-24 11:51:23.165877', '2022-08-28 20:34:23.932153'),
-                    (926, 'UK Catalysis Hub', 710, 282, '2022-08-24 11:51:23.176635', '2022-08-28 20:34:23.949838')]
-    just_affi_lines = [x[1] for x in mla_additional]
-    pmla_additional = cr_parse.parse_multiline(just_affi_lines)
-    pmla_additional = cr_parse.parse_and_map_multiline(mla_additional)
-    print('********* MULTILINE ADDITIONAL ************')
-    print(mla_additional)
-    print('*************** PARSED AS *****************')
-    print(pmla_additional)
-
-    # D) Redundant: Duplicate elements or elements which cannot be parsed
-    #    1) element duplicated
-    mla_redundant_1 = [(1834, 'School of Chemistry', 1210, 469, '2022-08-24 11:52:10.755049', '2022-08-28 21:07:58.823088'),
-                       (1835, 'University of Leeds', 1210, 469, '2022-08-24 11:52:10.762317', '2022-08-28 21:07:58.833093'),
-                       (1836, 'Leeds LS2 9JT', 1210, 469, '2022-08-24 11:52:10.772644', '2022-08-28 21:07:58.841728'),
-                       (1837, 'UK', 1210, 469, '2022-08-24 11:52:10.780377', '2022-08-28 21:07:58.858861'),
-                       (1838, 'School of Chemistry', 1210, -1, '2022-08-24 11:52:10.788217', '2022-08-24 11:52:10.788217')]
-    just_affi_lines = [x[1] for x in mla_redundant_1]
-    pmla_redundant_1 = cr_parse.parse_multiline(just_affi_lines)
-    pmla_redundant_1 = cr_parse.parse_and_map_multiline(mla_redundant_1)
-    print('********* MULTILINE DUPLICATED ************')
-    print(mla_redundant_1)
-    print('*************** PARSED AS *****************')
-    print(pmla_redundant_1)
-    
-
-    #    2) element not found
-    mla_redundant_2 = [(3268, 'Department of Materials', 2289, 652, '2022-08-24 11:54:03.060683', '2022-08-28 21:33:57.352289'),
-                       (3269, 'Imperial College London', 2289, 652, '2022-08-24 11:54:03.067016', '2022-08-28 21:33:57.358940'),
-                       (3270, 'London SW7 2AZ', 2289, 652, '2022-08-24 11:54:03.074129', '2022-08-28 21:33:57.375765'),
-                       (3271, 'UK', 2289, 652, '2022-08-24 11:54:03.082660', '2022-08-28 21:33:57.386242'),
-                       (3272, 'Department of Materials Science and Engineering', 2289, -1, '2022-08-24 11:54:03.092100', '2022-08-24 11:54:03.092100')]
-    just_affi_lines = [x[1] for x in mla_redundant_2]
-    pmla_redundant_2 = cr_parse.parse_multiline(just_affi_lines)
-    pmla_redundant_2 = cr_parse.parse_and_map_multiline(mla_redundant_2)
-    print('********** MULTILINE NOT FOUND ************')
-    print(mla_redundant_2)
-    print('*************** PARSED AS *****************')
-    print(pmla_redundant_2)
-
-    # test parse and map single_affi
-    sla_simple = (1, 'Chemistry─School of Natural and Environmental Sciences, Newcastle University, Newcastle upon Tyne, NE1 7RU, U.K.', 1, 1, '2022-08-23 08:21:07.822289', '2022-08-28 18:40:22.195960')
-    psla_simple = cr_parse.parse_and_map_single(sla_simple)
-    print('********** SINGLE LINE SIMPLE ************')
-    print(sla_simple)
-    print('*************** PARSED AS *****************')
-    print(psla_simple)
-
-
-    # test parse and map single_affi
-    sla_simple = (151, 'School of Chemistry and Chemical Engineering, Queen’s University Belfast, David Keir Building, Stranmillis Road, Belfast BT9 5AG, Northern Ireland', 204, 2220, '2022-08-24 11:50:23.400089', '2022-08-24 11:50:23.400089')
-    sla_simple2 = (152, 'Department of Chemical Engineering and Analytical Science, The University of Manchester, The Mill, Sackville Street, Manchester M13 9PL, United Kingdom', 204, 499, '2022-08-24 11:50:23.412171', '2022-08-28 21:08:01.089731')
     sla_simple3 = (156, 'UK Catalysis Hub, Research Complex at Harwell, STFC Rutherford Appleton Laboratory, Didcot, Oxfordshire OX11 0FA, United Kingdom', 207, 2221, '2022-08-24 11:50:23.518165', '2022-08-28 20:34:22.457602')
-    psla_simple = cr_parse.parse_and_map_single(sla_simple3)
-    print('********** SINGLE LINE HOSTED *************')
-    print(sla_simple3)
-    print('*************** PARSED AS *****************')
-    print(psla_simple)
-
-    
     psla_simple = cr_parse.get_institutions_in_str(sla_simple3[1])
     print ("Get institutions:", psla_simple)
     hosts_list = cr_parse.get_host_paths(psla_simple)
     print ("Hostings for institutions:", hosts_list)
+
+    sla_simple_dep = (937, 'Department of Chemistry', 713, 1281, '2022-08-24 11:51:23.831822', '2022-08-28 22:12:53.325838')
+
+    psla_simple = cr_parse.split_single(sla_simple_dep[1])
+    print ("Parsed Get Dept:", psla_simple)
+##    
+##    
+##    # Test parse multiline
+##    # A) One affi: one affiliation in more than one line
+##    mla_one_affi = [(29, 'School of Science and Technology', 80, 3516, '2022-08-24 11:50:08.873479', '2022-08-30 14:01:35.627024'),
+##                  (30, 'Nottingham Trent University', 80, 3516, '2022-08-24 11:50:08.886550', '2022-08-30 14:01:35.640246'),
+##                  (31, 'Nottingham', 80, 3516, '2022-08-24 11:50:08.902845', '2022-08-30 14:01:35.661514'),
+##                  (32, 'UK', 80, 3516, '2022-08-24 11:50:08.914753', '2022-08-30 14:01:35.677513')]
+##    just_affi_lines = [x[1] for x in mla_one_affi]
+##    pml_one_affi = cr_parse.parse_multiline(just_affi_lines)
+##    pml_one_affi = cr_parse.parse_and_map_multiline(mla_one_affi)
+##    print('********** MULTILINE ONE AFFI *************')
+##    print(mla_one_affi)
+##    print('*************** PARSED AS *****************')
+##    print(pml_one_affi)
+##    
+##    # B) Hosted: one institution hosted by another (e.g. UKCH hosted by RCaH)
+####    mla_hosted = [(647, 'Cardiff Catalysis Institute', 552, 915, '2022-08-24 11:51:02.702859', '2022-08-28 21:59:50.958252'),
+####                  (648, 'School of Chemistry', 552, 915, '2022-08-24 11:51:02.709894', '2022-08-28 21:59:50.970522'),
+####                  (649, 'Cardiff University', 552, 915, '2022-08-24 11:51:02.717235', '2022-08-28 21:59:50.979549'),
+####                  (650, 'Cardiff', 552, 915, '2022-08-24 11:51:02.727471', '2022-08-28 21:59:50.996194'),
+####                  (651, 'UK', 552, 915, '2022-08-24 11:51:02.735337', '2022-08-28 21:59:51.004846')]
+##    mla_hosted = [(843, 'UK Catalysis Hub', 693, 1260, '2022-08-24 11:51:20.586064', '2022-08-28 22:12:51.545787'),
+##                  (844, 'Research Complex at Harwell', 693, 1260, '2022-08-24 11:51:20.593059', '2022-08-28 22:12:51.562326'),
+##                  (845, 'Rutherford Appleton Laboratory', 693, 1260, '2022-08-24 11:51:20.608376', '2022-08-28 22:12:51.579334'),
+##                  (846, 'Didcot OX11 0FA', 693, 1260, '2022-08-24 11:51:20.616072', '2022-08-28 22:12:51.588762'),
+##                  (847, 'UK', 693, 1260, '2022-08-24 11:51:20.625922', '2022-08-28 22:12:51.603265')]
+##    just_affi_lines = [x[1] for x in mla_hosted]
+##    pmla_hosted = cr_parse.parse_multiline(just_affi_lines)
+##    pmla_hosted = cr_parse.parse_and_map_multiline(mla_hosted)
+##    print('*********** MULTILINE HOSTED **************')
+##    print(mla_hosted)
+##    print('*************** PARSED AS *****************')
+##    print(pmla_hosted)
+##    
+##    # C) Additional: More than one affiliation in the set
+##    mla_additional =[(922, 'School of Chemistry', 710, 281, '2022-08-24 11:51:23.140779', '2022-08-28 20:34:23.889324'),
+##                    (923, 'Cardiff University', 710, 281, '2022-08-24 11:51:23.151003', '2022-08-28 20:34:23.902953'),
+##                    (924, 'Cardiff CF10 3AT', 710, 281, '2022-08-24 11:51:23.159050', '2022-08-28 20:34:23.921712'),
+##                    (925, 'UK', 710, 281, '2022-08-24 11:51:23.165877', '2022-08-28 20:34:23.932153'),
+##                    (926, 'UK Catalysis Hub', 710, 282, '2022-08-24 11:51:23.176635', '2022-08-28 20:34:23.949838')]
+##    just_affi_lines = [x[1] for x in mla_additional]
+##    pmla_additional = cr_parse.parse_multiline(just_affi_lines)
+##    pmla_additional = cr_parse.parse_and_map_multiline(mla_additional)
+##    print('********* MULTILINE ADDITIONAL ************')
+##    print(mla_additional)
+##    print('*************** PARSED AS *****************')
+##    print(pmla_additional)
+##
+##    # D) Redundant: Duplicate elements or elements which cannot be parsed
+##    #    1) element duplicated
+##    mla_redundant_1 = [(1834, 'School of Chemistry', 1210, 469, '2022-08-24 11:52:10.755049', '2022-08-28 21:07:58.823088'),
+##                       (1835, 'University of Leeds', 1210, 469, '2022-08-24 11:52:10.762317', '2022-08-28 21:07:58.833093'),
+##                       (1836, 'Leeds LS2 9JT', 1210, 469, '2022-08-24 11:52:10.772644', '2022-08-28 21:07:58.841728'),
+##                       (1837, 'UK', 1210, 469, '2022-08-24 11:52:10.780377', '2022-08-28 21:07:58.858861'),
+##                       (1838, 'School of Chemistry', 1210, -1, '2022-08-24 11:52:10.788217', '2022-08-24 11:52:10.788217')]
+##    just_affi_lines = [x[1] for x in mla_redundant_1]
+##    pmla_redundant_1 = cr_parse.parse_multiline(just_affi_lines)
+##    pmla_redundant_1 = cr_parse.parse_and_map_multiline(mla_redundant_1)
+##    print('********* MULTILINE DUPLICATED ************')
+##    print(mla_redundant_1)
+##    print('*************** PARSED AS *****************')
+##    print(pmla_redundant_1)
+##    
+##
+##    #    2) element not found
+##    mla_redundant_2 = [(3268, 'Department of Materials', 2289, 652, '2022-08-24 11:54:03.060683', '2022-08-28 21:33:57.352289'),
+##                       (3269, 'Imperial College London', 2289, 652, '2022-08-24 11:54:03.067016', '2022-08-28 21:33:57.358940'),
+##                       (3270, 'London SW7 2AZ', 2289, 652, '2022-08-24 11:54:03.074129', '2022-08-28 21:33:57.375765'),
+##                       (3271, 'UK', 2289, 652, '2022-08-24 11:54:03.082660', '2022-08-28 21:33:57.386242'),
+##                       (3272, 'Department of Materials Science and Engineering', 2289, -1, '2022-08-24 11:54:03.092100', '2022-08-24 11:54:03.092100')]
+##    just_affi_lines = [x[1] for x in mla_redundant_2]
+##    pmla_redundant_2 = cr_parse.parse_multiline(just_affi_lines)
+##    pmla_redundant_2 = cr_parse.parse_and_map_multiline(mla_redundant_2)
+##    print('********** MULTILINE NOT FOUND ************')
+##    print(mla_redundant_2)
+##    print('*************** PARSED AS *****************')
+##    print(pmla_redundant_2)
+
+    # E) Verify looking up for department
+    mla_dept = [(936, 'Kathleen Lonsdale Materials Chemistry', 713, 1281, '2022-08-24 11:51:23.823411', '2022-08-28 22:12:53.308690'),
+                (937, 'Department of Chemistry', 713, 1281, '2022-08-24 11:51:23.831822', '2022-08-28 22:12:53.325838'),
+                (938, 'University College London', 713, 1281, '2022-08-24 11:51:23.841547', '2022-08-28 22:12:53.336440'),
+                (939, 'London WC1H 0AJ', 713, 1281, '2022-08-24 11:51:23.849915', '2022-08-28 22:12:53.351383'),
+                (940, 'UK', 713, 1281, '2022-08-24 11:51:23.859373', '2022-08-28 22:12:53.364468'),]
+    just_affi_lines = [x[1] for x in mla_dept]
+    pmla_dept_jal = cr_parse.parse_multiline(just_affi_lines)
+    pmla_dept = cr_parse.parse_and_map_multiline(mla_dept)
+    print('{0:*^80}'.format(' MULTILINE DEPARTMENT '))
+    print(mla_dept)
+    print('{0:*^80}'.format(' PARSED AS '))
+    print(pmla_dept_jal)
+    print(pmla_dept)
+
+##    # test parse and map single_affi
+##    sla_simple = (1, 'Chemistry─School of Natural and Environmental Sciences, Newcastle University, Newcastle upon Tyne, NE1 7RU, U.K.', 1, 1, '2022-08-23 08:21:07.822289', '2022-08-28 18:40:22.195960')
+##    psla_simple = cr_parse.parse_and_map_single(sla_simple)
+##    print('********** SINGLE LINE SIMPLE ************')
+##    print(sla_simple)
+##    print('*************** PARSED AS *****************')
+##    print(psla_simple)
+##
+##
+##    # test parse and map single_affi
+##    sla_simple = (151, 'School of Chemistry and Chemical Engineering, Queen’s University Belfast, David Keir Building, Stranmillis Road, Belfast BT9 5AG, Northern Ireland', 204, 2220, '2022-08-24 11:50:23.400089', '2022-08-24 11:50:23.400089')
+##    sla_simple2 = (152, 'Department of Chemical Engineering and Analytical Science, The University of Manchester, The Mill, Sackville Street, Manchester M13 9PL, United Kingdom', 204, 499, '2022-08-24 11:50:23.412171', '2022-08-28 21:08:01.089731')
+##    sla_simple3 = (156, 'UK Catalysis Hub, Research Complex at Harwell, STFC Rutherford Appleton Laboratory, Didcot, Oxfordshire OX11 0FA, United Kingdom', 207, 2221, '2022-08-24 11:50:23.518165', '2022-08-28 20:34:22.457602')
+##    psla_simple = cr_parse.parse_and_map_single(sla_simple3)
+##    print('********** SINGLE LINE HOSTED *************')
+##    print(sla_simple3)
+##    print('*************** PARSED AS *****************')
+##    print(psla_simple)
+
+    
+
 
