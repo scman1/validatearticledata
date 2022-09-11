@@ -111,15 +111,24 @@ class crp:
             for b_affi in affi_list:
                 if self.is_hosted(a_affi, b_affi):
                     hostings.append([a_affi,b_affi])
-
         # get three level hostings
         host_paths = []
         for a_hosted in hostings:
             for b_hosted in hostings:
                 if a_hosted[0] == b_hosted[1]:
                     host_paths.append( [b_hosted[0], b_hosted[1], a_hosted[1]])
-        return host_paths + hostings
-            
+        return hostings + host_paths
+
+    def get_longest_path(self, paths_list):
+        longest_path = []
+        for a_path in paths_list:
+            if longest_path == []:
+                longest_path = a_path
+            elif len(longest_path)< len(a_path):
+                longest_path = a_path
+        return longest_path
+
+    
 
     # Check the if any of the values in the list is in the given string
     def check_list(self, a_string, a_list):
@@ -175,6 +184,26 @@ class crp:
         else:
             # if somehing is found return it and look in the rest of the list
             return [an_institution] + self.get_institutions_in_str(remider)
+
+    # parse instintutions in a string:
+    # takning hostings into account
+    def parse_institutions(self, affiliation_str):
+        institutions_list = self.get_institutions_in_str(affiliation_str)
+        host_paths = self.get_host_paths(institutions_list)
+        longest_path = self.get_longest_path(host_paths)
+        non_inst_items = longest_path[1:]+ list(set(institutions_list) - set(longest_path))
+        non_parsed = ", ".join(non_inst_items)
+        a_institution = longest_path[0]
+        return a_institution, non_parsed
+
+    def parse_institutions(self, affiliation_str):
+        institutions_list = self.get_institutions_in_str(affiliation_str)
+        the_inst = ""
+
+        return the_inst
+            
+
+
     
     # try to split affiliation
     def split_single(self, affiliation_str):
