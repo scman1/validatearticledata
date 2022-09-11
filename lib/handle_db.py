@@ -75,7 +75,8 @@ class DataBaseAdapter:
 
     def set_value_table(self, table, field_id, column, value):
         str_query = "UPDATE %s SET %s = '%s' WHERE id = %s" % (table, column, value, field_id)
-        #print(str_query)
+        if value == None or value == 'None':
+            str_query = "UPDATE %s SET %s = NULL WHERE id = %s" % (table, column, field_id)
         self.connection.execute(str_query)
         self.connection.commit()
         return 0

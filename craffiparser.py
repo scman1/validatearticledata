@@ -41,6 +41,7 @@ class crp:
 
         self.country_synonyms = {"(UK)":"United Kingdom", "UK":"United Kingdom",
                             "U.K.":"United Kingdom", "U. K.":"United Kingdom",
+                            "Northern Ireland":"United Kingdom",
                             "U.K":"United Kingdom", "PRC":"Peoples Republic of China",
                             "P.R.C.":"Peoples Republic of China", 
                             "P.R.China":"Peoples Republic of China",
@@ -64,7 +65,6 @@ class crp:
                                 "The ISIS facility":"ISIS Neutron and Muon Source",
                                 "ISIS Neutron and Muon Facility":"ISIS Neutron and Muon Source",
                                 "ISIS Pulsed Neutron and Muon Facility":"ISIS Neutron and Muon Source",
-                                "STFC":"Science and Technology Facilities Council",
                                 "Oxford University":"University of Oxford",
                                 "University of St Andrews":"University of St. Andrews",
                                 "Diamond Light Source Ltd Harwell Science and Innovation Campus":"Diamond Light Source Ltd.",
@@ -94,9 +94,12 @@ class crp:
         
         self.hosted_institutions= { "UK Catalysis Hub" : "Research Complex at Harwell",
                                     "HarwellXPS" : "Research Complex at Harwell",
+                                    "UK Catalysis Hub" : "Science and Technology Facilities Council",
+                                    "HarwellXPS" : "Science and Technology Facilities Council",
+                                    "Research Complex at Harwell":"Science and Technology Facilities Council",
                                     }
 
-        self.country_exceptions = ["Denmark Hill", "UK Catalysis Hub", "Sasol Technology U.K.", "N. Ireland", 'Indian']
+        self.country_exceptions = ["Denmark Hill", "UK Catalysis Hub", "Sasol Technology U.K.", "N. Ireland", 'Indian', 'Northern Ireland']
 
     def is_hosted(self, inst, host):
         if inst in self.hosted_institutions.keys() and \
@@ -145,6 +148,19 @@ class crp:
            str_this = str_this[first_alpha:]
         return str_this.strip()
 
+    def get_institutions_in_str(self, a_str):
+        remider = an_institution = ""
+        # lookup on synonyms and institutions lists
+        an_institution, remider = self.str_has_synonym(a_str, self.institution_synonyms)
+        if an_institution == "":
+            an_institution, remider = self.check_list(a_str, self.institutions_list)
+        
+        if an_institution == "":
+            # if nothing is found return an empty list
+            return [remider]
+        else:
+            # if somehing is found return it and look in the rest of the list
+            return [an_institution] + self.get_institutions_in_str(remider)
     
     # try to split affiliation
     def split_single(self, affiliation_str):
@@ -153,6 +169,7 @@ class crp:
         splitting_this = affiliation_str
         # lookup using institution synonyms table
         inst_str, splitting_this = self.str_has_synonym(splitting_this, self.institution_synonyms)
+        
         # Lookup using list of institutions 
         if inst_str == "":
             inst_str, splitting_this = self.check_list(splitting_this, self.institutions_list)
@@ -398,3 +415,17 @@ if __name__ == "__main__":
     print(sla_simple)
     print('*************** PARSED AS *****************')
     print(psla_simple)
+
+
+    # test parse and map single_affi
+    sla_simple = (151, 'School of Chemistry and Chemical Engineering, Queen’s University Belfast, David Keir Building, Stranmillis Road, Belfast BT9 5AG, Northern Ireland', 204, 2220, '2022-08-24 11:50:23.400089', '2022-08-24 11:50:23.400089')
+    sla_simple2 = (152, 'Department of Chemical Engineering and Analytical Science, The University of Manchester, The Mill, Sackville Street, Manchester M13 9PL, United Kingdom', 204, 499, '2022-08-24 11:50:23.412171', '2022-08-28 21:08:01.089731')
+    sla_simple3 = (156, 'UK Catalysis Hub, Research Complex at Harwell, STFC Rutherford Appleton Laboratory, Didcot, Oxfordshire OX11 0FA, United Kingdom', 207, 2221, '2022-08-24 11:50:23.518165', '2022-08-28 20:34:22.457602')
+    psla_simple = cr_parse.parse_and_map_single(sla_simple3)
+    print('********** SINGLE LINE NI ************')
+    print(sla_simple3)
+    print('*************** PARSED AS *****************')
+    print(psla_simple)
+
+
+    psla_simple = cr_parse.get_institutions_in_str(sla_simple3[1])
