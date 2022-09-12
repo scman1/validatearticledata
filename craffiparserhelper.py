@@ -24,8 +24,6 @@ def get_all_affiliations(db_name):
         affiliations_dict.append(a_dict_affi)
     return affiliations_dict
 
-
-
 def get_cr_affis_article_author_ids(db_name):
     db_conn = dbh.DataBaseAdapter(db_name)
     a_table = 'cr_affiliations'
@@ -424,6 +422,7 @@ def check_affiliation_consistency(current_db):
         x =input()
     return all_ok
 
+
 def check_for_synonyms(current_db,affi_parser):
     all_ok = False
     x = '1'
@@ -443,18 +442,101 @@ def check_for_synonyms(current_db,affi_parser):
         x =input()
     return all_ok
 
+def check_for_duplicates(current_db):
+    all_ok = False
+    x = '1'
+    while x != '0':
+        hit_counter = 0
+        all_affiliations = get_all_affiliations(current_db)
+        for an_affi in all_affiliations:
+            for other_affi in all_affiliations:
+                if an_affi['id'] != other_affi['id'] and an_affi['institution'] == other_affi['institution']:
+                    found_dups = True
+                    for a_key in ['department', 'work_group', 'faculty', 'school', 'country', 'sector']:
+                        if an_affi[a_key] != other_affi[a_key]:
+                            found_dups = False
+                            break
+                    if found_dups:
+                        hit_counter += 1 
+                        print(hit_counter, "Institution duplicates:",
+                              "\n\t", an_affi['id'], an_affi['institution'],'\n\t',
+                              other_affi['id'], other_affi['institution'])
+                        print("update author_affiliations set affiliation_id = %s where affiliation_id = %s;"%(an_affi['id'],other_affi['id']))
+                        print("delete from affiliations where id = %s;"%other_affi['id'])
+                        
+        if hit_counter == 0:            
+            all_ok = True
+            break
+        x =input()
+    return all_ok
+
+def check_cr_affis_vs_affiliations(current_db,affi_parser):
+    all_ok = True
+    x = '1'
+    already_ok = []
+    while x != '0':
+        list_art_aut_ids = get_cr_affis_article_author_ids(app_db)
+        for art_aut_id in list_art_aut_ids:
+            print ('Article Author: ', art_aut_id)
+            cr_lines = get_cr_lines_for_article_author_ids(current_db, art_aut_id)
+            print('{0:*^80}'.format('CR Affilitations found:'), "\n", cr_lines)
+            all_one_liners = True
+            print('{0:*^80}'.format('Check if CR lines are one liners:'))
+            for a_cr_line in cr_lines:
+                one_line_affi = is_one_line_affi(affi_parser, a_cr_line[1])
+                print( a_cr_line[1], one_line_affi)
+                if not one_line_affi:
+                    all_one_liners = False
+            if all_one_liners:
+                assigned_ok = False
+                print('{0:*^80}'.format('verify one liners'))
+                for a_cr_line in cr_lines:
+                    assigned_ok = check_assigned_affi_ol(current_db, affi_parser, a_cr_line)
+                    print(assigned_ok)
+                    if not assigned_ok:
+                        print("Problems with ", a_cr_line[0])
+                        break
+                if not assigned_ok:
+                    correct_oneline(current_db, affi_parser, cr_lines)
+                    all_ok = False
+                    #break
+                else:
+                    already_ok.append(art_aut_id)   
+##            else:
+##                print('verify multiline affi')
+##                assigned_ok = check_assigned_affi_ml(current_db, affi_parser, cr_lines, art_aut_id)
+##                if not assigned_ok:
+##                    print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
+##                    print("Problems with:\n", cr_lines[0][2], art_aut_id)
+##                    correct_multiline(current_db, affi_parser, cr_lines)
+##                    all_ok = False
+##                    #break
+##                else:
+##                    already_ok.append(art_aut_id)
+        if all_ok:
+            break
+        x =input()
+    return all_ok
+    
+    
+
+
 if __name__ == "__main__":        
     # database name
-    current_db = '../mcc_data/development.sqlite3'
+    app_db = '../mcc_data/development.sqlite3'
     # initialise parser
-    affi_parser = get_parser(current_db)
+    affi_parser = get_parser(app_db)
     
     # Verify affiliations table:
     #   all affiliations are consistent
     #   there are no synonyms in affiliations table
     #   there are no duplicates in affiliations table
-    if check_affiliation_consistency(current_db): print ("OK, no inconsistent affiliations")
+    if check_affiliation_consistency(app_db): print ("OK, no inconsistent affiliations")
 
-    if check_for_synonyms(current_db,affi_parser): print ("OK, no synonyms in institutions")
+    if check_for_synonyms(app_db,affi_parser): print ("OK, no synonyms in institutions")
     
-            
+    if check_for_duplicates(app_db): print ("OK, no duplicate affiliations")
+
+    check_cr_affis_vs_affiliations(app_db,affi_parser)
+    
+    

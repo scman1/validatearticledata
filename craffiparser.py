@@ -91,10 +91,10 @@ class crp:
                                 "Kings College London":"King's College London",
                                 "King’s College London":"King's College London",     
                                 "Harwell XPS":"HarwellXPS",
-                                'Atomic Weapons Establishment (AWE) Plc':'Atomic Weapons Establishment  PLC',
-                                'AWE Aldermaston':'Atomic Weapons Establishment  PLC',
-                                'AWE plc':'Atomic Weapons Establishment  PLC',
-                                'AWE Public Limited Company':'Atomic Weapons Establishment  PLC',
+                                'Atomic Weapons Establishment (AWE) Plc':'Atomic Weapons Establishment PLC',
+                                'AWE':'Atomic Weapons Establishment PLC',
+                                'AWE plc':'Atomic Weapons Establishment PLC',
+                                'AWE Public Limited Company':'Atomic Weapons Establishment PLC',
                                 'Bio Nano Consulting':'Bio Nano Consulting Ltd',
                                 'Complutense University of Madrid':'Universidad Complutense de Madrid',
                                 'Diamond Light Source':'Diamond Light Source Ltd.',
@@ -232,17 +232,38 @@ class crp:
         a_institution = longest_path[0]
         return a_institution, non_parsed
 
+    def get_all_synonyms_for(self, a_dict, a_str):
+        synonyms_list = []
+        for k,v in a_dict.items():
+            if a_str == v : synonyms_list.append(k)
+        return synonyms_list
+    
     def parse_institutions2(self, affiliation_str):
-        institutions_list = self.get_institutions_in_str(affiliation_str)
+        institutions_in_affi = self.get_institutions_in_str(affiliation_str)
         the_inst = ""
-        for an_inst in institutions_list:
+        the_synonym = ""
+
+        for an_inst in institutions_in_affi:
+            inst_synonyms = self.get_all_synonyms_for(self.institution_synonyms, an_inst)
             if an_inst in affiliation_str and an_inst in self.institutions_list:
                 if the_inst == "":
                     the_inst = an_inst
                 elif affiliation_str.index(an_inst) < affiliation_str.index(the_inst):
                     the_inst = an_inst
+            else:
+                for a_synon in inst_synonyms:
+                    if a_synon in affiliation_str:
+                        if the_inst == "":
+                            the_inst = an_inst
+                            the_synonym = a_synon
+                        elif affiliation_str.index(a_synon) < affiliation_str.index(the_synonym):
+                            the_inst = an_inst
+                            the_synonym = a_synon
                 
-        non_parsed = affiliation_str.replace(the_inst, "")
+        if the_synonym != "":
+            non_parsed = affiliation_str.replace(the_synonym, "")
+        else:
+            non_parsed = affiliation_str.replace(the_inst, "")
         return the_inst, non_parsed
 
     def parse_dept_school_faculty_or_group(self, affiliation_str):
@@ -451,6 +472,7 @@ if __name__ == "__main__":
     print ("Hostings for institutions:", hosts_list)
 
     sla_simple_dep = (937, 'Department of Chemistry', 713, 1281, '2022-08-24 11:51:23.831822', '2022-08-28 22:12:53.325838')
+    sla_simple_dep = (17, 'AWE Aldermaston, Reading, RG7 4PR, UK', 28, 2207, '2022-08-24 11:33:33.118858', '2022-08-24 11:33:33.118858')
 
     psla_simple = cr_parse.split_single(sla_simple_dep[1])
     print ("Parsed Get Dept:", psla_simple)
