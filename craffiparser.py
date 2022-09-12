@@ -41,7 +41,6 @@ class crp:
 
         self.country_synonyms = {"(UK)":"United Kingdom", "UK":"United Kingdom",
                             "U.K.":"United Kingdom", "U. K.":"United Kingdom",
-                            "Northern Ireland":"United Kingdom",
                             "U.K":"United Kingdom", "PRC":"Peoples Republic of China",
                             "P.R.C.":"Peoples Republic of China", 
                             "P.R.China":"Peoples Republic of China",
@@ -91,10 +90,10 @@ class crp:
                                 "Kings College London":"King's College London",
                                 "King’s College London":"King's College London",     
                                 "Harwell XPS":"HarwellXPS",
-                                'Atomic Weapons Establishment (AWE) Plc':'Atomic Weapons Establishment PLC',
-                                'AWE':'Atomic Weapons Establishment PLC',
-                                'AWE plc':'Atomic Weapons Establishment PLC',
-                                'AWE Public Limited Company':'Atomic Weapons Establishment PLC',
+                                'Atomic Weapons Establishment (AWE) Plc':'Atomic Weapons Establishment Plc',
+                                'AWE':'Atomic Weapons Establishment Plc',
+                                'AWE plc':'Atomic Weapons Establishment Plc',
+                                'AWE Public Limited Company':'Atomic Weapons Establishment Plc',
                                 'Bio Nano Consulting':'Bio Nano Consulting Ltd',
                                 'Complutense University of Madrid':'Universidad Complutense de Madrid',
                                 'Diamond Light Source':'Diamond Light Source Ltd.',
@@ -121,20 +120,29 @@ class crp:
                                 'Sorbonne Universités':'Sorbonne Université',
                                 'SuperSTEM':'SuperSTEM Laboratory',
                                 'Technion':'Technion - Israel Institute of Technology',
+                                'Technion Israel Institute of Technology': 'Technion - Israel Institute of Technology',
                                 'Technion-Israel Institute of Technology':'Technion - Israel Institute of Technology',
                                 'The European Synchrotron':'European Synchrotron Radiation Facility',
                                 'The European Synchrotron. 71':'European Synchrotron Radiation Facility',
                                 'Univ. Bordeaux':'Université de Bordeaux',
                                 'Wrocław University of Technology':'Wrocław University of Science and Technology',
-
-                                }
+                                 'King Abdullah University of Science and Technology (KAUST)':'King Abdullah University of Science and Technology'
+                                     }
         
         self.hosted_institutions= { "UK Catalysis Hub" : "Research Complex at Harwell",
                                     "HarwellXPS" : "Research Complex at Harwell",
                                     "Research Complex at Harwell":"Science and Technology Facilities Council",
                                     }
 
-        self.country_exceptions = ["Denmark Hill", "UK Catalysis Hub", "Sasol Technology U.K.", "N. Ireland", 'Indian', 'Northern Ireland']
+        self.country_exceptions = ["Denmark Hill", "UK Catalysis Hub", "Sasol Technology U.K.", "N. Ireland", 'Indian', 'Northern Ireland',]
+        
+        self.country_provinces  = { "England":"United Kingdom",
+                                    "Scotland":"United Kingdom",
+                                    "Wales":"United Kingdom",
+                                    "Northern Ireland":"United Kingdom",
+                                    "N. Ireland":"United Kingdom",
+                                    }
+        
 
     def is_hosted(self, inst, host):
         if inst in self.hosted_institutions.keys() and \
@@ -219,10 +227,41 @@ class crp:
         else:
             # if somehing is found return it and look in the rest of the list
             return [an_institution] + self.get_institutions_in_str(remider)
+
+    def check_exceptions(self, a_str):
+        has_exceptions = False
+        for an_exception in self.country_exceptions:
+            if an_exception in a_str:
+                has_exceptions =  True
+        return has_exceptions
+        
     
+    def parse_countries(self, a_str):
+        reminder_c = reminder_s = a_country_name = a_country_synonym = ""
+        # lookup on synonyms and countries lists
+        # if both country and synonym are found, prefer country
+        # unless the synonym is for Ireland (N. Ireland and Ireland are in the UK)
+        a_country_synonym, reminder_s = self.str_has_synonym(a_str, self.country_synonyms)
+         
+        a_country_name, reminder_c = self.check_list(a_str, self.countries_list)
+
+        a_country_province, reminder_p = self.str_has_synonym(a_str, self.country_provinces)
+        
+        if a_country_name == "" and a_country_synonym == "":
+            # if nothing is found return an empty list
+            return '', a_str
+        elif a_country_province != "":
+            # if country found return country 
+            return a_country_province, reminder_p
+        elif a_country_name != "":
+            # if country found return country 
+            return a_country_name, reminder_c
+        else:
+            # return the synonym string
+            return a_country_synonym, reminder_s
 
     # parse instintutions in a string:
-    # takning hostings into account
+    # taking hostings into account
     def parse_institutions(self, affiliation_str):
         institutions_list = self.get_institutions_in_str(affiliation_str)
         host_paths = self.get_host_paths(institutions_list)
@@ -242,14 +281,17 @@ class crp:
         institutions_in_affi = self.get_institutions_in_str(affiliation_str)
         the_inst = ""
         the_synonym = ""
-
+        print (institutions_in_affi )
         for an_inst in institutions_in_affi:
             inst_synonyms = self.get_all_synonyms_for(self.institution_synonyms, an_inst)
             if an_inst in affiliation_str and an_inst in self.institutions_list:
                 if the_inst == "":
                     the_inst = an_inst
-                elif affiliation_str.index(an_inst) < affiliation_str.index(the_inst):
+                elif the_inst in affiliation_str and affiliation_str.index(an_inst) < affiliation_str.index(the_inst):
                     the_inst = an_inst
+                elif the_synonym in affiliation_str and  affiliation_str.index(an_inst) < affiliation_str.index(the_synonym):
+                    the_inst = an_inst
+                    the_synonym = ""
             else:
                 for a_synon in inst_synonyms:
                     if a_synon in affiliation_str:
@@ -278,12 +320,20 @@ class crp:
                 longest = a_result
         return longest            
             
-    
+
+    def remove_returns(self, affi_string):
+        clean_str = affi_string.replace("\r", " ")
+        clean_str = clean_str.replace("\n", " ")
+        while "  " in clean_str:
+            clean_str = clean_str.replace("  ", " ")
+        return clean_str
+        
     # try to split affiliation
     def split_single(self, affiliation_str):
         inst_str = dept_str = faculty_str = group_str = ctry_str = school_str = ""
 
-        splitting_this = affiliation_str
+        splitting_this = self.remove_returns(affiliation_str)
+        
         # lookup using institution and institution synonyms list
         inst_str, splitting_this = self.parse_institutions2(splitting_this)
 
@@ -304,25 +354,14 @@ class crp:
                 break
 
         #  lookup using Country Synonyms table
-        ctry_str, splitting_this = self.str_has_synonym(splitting_this, self.country_synonyms)
-        #  lookup using Countries list        
-        if ctry_str == "":
-            ctry_str, splitting_this = self.check_list(splitting_this, self.countries_list)
 
-##        # Lookup using group list
-##        group_str, splitting_this = self.check_list(splitting_this, self.groups_list)
-##
-##        # Lookup using school list
-##        school_str, splitting_this = self.check_list(splitting_this, self.schools_list)
-##
-##        # Lookup using department list
-##        dept_str, splitting_this = self.check_list(splitting_this, self.departments_list)
-##
-##        # Lookup using faculty list
-##        faculty_str, splitting_this = self.check_list(splitting_this, self.faculties_list)
-##        
+        ctry_str, splitting_this = self.parse_countries(splitting_this)
+##        ctry_str, splitting_this = self.str_has_synonym(splitting_this, self.country_synonyms)
+##        #  lookup using Countries list        
+##        if ctry_str == "":
+##            ctry_str, splitting_this = self.check_list(splitting_this, self.countries_list)
 
-        
+      
         splitting_this = self.remove_extra_commas(splitting_this)
 
         return_parsed = {'institution':inst_str, 'school': school_str,
@@ -471,11 +510,18 @@ if __name__ == "__main__":
     hosts_list = cr_parse.get_host_paths(psla_simple)
     print ("Hostings for institutions:", hosts_list)
 
-    sla_simple_dep = (937, 'Department of Chemistry', 713, 1281, '2022-08-24 11:51:23.831822', '2022-08-28 22:12:53.325838')
-    sla_simple_dep = (17, 'AWE Aldermaston, Reading, RG7 4PR, UK', 28, 2207, '2022-08-24 11:33:33.118858', '2022-08-24 11:33:33.118858')
-
-    psla_simple = cr_parse.split_single(sla_simple_dep[1])
-    print ("Parsed Get Dept:", psla_simple)
+    sla_issues = [ (937, 'Department of Chemistry', 713, 1281, '2022-08-24 11:51:23.831822', '2022-08-28 22:12:53.325838'),
+                   (17, 'AWE Aldermaston, Reading, RG7 4PR, UK', 28, 2207, '2022-08-24 11:33:33.118858', '2022-08-24 11:33:33.118858'),
+                   (155, 'School of Chemistry, Cardiff University, Main Building, Park Place, Cardiff CF10 3AT, United Kingdom', 207, 256, '2022-08-24 11:50:23.504931', '2022-08-24 11:50:23.504931'),
+                   (156, 'UK Catalysis Hub, Research Complex at Harwell, STFC Rutherford Appleton Laboratory, Didcot, Oxfordshire OX11 0FA, United Kingdom', 207, 2221, '2022-08-24 11:50:23.518165', '2022-08-28 20:34:22.457602'),
+                   (2230, 'Advanced Membranes and Porous Materials Center, Division of Physical Science and Engineering, King Abdullah University of Science and Technology (KAUST), 23955 Thuwal, Saudi Arabia', 1601, 2008, '2022-08-24 11:52:47.017602', '2022-08-28 23:27:14.760621'),
+                   (151, 'School of Chemistry and Chemical Engineering, Queen’s University Belfast, David Keir Building, Stranmillis Road, Belfast BT9 5AG, Northern Ireland', 204, 499, '2022-08-24 11:50:23.400089', '2022-08-24 11:50:23.400089'),
+                   (6433, 'Department\rof Chemistry, Technion - Israel Institute of Technology, Haifa 32000, Israel', 4492, 3420, '2022-08-24 17:22:57.698032', '2022-08-24 17:22:57.698032'),
+                   (6433, 'Department\r of Chemistry, Technion - Israel Institute of Technology, Haifa 32000, Israel', 4492, 3420, '2022-08-24 17:22:57.698032', '2022-08-24 17:22:57.698032'),
+                   ]
+    for an_affi in sla_issues:
+        parsed_issues = cr_parse.split_single(an_affi[1])
+        print ("Parsed with issues:", parsed_issues)
 ##    
 ##    
 ##    # Test parse multiline

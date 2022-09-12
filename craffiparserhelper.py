@@ -402,7 +402,7 @@ def update_cr_aai(db_name, cr_affi_id, auth_affi_id):
     db_conn = dbh.DataBaseAdapter(db_name)
     s_table = 'cr_affiliations'
     s_field = 'author_affiliation_id'
-    db_conn = dbh.DataBaseAdapter(ukchapp_db)
+    db_conn = dbh.DataBaseAdapter(db_name)
     db_conn.set_value_table(s_table, cr_affi_id,  s_field , auth_affi_id)
 
 def check_affiliation_consistency(current_db):
@@ -501,7 +501,9 @@ def check_cr_affis_vs_affiliations(current_db,affi_parser):
                     all_ok = False
                     #break
                 else:
-                    already_ok.append(art_aut_id)   
+                    already_ok.append(art_aut_id)
+                    print(already_ok)
+                    save_ok_list(already_ok, 'ok_affi_script.txt')  
 ##            else:
 ##                print('verify multiline affi')
 ##                assigned_ok = check_assigned_affi_ml(current_db, affi_parser, cr_lines, art_aut_id)
@@ -513,12 +515,18 @@ def check_cr_affis_vs_affiliations(current_db,affi_parser):
 ##                    #break
 ##                else:
 ##                    already_ok.append(art_aut_id)
+        print("OK:", len(already_ok))
+        print(already_ok)
+        save_ok_list(already_ok, 'ok_affi_script.txt')  
         if all_ok:
             break
         x =input()
     return all_ok
     
-    
+def save_ok_list(values_list, file_name):
+    with open(file_name, 'w') as f:
+        for an_id in values_list:
+            f.write(str(an_id)+'\n')
 
 
 if __name__ == "__main__":        
