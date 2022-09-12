@@ -407,24 +407,54 @@ def update_cr_aai(db_name, cr_affi_id, auth_affi_id):
     db_conn = dbh.DataBaseAdapter(ukchapp_db)
     db_conn.set_value_table(s_table, cr_affi_id,  s_field , auth_affi_id)
 
+def check_affiliation_consistency(current_db):
+    all_ok = False
+    x = '1'
+    while x != '0':
+        hit_counter = 0
+        all_affiliations = get_all_affiliations(current_db)
+        for an_affi in all_affiliations:
+            if not is_affi_ok(an_affi):
+                print("Inconsistent affiliation:", an_affi)
+                hit_counter +=1
+        if hit_counter == 0:
+            
+            all_ok = True
+            break
+        x =input()
+    return all_ok
+
+def check_for_synonyms(current_db,affi_parser):
+    all_ok = False
+    x = '1'
+    while x != '0':
+        hit_counter = 0
+        all_affiliations = get_all_affiliations(current_db)
+        for an_affi in all_affiliations:
+            if an_affi['institution'] in affi_parser.institution_synonyms.keys():
+                hit_counter += 1 
+                print(hit_counter, "Institution synonym in affiliation:", an_affi['id'],
+                      an_affi['institution'],
+                      'it should be', affi_parser.institution_synonyms[an_affi['institution']])
+        if hit_counter == 0:
+            
+            all_ok = True
+            break
+        x =input()
+    return all_ok
+
 if __name__ == "__main__":        
     # database name
     current_db = '../mcc_data/development.sqlite3'
     # initialise parser
     affi_parser = get_parser(current_db)
     
-    all_affiliations = get_all_affiliations(current_db)
     # Verify affiliations table:
     #   all affiliations are consistent
     #   there are no synonyms in affiliations table
-    for an_affi in all_affiliations:
-        if not is_affi_ok(an_affi):
-            print("Inconsistent affiliation:", an_affi)
-    hit_counter = 0
-    for an_affi in all_affiliations:
-        if an_affi['institution'] in affi_parser.institution_synonyms.keys():
-            hit_counter += 1 
-            print(hit_counter, "Institution synonym in affiliation:", an_affi['id'], an_affi['institution'],
-                  'it should be', affi_parser.institution_synonyms[an_affi['institution']]  )
-            #x =input()
+    #   there are no duplicates in affiliations table
+    if check_affiliation_consistency(current_db): print ("OK, no inconsistent affiliations")
+
+    if check_for_synonyms(current_db,affi_parser): print ("OK, no synonyms in institutions")
+    
             
