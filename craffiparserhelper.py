@@ -258,7 +258,7 @@ def correct_multiline(db_name, cr_parser, cr_affis):
         else:
             if affi_id != None:
                 print("Add author affiliation for author: ", art_author_id, 'with affi:', affi_vals) 
-                new_affi_id = add_author_affiliation(db_name, art_aut_id, affi_id, affi_vals)
+                new_affi_id = add_author_affiliation(db_name, art_author_id, affi_id, affi_vals)
                 #update cr_affis (assign author_affi_id)
                 for cr_id in cr_affi_ids:
                     update_cr_aai(db_name, cr_id, new_affi_id)
@@ -474,10 +474,12 @@ def check_cr_affis_vs_affiliations(current_db,affi_parser):
     all_ok = True
     x = '1'
     already_ok = open_ok_list('ok_affi_script.txt')
+    last_checked = already_ok[-1:][0]
+    print(last_checked)
     while x != '0':
         list_art_aut_ids = get_cr_affis_article_author_ids(app_db)
         for art_aut_id in list_art_aut_ids:
-            if not art_aut_id in already_ok:
+            if not art_aut_id in already_ok and art_aut_id >  last_checked:
                 print ('Article Author: ', art_aut_id)
                 cr_lines = get_cr_lines_for_article_author_ids(current_db, art_aut_id)
                 print('{0:*^80}'.format('CR Affilitations found:'), "\n", cr_lines)
@@ -503,21 +505,21 @@ def check_cr_affis_vs_affiliations(current_db,affi_parser):
                         #break
                     else:
                         already_ok.append(art_aut_id)
-                        print(already_ok)
+                        print(already_ok[-20:])
                         save_ok_list(already_ok, 'ok_affi_script.txt')  
-    ##            else:
-    ##                print('verify multiline affi')
-    ##                assigned_ok = check_assigned_affi_ml(current_db, affi_parser, cr_lines, art_aut_id)
-    ##                if not assigned_ok:
-    ##                    print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
-    ##                    print("Problems with:\n", cr_lines[0][2], art_aut_id)
-    ##                    correct_multiline(current_db, affi_parser, cr_lines)
-    ##                    all_ok = False
-    ##                    #break
-    ##                else:
-    ##                    already_ok.append(art_aut_id)
-            if len(already_ok) > 0:
-                print("Using OK list:", len(already_ok))
+                else:
+                    print('verify multiline affi')
+                    assigned_ok = check_assigned_affi_ml(current_db, affi_parser, cr_lines, art_aut_id)
+                    if not assigned_ok:
+                        print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
+                        print("Problems with:\n", cr_lines[0][2], art_aut_id)
+                        correct_multiline(current_db, affi_parser, cr_lines)
+                        all_ok = False
+                        #break
+                    else:
+                        already_ok.append(art_aut_id)
+                        print(already_ok[-20:])
+                        save_ok_list(already_ok, 'ok_affi_script.txt')  
         if all_ok:
             break
         x =input()
