@@ -15,7 +15,16 @@ def get_all_affiliations(db_name):
     db_conn = dbh.DataBaseAdapter(db_name)
     a_table = 'affiliations'
     all_affiliations = db_conn.get_full_table(a_table)
-    return all_affiliations
+    table_info = db_conn.get_table_info(a_table)
+    affiliations_dict = []
+    for an_affi in all_affiliations:
+        a_dict_affi = {}
+        for col_idx, col_val in enumerate(an_affi):
+            a_dict_affi[table_info[col_idx][1]] = col_val
+        affiliations_dict.append(a_dict_affi)
+    return affiliations_dict
+
+
 
 def get_cr_affis_article_author_ids(db_name):
     db_conn = dbh.DataBaseAdapter(db_name)
@@ -331,15 +340,20 @@ def add_author_affiliation(db_name, art_aut_id, affi_id, affi_values):
 
 def is_affi_ok(an_affi):
     affi_ok = True
-    # has institution and institution is not blank
-    if an_affi['institution'] == '' or an_affi['institution'] == None:
-        print('Affiliation Error: Missing institution')
-        affi_ok = False
-    if an_affi['country'] == '' or an_affi['country'] == None:
-        print('Affiliation Error: country missing')
-        affi_ok = False
-    if an_affi['sector'] == '' or an_affi['sector'] == None:
-        print('Affiliation Error: sector missing')
+    institution_ok = country_ok = sector_ok = no_blank_fields = True
+    if an_affi['institution'] in ['', None]:
+        institution_ok = False
+    if an_affi['sector'] in ['', None]:
+        sector_ok = False
+    if an_affi['country'] in ['', None]:
+        country_ok = False
+    for field in an_affi.values():
+        if field == "":
+            no_blank_fields = False
+            break
+
+    if not institution_ok or not country_ok \
+       or not sector_ok or not no_blank_fields:
         affi_ok = False
     return affi_ok
 
@@ -392,5 +406,25 @@ def update_cr_aai(db_name, cr_affi_id, auth_affi_id):
     s_field = 'author_affiliation_id'
     db_conn = dbh.DataBaseAdapter(ukchapp_db)
     db_conn.set_value_table(s_table, cr_affi_id,  s_field , auth_affi_id)
-            
 
+if __name__ == "__main__":        
+    # database name
+    current_db = '../mcc_data/development.sqlite3'
+    # initialise parser
+    affi_parser = get_parser(current_db)
+    
+    all_affiliations = get_all_affiliations(current_db)
+    # Verify affiliations table:
+    #   all affiliations are consistent
+    #   there are no synonyms in affiliations table
+    for an_affi in all_affiliations:
+        if not is_affi_ok(an_affi):
+            print("Inconsistent affiliation:", an_affi)
+    hit_counter = 0
+    for an_affi in all_affiliations:
+        if an_affi['institution'] in affi_parser.institution_synonyms.keys():
+            hit_counter += 1 
+            print(hit_counter, "Institution synonym in affiliation:", an_affi['id'], an_affi['institution'],
+                  'it should be', affi_parser.institution_synonyms[an_affi['institution']]  )
+            #x =input()
+            
