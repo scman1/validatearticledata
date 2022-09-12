@@ -210,7 +210,7 @@ def correct_oneline(db_name, cr_parser, cr_affis):
         else:
             if affi_id != None :
                 print("Add author affiliation for author: ", art_author_id, 'with affi:', affi_vals) 
-                new_affi_id = add_author_affiliation(db_name, art_aut_id, affi_id, affi_vals)
+                new_affi_id = add_author_affiliation(db_name, art_author_id, affi_id, affi_vals)
                 #update cr_affis (assign author_affi_id)
                 for cr_id in cr_affi_ids:
                     update_cr_aai(db_name, cr_id, new_affi_id)
@@ -473,51 +473,51 @@ def check_for_duplicates(current_db):
 def check_cr_affis_vs_affiliations(current_db,affi_parser):
     all_ok = True
     x = '1'
-    already_ok = []
+    already_ok = open_ok_list('ok_affi_script.txt')
     while x != '0':
         list_art_aut_ids = get_cr_affis_article_author_ids(app_db)
         for art_aut_id in list_art_aut_ids:
-            print ('Article Author: ', art_aut_id)
-            cr_lines = get_cr_lines_for_article_author_ids(current_db, art_aut_id)
-            print('{0:*^80}'.format('CR Affilitations found:'), "\n", cr_lines)
-            all_one_liners = True
-            print('{0:*^80}'.format('Check if CR lines are one liners:'))
-            for a_cr_line in cr_lines:
-                one_line_affi = is_one_line_affi(affi_parser, a_cr_line[1])
-                print( a_cr_line[1], one_line_affi)
-                if not one_line_affi:
-                    all_one_liners = False
-            if all_one_liners:
-                assigned_ok = False
-                print('{0:*^80}'.format('verify one liners'))
+            if not art_aut_id in already_ok:
+                print ('Article Author: ', art_aut_id)
+                cr_lines = get_cr_lines_for_article_author_ids(current_db, art_aut_id)
+                print('{0:*^80}'.format('CR Affilitations found:'), "\n", cr_lines)
+                all_one_liners = True
+                print('{0:*^80}'.format('Check if CR lines are one liners:'))
                 for a_cr_line in cr_lines:
-                    assigned_ok = check_assigned_affi_ol(current_db, affi_parser, a_cr_line)
-                    print(assigned_ok)
+                    one_line_affi = is_one_line_affi(affi_parser, a_cr_line[1])
+                    print( a_cr_line[1], one_line_affi)
+                    if not one_line_affi:
+                        all_one_liners = False
+                if all_one_liners:
+                    assigned_ok = False
+                    print('{0:*^80}'.format('verify one liners'))
+                    for a_cr_line in cr_lines:
+                        assigned_ok = check_assigned_affi_ol(current_db, affi_parser, a_cr_line)
+                        print(assigned_ok)
+                        if not assigned_ok:
+                            print("Problems with ", a_cr_line[0])
+                            break
                     if not assigned_ok:
-                        print("Problems with ", a_cr_line[0])
-                        break
-                if not assigned_ok:
-                    correct_oneline(current_db, affi_parser, cr_lines)
-                    all_ok = False
-                    #break
-                else:
-                    already_ok.append(art_aut_id)
-                    print(already_ok)
-                    save_ok_list(already_ok, 'ok_affi_script.txt')  
-##            else:
-##                print('verify multiline affi')
-##                assigned_ok = check_assigned_affi_ml(current_db, affi_parser, cr_lines, art_aut_id)
-##                if not assigned_ok:
-##                    print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
-##                    print("Problems with:\n", cr_lines[0][2], art_aut_id)
-##                    correct_multiline(current_db, affi_parser, cr_lines)
-##                    all_ok = False
-##                    #break
-##                else:
-##                    already_ok.append(art_aut_id)
-        print("OK:", len(already_ok))
-        print(already_ok)
-        save_ok_list(already_ok, 'ok_affi_script.txt')  
+                        correct_oneline(current_db, affi_parser, cr_lines)
+                        all_ok = False
+                        #break
+                    else:
+                        already_ok.append(art_aut_id)
+                        print(already_ok)
+                        save_ok_list(already_ok, 'ok_affi_script.txt')  
+    ##            else:
+    ##                print('verify multiline affi')
+    ##                assigned_ok = check_assigned_affi_ml(current_db, affi_parser, cr_lines, art_aut_id)
+    ##                if not assigned_ok:
+    ##                    print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
+    ##                    print("Problems with:\n", cr_lines[0][2], art_aut_id)
+    ##                    correct_multiline(current_db, affi_parser, cr_lines)
+    ##                    all_ok = False
+    ##                    #break
+    ##                else:
+    ##                    already_ok.append(art_aut_id)
+            if len(already_ok) > 0:
+                print("Using OK list:", len(already_ok))
         if all_ok:
             break
         x =input()
@@ -527,6 +527,14 @@ def save_ok_list(values_list, file_name):
     with open(file_name, 'w') as f:
         for an_id in values_list:
             f.write(str(an_id)+'\n')
+
+def open_ok_list(file_name):
+    with open(file_name) as f:
+        lines = f.readlines()
+    from_file = []
+    for a_line in lines:
+        from_file.append(int(a_line.replace('\n','')))
+    return from_file
 
 
 if __name__ == "__main__":        

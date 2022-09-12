@@ -126,7 +126,8 @@ class crp:
                                 'The European Synchrotron. 71':'European Synchrotron Radiation Facility',
                                 'Univ. Bordeaux':'Université de Bordeaux',
                                 'Wrocław University of Technology':'Wrocław University of Science and Technology',
-                                 'King Abdullah University of Science and Technology (KAUST)':'King Abdullah University of Science and Technology'
+                                'King Abdullah University of Science and Technology (KAUST)':'King Abdullah University of Science and Technology',
+                                'University of Padova':'Università di Padova'
                                      }
         
         self.hosted_institutions= { "UK Catalysis Hub" : "Research Complex at Harwell",
