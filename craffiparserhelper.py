@@ -45,7 +45,7 @@ def get_affiliation_id(db_conn, parsed_affi):
     list_where = [ k +" = '"+ v +"'" for k,v in parsed_affi.items() if k != 'address']
     s_where = " AND ".join(list_where) 
     s_where = s_where.replace("= ''", "IS NULL")
-    print (s_where)
+    #print (s_where)
     affi_list = db_conn.get_values(s_table, s_field, s_where)
     affi_id = None
     if affi_list !=[]:
@@ -167,6 +167,24 @@ def check_assigned_affi_ml(db_name, cr_parser, cr_affi_lines, art_aut_id):
 #      Fixes:
 #        - try to assign from existing
 #        - if no existing one, ask if new should be added
+
+def get_affi_from_parsed(db_name, parsed_dict):
+    affi_id = get_affiliation_id(db_name, parsed_dict)
+    if affi_id == None:
+        parsed_no_blanks = {k:v for k,v in parsed_dict.items() if v != ''}
+        affi_id = get_close_affiliation_id(db_name, parsed_no_blanks)
+    return affi_id
+
+
+# all parsed lines should be assigned else cannot be assigned
+def can_be_assigned(db_name, cr_parser, parsed_lines):
+    #if any of the resulting parsed affis cannot be assigned then none can be
+    can_assign = True
+    for one_parsed in parsed_lines:
+        affi_id = get_affi_from_parsed(db_name, one_parsed[0])
+        if(affi_id == None):
+            can_assign = False
+    return can_assign
 
 def correct_oneline(db_name, cr_parser, cr_affis):
     # get a list of parsed affis with the ids of the corresponding cr_records
@@ -435,7 +453,7 @@ def check_affiliation_consistency(current_db):
             
             all_ok = True
             break
-        x =input()
+        #x =input()
     return all_ok
 
 
@@ -455,7 +473,7 @@ def check_for_synonyms(current_db,affi_parser):
             
             all_ok = True
             break
-        x =input()
+        #x =input()
     return all_ok
 
 def check_for_duplicates(current_db):
@@ -483,13 +501,14 @@ def check_for_duplicates(current_db):
         if hit_counter == 0:            
             all_ok = True
             break
-        x =input()
+        #x =input()
     return all_ok
 
 def check_cr_affis_vs_affiliations(current_db,affi_parser):
     all_ok = True
     x = '1'
     already_ok = open_ok_list('ok_affi_script.txt')
+    with_problems = []
     last_checked = already_ok[-1:][0]
     print(last_checked)
     while x != '0':
@@ -516,7 +535,16 @@ def check_cr_affis_vs_affiliations(current_db,affi_parser):
                             print("Problems with ", a_cr_line[0])
                             break
                     if not assigned_ok:
-                        correct_oneline(current_db, affi_parser, cr_lines)
+                        print('{0:*^80}')
+                        print('{0:*^80}'.format(" Problems with: %s %s "%(cr_lines[0][2], art_aut_id)))
+                        parsed_lines = affi_parser.parse_and_map_multiline(cr_lines)
+                        if can_be_assigned(current_db, affi_parser, parsed_lines):
+                            correct_oneline(current_db, affi_parser, cr_lines)
+                        else:
+                            print('{0:#^80}'.format(" cannot generate author affilitions for %s affiliations not found ")%(art_aut_id))
+                            print(cr_lines)
+                        with_problems.append(art_aut_id)
+                        
                         all_ok = False
                         #break
                     else:
@@ -527,18 +555,25 @@ def check_cr_affis_vs_affiliations(current_db,affi_parser):
                     print('verify multiline affi')
                     assigned_ok = check_assigned_affi_ml(current_db, affi_parser, cr_lines, art_aut_id)
                     if not assigned_ok:
-                        print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
-                        print("Problems with:\n", cr_lines[0][2], art_aut_id)
-                        correct_multiline(current_db, affi_parser, cr_lines)
+                        print('{0:@^80}')
+                        print('{0:@^80}'.format(" Problems with: %s %s "%(cr_lines[0][2], art_aut_id)))
+                        parsed_lines = affi_parser.parse_and_map_multiline(cr_lines)
+                        if can_be_assigned(current_db, affi_parser, parsed_lines):
+                            correct_multiline(current_db, affi_parser, cr_lines)
+                        else:
+                            print('{0:#^80}'.format(" cannot generate author affilitions for %s affiliations not found ")%(art_aut_id))
+                            print(cr_lines)
+                            with_problems.append(art_aut_id)
                         all_ok = False
                         #break
                     else:
                         already_ok.append(art_aut_id)
                         print(already_ok[-20:])
-                        save_ok_list(already_ok, 'ok_affi_script.txt')  
+                        save_ok_list(already_ok, 'ok_affi_script.txt')
+                        save_ok_list(with_problems, 'missing_affiliations.txt')
         if all_ok:
             break
-        x =input()
+        #x =input()
     return all_ok
     
 def save_ok_list(values_list, file_name):
@@ -554,6 +589,7 @@ def open_ok_list(file_name):
         from_file.append(int(a_line.replace('\n','')))
     return from_file
 
+
 def test_parse(db_conn, cr_parser,aut_ids):
     for auth_id in aut_ids:
         cr_affi_lines = get_cr_lines_for_article_author_ids(db_conn,auth_id)
@@ -562,11 +598,22 @@ def test_parse(db_conn, cr_parser,aut_ids):
         print(cr_affi_lines)
         print('{0:*^80}'.format('Parsing Results:'), "\n")
         print(parse_result)
-        input()
+        
 
 def test_correct_multiline(db_name, cr_parser, auth_id):
     cr_affi_lines = get_cr_lines_for_article_author_ids(db_name,auth_id)
     correct_multiline(db_name, cr_parser, cr_affi_lines)
+
+def test_can_be_assinged(db_name, cr_parser, auth_id):
+    cr_affi_lines = get_cr_lines_for_article_author_ids(db_name,auth_id)
+    parsed_lines = affi_parser.parse_and_map_multiline(cr_affi_lines)
+    if not can_be_assigned(db_name, cr_parser, parsed_lines):
+        print('{0:#^80}'.format(" cannot generate author affilitions for %s affiliations not found ")%(auth_id))
+        print(cr_affi_lines)
+        print("parsed as")
+        print(parsed_lines)
+        
+
 
 if __name__ == "__main__":        
     # database name
@@ -590,4 +637,6 @@ if __name__ == "__main__":
     #test_parse(db_connection, affi_parser, test_list)
     # [244,245] two affis, second affi is only a institution name
     # 5521 two affis, one affi is hosted
-    test_correct_multiline(db_connection, affi_parser, 245)
+    # test_correct_multiline(db_connection, affi_parser, 245)
+    test_can_be_assinged(db_connection, affi_parser, 2112)
+    

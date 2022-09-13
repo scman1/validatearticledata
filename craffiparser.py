@@ -128,13 +128,18 @@ class crp:
                                 'Wrocław University of Technology':'Wrocław University of Science and Technology',
                                 'King Abdullah University of Science and Technology (KAUST)':'King Abdullah University of Science and Technology',
                                 'KAUST':'King Abdullah University of Science and Technology',
-                                'University of Padova':'Università di Padova'
+                                'University of Padova':'Università di Padova',
+                                'A*STAR':"Agency for Science, Technology and Research",
+                                'A*STAR Agency for Science, Technology and Research':"Agency for Science, Technology and Research",
+                                'Institute of Materials Research and Engineering (IMRE)':'Institute of Materials Research and Engineering',
+                                'IMRE':'Institute of Materials Research and Engineering',
                                      }
         
         self.hosted_institutions= { "UK Catalysis Hub" : "Research Complex at Harwell",
                                     "HarwellXPS" : "Research Complex at Harwell",
                                     "Research Complex at Harwell":"Science and Technology Facilities Council",
-                                    "ISIS Neutron and Muon Source":"Science and Technology Facilities Council"
+                                    "ISIS Neutron and Muon Source":"Science and Technology Facilities Council",
+                                    "Institute of Materials Research and Engineering":"Agency for Science, Technology and Research",
                                     }
 
         self.country_exceptions = ["Denmark Hill", "UK Catalysis Hub", "Sasol Technology U.K.", "N. Ireland", 'Indian', 'Northern Ireland',]
