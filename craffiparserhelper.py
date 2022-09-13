@@ -6,13 +6,13 @@ from datetime import datetime
 
 import craffiparser
 
+
 def get_parser(db_):
     cr_parse = craffiparser.crp(db_)
     cr_parse.start_lists()
     return cr_parse
 
-def get_all_affiliations(db_name):
-    db_conn = dbh.DataBaseAdapter(db_name)
+def get_all_affiliations(db_conn):
     a_table = 'affiliations'
     all_affiliations = db_conn.get_full_table(a_table)
     table_info = db_conn.get_table_info(a_table)
@@ -24,23 +24,20 @@ def get_all_affiliations(db_name):
         affiliations_dict.append(a_dict_affi)
     return affiliations_dict
 
-def get_cr_affis_article_author_ids(db_name):
-    db_conn = dbh.DataBaseAdapter(db_name)
+def get_cr_affis_article_author_ids(db_conn):
     a_table = 'cr_affiliations'
     a_column = 'article_author_id'
     cr_affis_article_author_ids = db_conn.get_value_list(a_table, a_column)
     return cr_affis_article_author_ids
 
-def get_cr_lines_for_article_author_ids(db_name, art_author_id):
-    db_conn = dbh.DataBaseAdapter(db_name)
+def get_cr_lines_for_article_author_ids(db_conn, art_author_id):
     s_table = 'cr_affiliations'
     s_fields = '*'
     s_where = "article_author_id = %s"%(art_author_id)
     authors_list = db_conn.get_values(s_table, s_fields, s_where)
     return authors_list
 
-def get_affiliation_id(db_name, parsed_affi):
-    db_conn = dbh.DataBaseAdapter(db_name)
+def get_affiliation_id(db_conn, parsed_affi):
     s_table = 'affiliations'
     s_field = 'id'
     for k,v in parsed_affi.items():
@@ -57,8 +54,7 @@ def get_affiliation_id(db_name, parsed_affi):
 
 # could correct the close affiliation to get all the ones with 
 # same institution and compare closest match
-def get_close_affiliation_id(db_name, parsed_affi):
-    db_conn = dbh.DataBaseAdapter(db_name)
+def get_close_affiliation_id(db_conn, parsed_affi):
     s_table = 'affiliations'
     s_field = 'id'
     for k,v in parsed_affi.items():
@@ -74,8 +70,7 @@ def get_close_affiliation_id(db_name, parsed_affi):
     return affi_id
 
 #get the id of affiliation assigned to an author affiliation record
-def get_auth_affi_affiliation_id(db_name, aut_affi_id):
-    db_conn = dbh.DataBaseAdapter(db_name)
+def get_auth_affi_affiliation_id(db_conn, aut_affi_id):
     s_table = 'author_affiliations'
     s_field = 'affiliation_id'
     s_where = " id = %i" %(aut_affi_id)
@@ -86,8 +81,7 @@ def get_auth_affi_affiliation_id(db_name, aut_affi_id):
     return affi_list
 
 #get the ids the author affiliation records for a given author
-def get_auth_affi_id_for_author(db_name, art_aut_id):
-    db_conn = dbh.DataBaseAdapter(db_name)
+def get_auth_affi_id_for_author(db_conn, art_aut_id):
     s_table = 'author_affiliations'
     s_field = 'id'
     s_where = " article_author_id = %i" %(art_aut_id)
@@ -98,8 +92,7 @@ def get_auth_affi_id_for_author(db_name, art_aut_id):
     return affi_list
 
 #get the ids the author affiliation records for a given author
-def get_value_from_affi(db_name, column, affi_id):
-    db_conn = dbh.DataBaseAdapter(db_name)
+def get_value_from_affi(db_conn, column, affi_id):
     s_table = 'affiliations'
     s_field = 'country'
     s_where = " id = %i" %(affi_id)
@@ -264,7 +257,9 @@ def correct_multiline(db_name, cr_parser, cr_affis):
                 print('Update author_affiliation:', correct_this, 'with affi:', affi_vals )
                 update_author_affiliation(db_name, correct_this, affi_id, affi_vals)
                 for cr_id in cr_affi_ids:
-                    update_cr_aai(db_name, cr_id, affi_id)
+                    update_cr_aai(db_name, cr_id, correct_this)
+                    #print("updating", cr_id, 'with', correct_this)
+                    #input()
             else:
                 print('Affi does not exist')
                 print(affi_vals)
@@ -275,7 +270,7 @@ def correct_multiline(db_name, cr_parser, cr_affis):
                 new_affi_id = add_author_affiliation(db_name, art_author_id, affi_id, affi_vals)
                 #update cr_affis (assign author_affi_id)
                 for cr_id in cr_affi_ids:
-                    update_cr_aai(db_name, cr_id, new_affi_id)
+                    (db_name, cr_id, new_affi_id)
                 
 def make_author_affiliation(art_aut_id, affi_values, addr_values):
     # get smallest unit
@@ -338,13 +333,12 @@ def build_address_row(affi, affi_vals):
         address_row[5] = affi[5]
     return address_row
 
-def add_author_affiliation(db_name, art_aut_id, affi_id, affi_values):
+def add_author_affiliation(db_conn, art_aut_id, affi_id, affi_values):
     if affi_id in [0,None,''] or \
        affi_values['country'] in [None,''] or\
        affi_values['institution'] in [None,'']:
         return None
     print("Creating ", art_aut_id, affi_id, affi_values)
-    db_conn = dbh.DataBaseAdapter(db_name)
     affiliation_row = list(db_conn.get_row("affiliations", affi_id))[0]
     address_row = build_address_row(affiliation_row, affi_values)
     print("Affiliation values", affiliation_row)
@@ -374,10 +368,9 @@ def is_affi_ok(an_affi):
     return affi_ok
 
 
-def add_new_affiliation(db_name, affi_values):
+def add_new_affiliation(db_conn, affi_values):
     if not is_affi_ok(affi_values):
         return 0;
-    db_conn = dbh.DataBaseAdapter(db_name)
     add_update_time = datetime.today().strftime('%Y-%m-%d %H:%M:%S')
     affiliation_new = affi_values
     del affiliation_new['address']
@@ -390,9 +383,8 @@ def add_new_affiliation(db_name, affi_values):
     affiliation_id = db_conn.put_values_table("affiliations", affiliation_new.keys(), affiliation_new.values())
     return affiliation_id
 
-def update_author_affiliation(db_name, aut_affi_id, affi_id, affi_values):
+def update_author_affiliation(db_conn, aut_affi_id, affi_id, affi_values):
     print("Updating", aut_affi_id, affi_values)
-    db_conn = dbh.DataBaseAdapter(db_name)
     affiliation_row = list(db_conn.get_row("affiliations", affi_id))[0]
     address_row = [0,None,None,None,None,None]
     if 'address' in affi_values:
@@ -416,11 +408,9 @@ def update_author_affiliation(db_name, aut_affi_id, affi_id, affi_values):
             db_conn.set_value_table('author_affiliations', aut_affi_id,  affi_col, new_value)
             
 
-def update_cr_aai(db_name, cr_affi_id, auth_affi_id):
-    db_conn = dbh.DataBaseAdapter(db_name)
+def update_cr_aai(db_conn, cr_affi_id, auth_affi_id):
     s_table = 'cr_affiliations'
     s_field = 'author_affiliation_id'
-    db_conn = dbh.DataBaseAdapter(db_name)
     db_conn.set_value_table(s_table, cr_affi_id,  s_field , auth_affi_id)
 
 def check_affiliation_consistency(current_db):
@@ -495,7 +485,7 @@ def check_cr_affis_vs_affiliations(current_db,affi_parser):
     last_checked = already_ok[-1:][0]
     print(last_checked)
     while x != '0':
-        list_art_aut_ids = get_cr_affis_article_author_ids(app_db)
+        list_art_aut_ids = get_cr_affis_article_author_ids(current_db)
         for art_aut_id in list_art_aut_ids:
             if not art_aut_id in already_ok and art_aut_id >  last_checked:
                 print ('Article Author: ', art_aut_id)
@@ -556,23 +546,33 @@ def open_ok_list(file_name):
         from_file.append(int(a_line.replace('\n','')))
     return from_file
 
+def test_parse(db_conn, cr_parser,aut_ids):
+    for auth_id in aut_ids:
+        cr_affi_lines = get_cr_lines_for_article_author_ids(db_conn,auth_id)
+        parse_result = cr_parser.parse_and_map_multiline(cr_affi_lines)
+        print('{0:*^80}'.format('CR Affilitations for %s found: ')%(auth_id), "\n")
+        print(cr_affi_lines)
+        print('{0:*^80}'.format('Parsing Results:'), "\n")
+        print(parse_result)
+        input()
 
 if __name__ == "__main__":        
     # database name
     app_db = '../mcc_data/development.sqlite3'
     # initialise parser
     affi_parser = get_parser(app_db)
-    
+    db_connection = dbh.DataBaseAdapter(app_db)
     # Verify affiliations table:
     #   all affiliations are consistent
     #   there are no synonyms in affiliations table
     #   there are no duplicates in affiliations table
-    if check_affiliation_consistency(app_db): print ("OK, no inconsistent affiliations")
+    if check_affiliation_consistency(db_connection): print ("OK, no inconsistent affiliations")
 
-    if check_for_synonyms(app_db,affi_parser): print ("OK, no synonyms in institutions")
+    if check_for_synonyms(db_connection,affi_parser): print ("OK, no synonyms in institutions")
     
-    if check_for_duplicates(app_db): print ("OK, no duplicate affiliations")
+    if check_for_duplicates(db_connection): print ("OK, no duplicate affiliations")
 
-    check_cr_affis_vs_affiliations(app_db,affi_parser)
+    check_cr_affis_vs_affiliations(db_connection, affi_parser)
     
-    
+    test_list = [1,17, 244,704,1704,5521,5526,2568,2906,2909]
+    test_parse(db_connection, affi_parser, test_list)

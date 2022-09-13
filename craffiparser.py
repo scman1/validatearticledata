@@ -326,6 +326,8 @@ class crp:
     def remove_returns(self, affi_string):
         clean_str = affi_string.replace("\r", " ")
         clean_str = clean_str.replace("\n", " ")
+        clean_str = clean_str.replace("\u2005", " ")
+        clean_str = clean_str.replace("\u202f", " ")
         while "  " in clean_str:
             clean_str = clean_str.replace("  ", " ")
         return clean_str
