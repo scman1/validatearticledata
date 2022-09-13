@@ -134,6 +134,7 @@ class crp:
         self.hosted_institutions= { "UK Catalysis Hub" : "Research Complex at Harwell",
                                     "HarwellXPS" : "Research Complex at Harwell",
                                     "Research Complex at Harwell":"Science and Technology Facilities Council",
+                                    "ISIS Neutron and Muon Source":"Science and Technology Facilities Council"
                                     }
 
         self.country_exceptions = ["Denmark Hill", "UK Catalysis Hub", "Sasol Technology U.K.", "N. Ireland", 'Indian', 'Northern Ireland',]
@@ -526,6 +527,8 @@ if __name__ == "__main__":
     for an_affi in sla_issues:
         parsed_issues = cr_parse.split_single(an_affi[1])
         print ("Parsed with issues:", parsed_issues)
+
+
 ##    
 ##    
 ##    # Test parse multiline
@@ -542,24 +545,29 @@ if __name__ == "__main__":
 ##    print('*************** PARSED AS *****************')
 ##    print(pml_one_affi)
 ##    
-##    # B) Hosted: one institution hosted by another (e.g. UKCH hosted by RCaH)
-####    mla_hosted = [(647, 'Cardiff Catalysis Institute', 552, 915, '2022-08-24 11:51:02.702859', '2022-08-28 21:59:50.958252'),
-####                  (648, 'School of Chemistry', 552, 915, '2022-08-24 11:51:02.709894', '2022-08-28 21:59:50.970522'),
-####                  (649, 'Cardiff University', 552, 915, '2022-08-24 11:51:02.717235', '2022-08-28 21:59:50.979549'),
-####                  (650, 'Cardiff', 552, 915, '2022-08-24 11:51:02.727471', '2022-08-28 21:59:50.996194'),
-####                  (651, 'UK', 552, 915, '2022-08-24 11:51:02.735337', '2022-08-28 21:59:51.004846')]
-##    mla_hosted = [(843, 'UK Catalysis Hub', 693, 1260, '2022-08-24 11:51:20.586064', '2022-08-28 22:12:51.545787'),
-##                  (844, 'Research Complex at Harwell', 693, 1260, '2022-08-24 11:51:20.593059', '2022-08-28 22:12:51.562326'),
-##                  (845, 'Rutherford Appleton Laboratory', 693, 1260, '2022-08-24 11:51:20.608376', '2022-08-28 22:12:51.579334'),
-##                  (846, 'Didcot OX11 0FA', 693, 1260, '2022-08-24 11:51:20.616072', '2022-08-28 22:12:51.588762'),
-##                  (847, 'UK', 693, 1260, '2022-08-24 11:51:20.625922', '2022-08-28 22:12:51.603265')]
-##    just_affi_lines = [x[1] for x in mla_hosted]
-##    pmla_hosted = cr_parse.parse_multiline(just_affi_lines)
-##    pmla_hosted = cr_parse.parse_and_map_multiline(mla_hosted)
-##    print('*********** MULTILINE HOSTED **************')
-##    print(mla_hosted)
-##    print('*************** PARSED AS *****************')
-##    print(pmla_hosted)
+    # B) Hosted: one institution hosted by another (e.g. UKCH hosted by RCaH)
+##    mla_hosted = [(647, 'Cardiff Catalysis Institute', 552, 915, '2022-08-24 11:51:02.702859', '2022-08-28 21:59:50.958252'),
+##                  (648, 'School of Chemistry', 552, 915, '2022-08-24 11:51:02.709894', '2022-08-28 21:59:50.970522'),
+##                  (649, 'Cardiff University', 552, 915, '2022-08-24 11:51:02.717235', '2022-08-28 21:59:50.979549'),
+##                  (650, 'Cardiff', 552, 915, '2022-08-24 11:51:02.727471', '2022-08-28 21:59:50.996194'),
+##                  (651, 'UK', 552, 915, '2022-08-24 11:51:02.735337', '2022-08-28 21:59:51.004846')]
+    mla_hosted = [(843, 'UK Catalysis Hub', 693, 1260, '2022-08-24 11:51:20.586064', '2022-08-28 22:12:51.545787'),
+                  (844, 'Research Complex at Harwell', 693, 1260, '2022-08-24 11:51:20.593059', '2022-08-28 22:12:51.562326'),
+                  (845, 'Rutherford Appleton Laboratory', 693, 1260, '2022-08-24 11:51:20.608376', '2022-08-28 22:12:51.579334'),
+                  (846, 'Didcot OX11 0FA', 693, 1260, '2022-08-24 11:51:20.616072', '2022-08-28 22:12:51.588762'),
+                  (847, 'UK', 693, 1260, '2022-08-24 11:51:20.625922', '2022-08-28 22:12:51.603265')]
+    mla_hosted = [(7821, 'ISIS Facility', 5521, 151, '2022-08-24 17:27:04.753191', '2022-08-24 17:27:04.753191'),
+                  (7822, 'STFC Rutherford Appleton Laboratory', 5521, 822, '2022-08-24 17:27:04.797186', '2022-08-24 17:27:04.797186'),
+                  (7823, 'Oxfordshire, UK', 5521, 822, '2022-08-24 17:27:04.840656', '2022-08-24 17:27:04.840656'),
+                  (7824, 'Imperial College London', 5521, 6182, '2022-08-24 17:27:04.898781', '2022-08-24 17:27:04.898781'),
+                  (7825, 'London SW7 2AZ, UK', 5521, 6182, '2022-08-24 17:27:04.937359', '2022-08-24 17:27:04.937359')]
+    just_affi_lines = [x[1] for x in mla_hosted]
+    pmla_hosted = cr_parse.parse_multiline(just_affi_lines)
+    pmla_hosted = cr_parse.parse_and_map_multiline(mla_hosted)
+    print('*********** MULTILINE HOSTED **************')
+    print(mla_hosted)
+    print('*************** PARSED AS *****************')
+    print(pmla_hosted)
 ##    
 ##    # C) Additional: More than one affiliation in the set
 ##    mla_additional =[(922, 'School of Chemistry', 710, 281, '2022-08-24 11:51:23.140779', '2022-08-28 20:34:23.889324'),

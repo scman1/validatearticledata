@@ -119,9 +119,6 @@ def check_assigned_affi_ol(db_name, cr_parser, cr_affi):
         affi_id = get_affiliation_id(db_name, parsed_affi)
         if affi_id == None:
             affi_id = get_close_affiliation_id(db_name, parsed_no_blanks)
-            if affi_id != None and parsed_affi['country'] in ['',None]:
-                parsed_affi['country'] = get_value_from_affi(db_name, 'country', affi_id)
-                
         ##############################################################################
         # if there is no close affiliation should ask if add, assign or ignore
         # in the case of orphan lines it is ignore
@@ -149,9 +146,6 @@ def check_assigned_affi_ml(db_name, cr_parser, cr_affi_lines, art_aut_id):
         if affi_id == None:
             parsed_no_blanks = {k:v for k,v in one_parsed.items() if v != ''}
             affi_id = get_close_affiliation_id(db_name, parsed_no_blanks)
-        # if there is no close affiliation should ask if add, assign or ignore
-        # in the case of orphan lines it is ignore
-        
         if not affi_id in assigned_affis:
             print('Assigned ID:', affi_id, "not in recoverd IDs list:", assigned_affis)
             assigned_ok = False
@@ -202,6 +196,12 @@ def correct_oneline(db_name, cr_parser, cr_affis):
         if affi_id == None:
             parsed_no_blanks = {k:v for k,v in affi_vals.items() if v != ''}
             affi_id = get_close_affiliation_id(db_name, parsed_no_blanks)
+            if affi_id != None:
+                affi_vals['country'] = get_value_from_affi(db_name, 'country', affi_id)
+            ##############################################################################
+            # if there is no close affiliation should ask if add, assign or ignore
+            # in the case of orphan lines it is ignore
+
         if correct_this != 0:
             # the affiliation does not exist but something was assigned to author affi
             if affi_id == None:
@@ -219,6 +219,7 @@ def correct_oneline(db_name, cr_parser, cr_affis):
                 print("Add author affiliation for author: ", art_author_id, 'with affi:', affi_vals) 
                 new_affi_id = add_author_affiliation(db_name, art_author_id, affi_id, affi_vals)
                 #update cr_affis (assign author_affi_id)
+                print("Created ", new_affi_id, "for", cr_affi_ids)
                 for cr_id in cr_affi_ids:
                     update_cr_aai(db_name, cr_id, new_affi_id)
 
@@ -251,6 +252,12 @@ def correct_multiline(db_name, cr_parser, cr_affis):
         if affi_id == None:
             parsed_no_blanks = {k:v for k,v in affi_vals.items() if v != ''}
             affi_id = get_close_affiliation_id(db_name, parsed_no_blanks)
+            if affi_id != None:
+                affi_vals['country'] = get_value_from_affi(db_name, ['country'], affi_id)
+            ##############################################################################
+            # if there is no close affiliation should ask if add, assign or ignore
+            # in the case of orphan lines it is ignore
+            
         if correct_this != 0:
             # if the affiliation exists
             if affi_id != None:
@@ -269,8 +276,9 @@ def correct_multiline(db_name, cr_parser, cr_affis):
                 print("Add author affiliation for author: ", art_author_id, 'with affi:', affi_vals) 
                 new_affi_id = add_author_affiliation(db_name, art_author_id, affi_id, affi_vals)
                 #update cr_affis (assign author_affi_id)
+                print("Created ", new_affi_id, "for", cr_affi_ids)
                 for cr_id in cr_affi_ids:
-                    (db_name, cr_id, new_affi_id)
+                    update_cr_aai(db_name, cr_id, new_affi_id)
                 
 def make_author_affiliation(art_aut_id, affi_values, addr_values):
     # get smallest unit
@@ -556,6 +564,10 @@ def test_parse(db_conn, cr_parser,aut_ids):
         print(parse_result)
         input()
 
+def test_correct_multiline(db_name, cr_parser, auth_id):
+    cr_affi_lines = get_cr_lines_for_article_author_ids(db_name,auth_id)
+    correct_multiline(db_name, cr_parser, cr_affi_lines)
+
 if __name__ == "__main__":        
     # database name
     app_db = '../mcc_data/development.sqlite3'
@@ -574,5 +586,8 @@ if __name__ == "__main__":
 
     check_cr_affis_vs_affiliations(db_connection, affi_parser)
     
-    test_list = [1,17, 244,704,1704,5521,5526,2568,2906,2909]
-    test_parse(db_connection, affi_parser, test_list)
+    #test_list = [1,17, 244,704,1704,5521,5526,2568,2906,2909]
+    #test_parse(db_connection, affi_parser, test_list)
+    # [244,245] two affis, second affi is only a institution name
+    # 5521 two affis, one affi is hosted
+    test_correct_multiline(db_connection, affi_parser, 245)
