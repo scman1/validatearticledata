@@ -97,6 +97,19 @@ def get_auth_affi_id_for_author(db_name, art_aut_id):
         affi_list = list(set([an_id[0] for an_id in affi_list]))
     return affi_list
 
+#get the ids the author affiliation records for a given author
+def get_value_from_affi(db_name, column, affi_id):
+    db_conn = dbh.DataBaseAdapter(db_name)
+    s_table = 'affiliations'
+    s_field = 'country'
+    s_where = " id = %i" %(affi_id)
+    #print (s_where)
+    affi_list = db_conn.get_values(s_table, s_field, s_where)
+    affi_val = None
+    if affi_list !=[]:
+        affi_val = affi_list[0][0]
+    return affi_val
+
 def is_one_line_affi(cr_parser, str_affi):
     is_one_liner = False
     parsed_affi = cr_parser.split_single(str_affi)
@@ -113,6 +126,9 @@ def check_assigned_affi_ol(db_name, cr_parser, cr_affi):
         affi_id = get_affiliation_id(db_name, parsed_affi)
         if affi_id == None:
             affi_id = get_close_affiliation_id(db_name, parsed_no_blanks)
+            if affi_id != None and parsed_affi['country'] in ['',None]:
+                parsed_affi['country'] = get_value_from_affi(db_name, 'country', affi_id)
+                
         ##############################################################################
         # if there is no close affiliation should ask if add, assign or ignore
         # in the case of orphan lines it is ignore
@@ -204,9 +220,7 @@ def correct_oneline(db_name, cr_parser, cr_affis):
                 print('{0:*^80}'.format('Update Author Affiliatio'))
                 print('Update ID:', correct_this, 'with values:', affi_vals )
                 update_author_affiliation(db_name, correct_this, affi_id, affi_vals)
-                update_cr_aai(db_name, cr_affi_ids[0], correct_this)
-                
-                
+                update_cr_aai(db_name, cr_affi_ids[0], correct_this)                
         else:
             if affi_id != None :
                 print("Add author affiliation for author: ", art_author_id, 'with affi:', affi_vals) 
@@ -325,6 +339,10 @@ def build_address_row(affi, affi_vals):
     return address_row
 
 def add_author_affiliation(db_name, art_aut_id, affi_id, affi_values):
+    if affi_id in [0,None,''] or \
+       affi_values['country'] in [None,''] or\
+       affi_values['institution'] in [None,'']:
+        return None
     print("Creating ", art_aut_id, affi_id, affi_values)
     db_conn = dbh.DataBaseAdapter(db_name)
     affiliation_row = list(db_conn.get_row("affiliations", affi_id))[0]
