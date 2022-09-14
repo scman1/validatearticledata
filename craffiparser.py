@@ -64,6 +64,7 @@ class crp:
                                 "The ISIS facility":"ISIS Neutron and Muon Source",
                                 "ISIS Neutron and Muon Facility":"ISIS Neutron and Muon Source",
                                 "ISIS Pulsed Neutron and Muon Facility":"ISIS Neutron and Muon Source",
+                                "ISIS Pulsed Neutron and Muon Source":"ISIS Neutron and Muon Source",
                                 "Oxford University":"University of Oxford",
                                 "University of St Andrews":"University of St. Andrews",
                                 "Diamond Light Source Ltd Harwell Science and Innovation Campus":"Diamond Light Source Ltd.",

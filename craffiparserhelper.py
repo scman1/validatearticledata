@@ -45,7 +45,7 @@ def get_affiliation_id(db_conn, parsed_affi):
     list_where = [ k +" = '"+ v +"'" for k,v in parsed_affi.items() if k != 'address']
     s_where = " AND ".join(list_where) 
     s_where = s_where.replace("= ''", "IS NULL")
-    #print (s_where)
+    print('Get affiliation id', s_where)
     affi_list = db_conn.get_values(s_table, s_field, s_where)
     affi_id = None
     if affi_list !=[]:
@@ -55,18 +55,22 @@ def get_affiliation_id(db_conn, parsed_affi):
 # could correct the close affiliation to get all the ones with 
 # same institution and compare closest match
 def get_close_affiliation_id(db_conn, parsed_affi):
-    s_table = 'affiliations'
-    s_field = 'id'
-    for k,v in parsed_affi.items():
-        if "'" in v :parsed_affi[k]=v.replace("'","''")
-    list_where = [ k +" = '"+ v +"'" for k,v in parsed_affi.items() if k != 'address']
-    s_where = " AND ".join(list_where) 
-    s_where = s_where.replace("= ''", "IS NULL")
-    #print (s_where)
-    affi_list = db_conn.get_values(s_table, s_field, s_where)
     affi_id = None
-    if affi_list !=[]:
-        affi_id = affi_list[0][0]
+    if len(parsed_affi) == 2 and 'country' in parsed_affi.keys():
+        print ("Not enough data to get close affi")
+    else:
+        print(parsed_affi)
+        s_table = 'affiliations'
+        s_field = 'id'
+        for k,v in parsed_affi.items():
+            if "'" in v :parsed_affi[k]=v.replace("'","''")
+        list_where = [ k +" = '"+ v +"'" for k,v in parsed_affi.items() if k != 'address']
+        s_where = " AND ".join(list_where) 
+        s_where = s_where.replace("= ''", "IS NULL")
+        print('Get Close affiliation id:', s_where)
+        affi_list = db_conn.get_values(s_table, s_field, s_where)
+        if affi_list !=[]:
+            affi_id = affi_list[0][0]
     return affi_id
 
 #get the id of affiliation assigned to an author affiliation record
@@ -587,33 +591,7 @@ def open_ok_list(file_name):
     from_file = []
     for a_line in lines:
         from_file.append(int(a_line.replace('\n','')))
-    return from_file
-
-
-def test_parse(db_conn, cr_parser,aut_ids):
-    for auth_id in aut_ids:
-        cr_affi_lines = get_cr_lines_for_article_author_ids(db_conn,auth_id)
-        parse_result = cr_parser.parse_and_map_multiline(cr_affi_lines)
-        print('{0:*^80}'.format('CR Affilitations for %s found: ')%(auth_id), "\n")
-        print(cr_affi_lines)
-        print('{0:*^80}'.format('Parsing Results:'), "\n")
-        print(parse_result)
-        
-
-def test_correct_multiline(db_name, cr_parser, auth_id):
-    cr_affi_lines = get_cr_lines_for_article_author_ids(db_name,auth_id)
-    correct_multiline(db_name, cr_parser, cr_affi_lines)
-
-def test_can_be_assinged(db_name, cr_parser, auth_id):
-    cr_affi_lines = get_cr_lines_for_article_author_ids(db_name,auth_id)
-    parsed_lines = affi_parser.parse_and_map_multiline(cr_affi_lines)
-    if not can_be_assigned(db_name, cr_parser, parsed_lines):
-        print('{0:#^80}'.format(" cannot generate author affilitions for %s affiliations not found ")%(auth_id))
-        print(cr_affi_lines)
-        print("parsed as")
-        print(parsed_lines)
-        
-
+    return from_file       
 
 if __name__ == "__main__":        
     # database name
@@ -633,10 +611,4 @@ if __name__ == "__main__":
 
     check_cr_affis_vs_affiliations(db_connection, affi_parser)
     
-    #test_list = [1,17, 244,704,1704,5521,5526,2568,2906,2909]
-    #test_parse(db_connection, affi_parser, test_list)
-    # [244,245] two affis, second affi is only a institution name
-    # 5521 two affis, one affi is hosted
-    # test_correct_multiline(db_connection, affi_parser, 245)
-    test_can_be_assinged(db_connection, affi_parser, 2112)
     
