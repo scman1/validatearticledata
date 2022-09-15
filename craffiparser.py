@@ -40,16 +40,18 @@ class crp:
                      'e':'work_group', 'f':'school' }
 
         self.country_synonyms = {"(UK)":"United Kingdom", "UK":"United Kingdom",
-                            "U.K.":"United Kingdom", "U. K.":"United Kingdom",
-                            "U.K":"United Kingdom", "PRC":"Peoples Republic of China",
-                            "P.R.C.":"Peoples Republic of China", 
-                            "P.R.China":"Peoples Republic of China",
-                            "P. R. China":"Peoples Republic of China",
-                            "P.R. China":"Peoples Republic of China","China":"Peoples Republic of China",
-                            "United States":"United States of America",
-                            "USA":"United States of America","U.S.A.":"United States of America",
-                            "U. S. A.":"United States of America", "U.S.":"United States of America",
-                            "U. S.":"United States of America","US":"United States of America",
+                                 "U.K.":"United Kingdom", "U. K.":"United Kingdom",
+                                 "U.K":"United Kingdom", "PRC":"Peoples Republic of China",
+                                 "P.R.C.":"Peoples Republic of China",
+                                 "P.R.China":"Peoples Republic of China",
+                                 "P. R. China":"Peoples Republic of China",
+                                 "P.R. China":"Peoples Republic of China","China":"Peoples Republic of China",
+                                 "United States":"United States of America",
+                                 "USA":"United States of America","U.S.A.":"United States of America",
+                                 "U. S. A.":"United States of America", "U.S.":"United States of America",
+                                 "U. S.":"United States of America","US":"United States of America",
+                                 "Korea":"South Korea",
+                                 "Republic of Korea":"South Korea",
                            }
 
         self.institution_synonyms = {"Paul Scherrer Institut":"Paul Scherrer Institute",

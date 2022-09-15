@@ -65,10 +65,11 @@ if __name__ == "__main__":
     
     if aph.check_for_duplicates(db_connection): print ("OK, no duplicate affiliations")
 
-    aph.check_cr_affis_vs_affiliations(db_connection, affi_parser)
+    #aph.check_cr_affis_vs_affiliations(db_connection, affi_parser)
     
     #test_list = [1,17, 244,704,1704,5521,5526,2568,2906,2909]
     test_list = [1,171,852,1379,1984,2523,5604,5710,5788,5907,5914,6061,6140]
+    test_list = [1,171,]
     #test_parse(db_connection, affi_parser, test_list)
     # [244,245] two affis, second affi is only a institution name
     # 5521 two affis, one affi is hosted
@@ -83,17 +84,56 @@ if __name__ == "__main__":
 ##        check_affi_assigned_vs_cr_affi(db_connection, affi_parser, an_author)
 ##        input()
 
+    
+
     for an_author in test_list:
         print('{0:#^100}'.format(' check as author %s '%(an_author) ))
         cr_affi_lines = aph.get_cr_lines_for_article_author_ids(db_connection,an_author)
         if are_all_one_liners(db_connection, affi_parser, cr_affi_lines):
-            print('check as one liners')
-            assigned_ok = False
             print('{0:*^80}'.format('verify one liners'))
             for a_cr_line in cr_affi_lines:
-                assigned_ok = aph.check_assigned_affi_ol(db_connection, affi_parser, a_cr_line)
-                print(assigned_ok)
-                if not assigned_ok:
+                if not aph.check_assigned_affi_ol(db_connection, affi_parser, a_cr_line):
                     print("Problems with ", a_cr_line[0])
-                    break
 
+    ok_affis = aph.open_ok_list('ok_cr_affis.txt')
+    ok_affis = list(set(ok_affis))
+    print("OK Affis:%i"%(len(ok_affis)))
+    prob_affis = aph.open_ok_list('prob_cr_affis.txt')
+    
+    prob_affis = list(set(prob_affis))
+    print("Problem Affis:%i"%(len(prob_affis)))
+    a_table = 'cr_affiliations'
+    all_cr_affis = db_connection.get_full_table(a_table)
+    wrong_aa_list = []
+    new_aa_list = []
+    authors_with_issues=[]
+    for a_cr_line in all_cr_affis:
+        cr_id = int(a_cr_line[0])
+        author_id = int(a_cr_line[2])
+        if not cr_id in ok_affis and cr_id in prob_affis:
+            #print('need to add affi for:', a_cr_line)
+            new_aa_list.append(cr_id)
+            if not author_id in authors_with_issues:
+                authors_with_issues.append(author_id)
+        elif not cr_id in ok_affis and a_cr_line[3]!=None:
+            #print('wrongly assinged affi:',a_cr_line)
+            wrong_aa_list.append(cr_id)
+            if not author_id in authors_with_issues:
+                authors_with_issues.append(author_id)
+        elif not cr_id in ok_affis:
+            new_aa_list.append(cr_id)
+            if not author_id in authors_with_issues:
+                authors_with_issues.append(author_id)
+    print("Affis to add:%i"%(len(new_aa_list)))
+##    for a_cr_line in all_cr_affis:
+##        cr_id = int(a_cr_line[0])
+##        if cr_id in new_aa_list:
+##            print("New", a_cr_line)
+    print("Wrong affis :%i"%(len(wrong_aa_list)))
+##    for a_cr_line in all_cr_affis:
+##        cr_id = int(a_cr_line[0])
+##        if cr_id in wrong_aa_list:
+##            print("wrong", a_cr_line)
+
+    print("Authors to correct: %i "%(len(authors_with_issues)))
+    print(authors_with_issues)
