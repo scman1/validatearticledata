@@ -455,7 +455,7 @@ def check_affiliation_consistency(current_db):
             
             all_ok = True
             break
-        #x =input()
+        x =input()
     return all_ok
 
 
@@ -475,7 +475,7 @@ def check_for_synonyms(current_db,affi_parser):
             
             all_ok = True
             break
-        #x =input()
+        x =input()
     return all_ok
 
 def check_for_duplicates(current_db):
@@ -503,7 +503,7 @@ def check_for_duplicates(current_db):
         if hit_counter == 0:            
             all_ok = True
             break
-        #x =input()
+        x =input()
     return all_ok
 
 def are_all_one_liners(db_conn, cr_parser, cr_affi_lines):

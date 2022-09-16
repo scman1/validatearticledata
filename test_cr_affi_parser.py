@@ -49,15 +49,16 @@ def test_can_be_assinged(db_name, cr_parser, auth_id):
         print("parsed as")
         print(parsed_lines)
 
-def custom_split(db_name, cr_parser, affiliation_values):
+def custom_split(db_name, cr_parser, affiliation_values, affi_string):
     # Look for institution name should be in the address element
     print ("Select how to parse ",  affiliation_values)
     option_how = 0
-    while not option_how in [1,2,3]:
+    while not option_how in [1,2,3,4]:
         print('options: ')
-        print('1: enter manually')
+        print('1: enter data manually')
         print('2: manual parse')
-        print('3: do nothing ')
+        print('3: correct parse result')
+        print('4: do nothing ')
         print('selection:')
         str_opt = input()
         if str_opt != '':
@@ -66,6 +67,12 @@ def custom_split(db_name, cr_parser, affiliation_values):
         affiliation_values = institution_manual_entry(affiliation_values)
     elif option_how == 2:
         affiliation_values = cr_parser.manual_split_address(affiliation_values)
+    elif option_how == 3:
+        # get an empty affi struct and only fill in address with the affi_string
+        clean_affi = {a_key:'' for a_key in affiliation_values.keys()}
+        clean_affi['address'] = affi_string
+        clean_affi['country'] = affiliation_values['country']
+        affiliation_values = cr_parser.manual_split_address(clean_affi)
     print (affiliation_values)
     return affiliation_values
 
@@ -80,7 +87,7 @@ def process_single_affi(db_name, cr_parser, cr_affi_id, art_aut_id, cr_affi_str)
     affiliation_id = address_id = 0
     # determine if parsing needs help (institution found?)   
     if affi_values['institution'] in ["", None]:
-        affi_values = custom_split(db_name, cr_parser, affi_values)
+        affi_values = custom_split(db_name, cr_parser, affi_values, cr_affi_str)
     if not affi_values['institution'] in ["", None]:
         affiliation_id = aph.get_affi_from_parsed(db_name, affi_values)
         if not affiliation_id in [0, None,'']:
@@ -89,6 +96,12 @@ def process_single_affi(db_name, cr_parser, cr_affi_id, art_aut_id, cr_affi_str)
         else:
             print("* Need to add affiliation")
             print ('* Try to add affi for', affi_values)
+            opt_ok_correct = 0
+            while not opt_ok_correct in [1,2]:
+                print("choose sector:\n\t1. Add as it is\n\t2. Correct Parsed" )
+                opt_ok_correct = int(input())
+                if opt_ok_correct == 2:
+                    affi_values = custom_split(db_name, cr_parser, affi_values, cr_affi_str)
             address_string = affi_values['address']
             sel_sector = 0
             while not sel_sector in [1,2,3]:
@@ -116,7 +129,7 @@ def process_single_affi(db_name, cr_parser, cr_affi_id, art_aut_id, cr_affi_str)
     else: 
         print('could not process string:', cr_affi_str)
         print('results obtained:', affi_values)
-    print('{0:&^80}')
+    print('{0:&^80}'.format(''))
 
 
 
@@ -219,13 +232,15 @@ if __name__ == "__main__":
 	4350, 4369, 4370, 4372, 4381, 4387, 4389, 4391, 4422, 4537, 4583, 4586, 4621, 4622, 4727, 4729, 4778, 4779, 4781, 
 	4786, 4806,]
     authors_with_issues = [ 4880, 4924, 4981, 4988, 4989, 5012, 5046, 5088, 5093, 5094, 5182, 5183, 5197, 5290, 5292, 5293, 5294, 
-	5295, 5296, 5298, 5313, 5314, 5315, 5316, 5317, 5408, 5448, 5451, 5456, 5553, 5555, 5556, 5575, 5585, 5586, 5589, 
-	5594, 5600, 5602, 5604, 5611, 5613, 5620, 5623, 5640, 5641, 5642, 5686, 5689, 5690, 5692, 5693, 5696, 5710, 5747, 
-	5748, 5753, 5756, 5802, 5806, 5831, 5834, 5866, 5869, 5870, 5902, 5907, 5908, 5914, 5936, 5937, 5959, 5981, 5995, 
-	5996, 5997, 5998, 6011, 6032, 6033, 6039, 6041, 6044, 6045, 6046, 6047, 6066, 6068, 6104, 6107, 6108, 6140, 6260, 
-	6272, 6288, 6373, 6375, 6378, 6379, 6380, 6412, 6416, 6417, 6418, 6430, 6431, 6432, 6449, 6524, 6526, 6563, 6564, 
-	6565, 6659, 6714, 6717, 6718, 6798, 6805, 6806, 6807, 6808, 6809, 6810, 6811, 6814, 6815, 6842, 6852, 6855, 6857, 
-	6858, 6859, 6860, 6861, 6862, 6863, 6865, 6872, 6874, 6875, 6876, 6884, 6890, 6920]
+	5295, 5296, 5298, 5313, 5314, 5315, 5316, 5317, 5408, 5448, 5451, 5456,]
+    authors_with_issues = [5553, 5555, 5556, 5575, 5585, 5586, 5589, 5594, 5600, 5602, 5604, 5611, 5613, 5620, 5623,
+                           5640, 5641, 5642, 5686, 5689, 5690, 5692, 5693, 5696, 5710, 5747, 5748, 5753, 5756, 5802,
+                           5806, 5831, 5834, 5866, 5869, 5870, 5902, 5907, 5908, 5914, 5936, 5937, 5959, 5981, 5995,
+                           5996, 5997, 5998, 6011, 6032, 6033, 6039, 6041, 6044, 6045, 6046, 6047, 6066, 6068, 6104,
+                           6107, 6108, 6140, 6260, 6272, 6288, 6373, 6375, 6378, 6379, 6380, 6412, 6416, 6417, 6418,
+                           6430, 6431, 6432, 6449, 6524, 6526, 6563, 6564, 6565, 6659, 6714, 6717, 6718, 6798, 6805,
+                           6806, 6807, 6808, 6809, 6810, 6811, 6814, 6815, 6842, 6852, 6855, 6857, 6858, 6859, 6860,
+                           6861, 6862, 6863, 6865, 6872, 6874, 6875, 6876, 6884, 6890, 6920,]
 
     print("Authors to correct: %i "%(len(authors_with_issues)))
     print(authors_with_issues)
@@ -246,3 +261,13 @@ if __name__ == "__main__":
             print('multiline')
             
     
+# further testing:
+# issue: department not correctly parsed
+# offer option to parse completly or correct results
+affi_line=['Department of Materials and Environmental Chemistry, Stockholm University, Svante Arrhenius väg 16C, 106 91 Stockholm, Sweden']
+# issues:
+#     - Name of department is incorrect
+#     - Institution is missing altogether (STFC RAL)
+# offer an option to enter manually (let user choose from existing ones) and add to the lists of synonyms
+
+affi_line=['SciML, Scientific Computing Division, Rutherford Appleton Laboratory, Harwell, UK']

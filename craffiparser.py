@@ -136,6 +136,7 @@ class crp:
                                 'A*STAR Agency for Science, Technology and Research':"Agency for Science, Technology and Research",
                                 'Institute of Materials Research and Engineering (IMRE)':'Institute of Materials Research and Engineering',
                                 'IMRE':'Institute of Materials Research and Engineering',
+                                'University of Bologna':'Università di Bologna',
                                      }
         
         self.hosted_institutions= { "UK Catalysis Hub" : "Research Complex at Harwell",
