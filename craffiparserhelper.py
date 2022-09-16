@@ -12,6 +12,9 @@ def get_parser(db_):
     cr_parse.start_lists()
     return cr_parse
 
+def refresh_lists(cr_parse):
+    cr_parse.start_lists()
+
 def get_all_affiliations(db_conn):
     a_table = 'affiliations'
     all_affiliations = db_conn.get_full_table(a_table)
@@ -392,6 +395,7 @@ def is_affi_ok(an_affi):
 
 
 def add_new_affiliation(db_conn, affi_values):
+    print('processing:',affi_values )
     if not is_affi_ok(affi_values):
         return 0;
     add_update_time = datetime.today().strftime('%Y-%m-%d %H:%M:%S')
@@ -404,6 +408,7 @@ def add_new_affiliation(db_conn, affi_values):
     affiliation_new['created_at'] = add_update_time
     affiliation_new['updated_at'] = add_update_time
     affiliation_id = db_conn.put_values_table("affiliations", affiliation_new.keys(), affiliation_new.values())
+    print('processed:',affi_values )
     return affiliation_id
 
 def update_author_affiliation(db_conn, aut_affi_id, affi_id, affi_values):
