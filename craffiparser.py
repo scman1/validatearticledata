@@ -62,6 +62,7 @@ class crp:
                                 "Queen’s University of Belfast":"Queen's University Belfast",
                                 "STFC":"Science and Technology Facilities Council",
                                 "University of Manchester": "The University of Manchester",
+                                "Univ. of Manchester": "The University of Manchester",
                                 "Finden Limited": "Finden Ltd",
                                 "The ISIS facility":"ISIS Neutron and Muon Source",
                                 "ISIS Neutron and Muon Facility":"ISIS Neutron and Muon Source",
@@ -293,7 +294,7 @@ class crp:
         institutions_in_affi = self.get_institutions_in_str(affiliation_str)
         the_inst = ""
         the_synonym = ""
-        print (institutions_in_affi )
+        #print (institutions_in_affi )
         for an_inst in institutions_in_affi:
             inst_synonyms = self.get_all_synonyms_for(self.institution_synonyms, an_inst)
             if an_inst in affiliation_str and an_inst in self.institutions_list:
