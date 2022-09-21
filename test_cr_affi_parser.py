@@ -79,7 +79,7 @@ def custom_split(db_name, cr_parser, affiliation_values, affi_string):
 # process addresses which are a single string
 def process_single_affi(db_name, cr_parser, cr_affi_id, art_aut_id, cr_affi_str):
     #clear_output()
-    print('{0:*^80}')
+    print('{0:*^80}'.format(''))
     print("* Art. author", art_aut_id, "Affi:", cr_affi_str, "Affi ID:", cr_affi_id)
     # 1. split the single string using keywords list and synonyms tables
     affi_values = cr_parser.split_single(cr_affi_str)
@@ -130,8 +130,6 @@ def process_single_affi(db_name, cr_parser, cr_affi_id, art_aut_id, cr_affi_str)
         print('could not process string:', cr_affi_str)
         print('results obtained:', affi_values)
     print('{0:&^80}'.format(''))
-
-
 
 if __name__ == "__main__":        
     # database name
@@ -223,14 +221,16 @@ if __name__ == "__main__":
                            709, 710, 711, 715, 737, 798, 841, 897, 981, 982, 991, 1066, 1078, 1101, 1102, 1159,
                            1164, 1192, 1208, 1209, 1212, 1213, 1214, 1215, 1216, 1218, 1219, 1220, 1221, 1222,
                            1324, 1336, 1379, 1432, 1599, 1600, 1607, 1644, 1666, 1672, 1673, 1676, 1678, 1681,
-                           1682, 1733, 1747, 1750, 1883, 1911, 1915, 1918, 1922, 1923, 1964, 1984, 2109, 2112,
-                           2114, 2115, 2117, 2183, 2188, 2232, 2233, 2235, 2318, 2319, 2328, 2329, 2332, 2349,
+                           1682, 1733, 1747, 1750, 1883, 1911, 1915, 1918, 1922, 1923, 1964, 1984, 2109, 2112,]
+                           
+    authors_with_issues = [2114, 2115, 2117, 2183, 2188, 2232, 2233, 2235, 2318, 2319, 2328, 2329, 2332, 2349,
                            2350, 2352, 2355, 2356, 2358, 2424, 2523, 2540, 2541, 2542, 2543, 2544, 2545, 2546,
                            2552, 2553, 2556, 2568, 2576, 2604, 2607, 2644, 2645, 2650, 2654, 2655, 2685, 2704,
-                           2723, 2725, 2729, 2751, 2760, 2762, 2763, 2765, 2766, 2806, 2944, 2949, 3022, 3023,
-                           3024, 3025, 3216, 3218, 3288, 3289, 3292, 3293, 3294, 3304, 3305, 3306, 3308, 3309,
+                           2723, 2725, 2729, 2751, 2760, 2762, 2763, 2765, 2766, 2806, 2944, 2949, 3022, 3023,]
+    authors_with_issues = [3024, 3025, 3216, 3218, 3288, 3289, 3292, 3293, 3294, 3304, 3305, 3306, 3308, 3309,
                            3310, 3311, 3312, 3351, 3352, 3353, 3355, 3365, 3366, 3367, 3448, 3518, 3635, 3640,
-                           3658, 3799, 3800, 3801, 3805, 3806, 3917, 3957, 3958, 3964, 3968, 3981, 3982, 3983,
+                           3658, 3799, 3800, 3801, 3805, 3806, 3917,3957, 3958,]
+    authors_with_issues = [3964, 3968, 3981, 3982, 3983,
                            4061, 4062, 4063, 4205, 4208, 4219, 4222, 4225, 4228, 4231, 4294, 4332, 4334, 4335,
                            4336, 4337, 4350, 4369, 4370, 4372, 4381, 4387, 4389, 4391, 4422, 4537, 4583, 4586,
                            4621, 4622, 4727, 4729, 4778, 4779, 4781, 4786, 4806, 4880, 4924, 4981, 4988, 4989,
@@ -263,10 +263,13 @@ if __name__ == "__main__":
                     ok_list.append(an_author)
         else:
             print('multiline')
-            print(cr_affi_lines)
-            print(aph.correct_multiline(db_connection, affi_parser, cr_affi_lines))
-            
-        break
+            #print(cr_affi_lines)
+            if aph.check_assigned_affi_ml(db_connection, affi_parser, cr_affi_lines, an_author):
+                ok_list.append(an_author)
+            else:
+                print("Problems with ", cr_affi_lines)
+                aph.correct_multiline(db_connection, affi_parser, cr_affi_lines)
+                break
             
     
 # further testing:

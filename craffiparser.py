@@ -138,6 +138,13 @@ class crp:
                                 'Institute of Materials Research and Engineering (IMRE)':'Institute of Materials Research and Engineering',
                                 'IMRE':'Institute of Materials Research and Engineering',
                                 'University of Bologna':'Università di Bologna',
+                                'Glasgow University':'University of Glasgow',
+                                'Imperial College, London':'Imperial College London',
+                                'Technical University Berlin':'Technische Universität Berlin',
+                                'East China University of Science & Technology':'East China University of Science and Technology',
+                                'Université Claude Bernard – Lyon 1':'Université Claude Bernard Lyon 1',
+                                'University of Aston':'Aston University',
+                                     'The University of Liverpool':'University of Liverpool'
                                      }
         
         self.hosted_institutions= { "UK Catalysis Hub" : "Research Complex at Harwell",

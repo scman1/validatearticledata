@@ -48,7 +48,7 @@ def get_affiliation_id(db_conn, parsed_affi):
     list_where = [ k +" = '"+ v +"'" for k,v in parsed_affi.items() if k != 'address']
     s_where = " AND ".join(list_where) 
     s_where = s_where.replace("= ''", "IS NULL")
-    print('Get affiliation id', s_where)
+    #print('Get affiliation id', s_where)
     affi_list = db_conn.get_values(s_table, s_field, s_where)
     affi_id = None
     if affi_list !=[]:
@@ -59,7 +59,7 @@ def get_affiliation_id(db_conn, parsed_affi):
 # same institution and compare closest match
 def get_close_affiliation_id(db_conn, parsed_affi):
     affi_id = None
-    if (len(parsed_affi) == 2 and 'country' in parsed_affi.keys()) or len(parsed_affi) == 1:
+    if (len(parsed_affi) == 2 and 'country' in parsed_affi.keys()) or (len(parsed_affi) == 1 and not 'institution' in parsed_affi.keys()):
         print ("Not enough data to get close affi")
     else:
         print(parsed_affi)
@@ -70,7 +70,7 @@ def get_close_affiliation_id(db_conn, parsed_affi):
         list_where = [ k +" = '"+ v +"'" for k,v in parsed_affi.items() if k != 'address']
         s_where = " AND ".join(list_where) 
         s_where = s_where.replace("= ''", "IS NULL")
-        print('Get Close affiliation id:', s_where)
+        #print('Get Close affiliation id:', s_where)
         affi_list = db_conn.get_values(s_table, s_field, s_where)
         if affi_list !=[]:
             affi_id = affi_list[0][0]
