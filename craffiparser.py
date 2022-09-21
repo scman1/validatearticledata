@@ -144,7 +144,15 @@ class crp:
                                 'East China University of Science & Technology':'East China University of Science and Technology',
                                 'Université Claude Bernard – Lyon 1':'Université Claude Bernard Lyon 1',
                                 'University of Aston':'Aston University',
-                                     'The University of Liverpool':'University of Liverpool'
+                                     'The University of Liverpool':'University of Liverpool',
+                                     'University of California Davis':'University of California, Davis',
+                                     'University of Bern' : 'Universität Bern',
+                                     'University of Berne' : 'Universität Bern',
+                                     'Elettra – Sincrotrone Trieste S.C.p.A.':'Elettra-Sincrotrone Trieste S.C.p.A.',
+                                     'Universitat Politecnica de Catalunya':'Universitat Politècnica de Catalunya',
+                                     'Empa − Swiss Federal Laboratories for Materials Science and Technology':'Empa-Swiss Federal Laboratories for Materials Science and Technology',
+                                     'Empa Materials Science and Technology':'Empa-Swiss Federal Laboratories for Materials Science and Technology',
+                                     'University of Trieste':'Università degli Studi di Trieste',
                                      }
         
         self.hosted_institutions= { "UK Catalysis Hub" : "Research Complex at Harwell",
