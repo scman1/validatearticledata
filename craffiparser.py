@@ -153,6 +153,7 @@ class crp:
                                      'Empa − Swiss Federal Laboratories for Materials Science and Technology':'Empa-Swiss Federal Laboratories for Materials Science and Technology',
                                      'Empa Materials Science and Technology':'Empa-Swiss Federal Laboratories for Materials Science and Technology',
                                      'University of Trieste':'Università degli Studi di Trieste',
+                                     'NTU':'Nanyang Technological University',
                                      }
         
         self.hosted_institutions= { "UK Catalysis Hub" : "Research Complex at Harwell",
@@ -233,11 +234,11 @@ class crp:
         str_this = str_this.replace(" ;", ";")
         str_this = str_this.replace(" ,", ",")
         str_this = str_this.strip()
-        if not str_this[-1:].isalpha():
+        if not str_this[-1:].isalnum():
             str_this = str_this[:-1]
         if len(str_this) <= 1:
             return ""
-        first_alpha = str_this.find([a_char for a_char in str_this if a_char.isalpha() ][0])
+        first_alpha = str_this.find([a_char for a_char in str_this if a_char.isalnum() ][0])
         if first_alpha != 0:
            str_this = str_this[first_alpha:]
         return str_this.strip()

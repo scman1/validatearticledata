@@ -8,6 +8,13 @@ from datetime import datetime
 import craffiparser
 import craffiparserhelper as aph
 
+def institution_manual_entry(affiliation_values):
+    print("*********** enter institution ************************")
+    print("Provide institution for:", affiliation_values)            
+    ins_str = input()
+    affiliation_values['institution'] = ins_str
+    return affiliation_values
+
 def are_all_one_liners(db_conn, cr_parser, cr_affi_lines):
     all_one_liners = True
     for a_cr_line in cr_affi_lines:
@@ -133,7 +140,8 @@ def process_single_affi(db_name, cr_parser, cr_affi_id, art_aut_id, cr_affi_str)
 
 if __name__ == "__main__":        
     # database name
-    app_db = '../mcc_data/development.sqlite3'
+    # app_db = '../mcc_data/development.sqlite3'
+    app_db = './db_files/development.sqlite3'
     # initialise parser
     affi_parser = aph.get_parser(app_db)
     db_connection = dbh.DataBaseAdapter(app_db)
@@ -245,6 +253,9 @@ if __name__ == "__main__":
                            6798, 6805, 6806, 6807, 6808, 6809, 6810, 6811, 6814, 6815, 6842, 6852, 6855, 6857,
                            6858, 6859, 6860, 6861, 6862, 6863, 6865, 6872, 6874, 6875, 6876, 6884, 6890, 6920,
                            ]
+    authors_with_issues = [3957, 3958, 3959, 3960, 3961, 3962, 3964, 3966, 3967, 3968, 3971, 4003, 4004, 4005,
+                           4015, 4016, 4028, 4029, 4030, 4032, 4033, 4034, 4035, 4036, 4037, 4038, 4039, 4040,
+                           4041, 4042, 4043, 4044, 4047, 4076, 4098, 4099, 4100, 4103]
 
     print("Authors to correct: %i "%(len(authors_with_issues)))
     print(authors_with_issues)

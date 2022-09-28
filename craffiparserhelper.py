@@ -48,7 +48,7 @@ def get_affiliation_id(db_conn, parsed_affi):
     list_where = [ k +" = '"+ v +"'" for k,v in parsed_affi.items() if k != 'address']
     s_where = " AND ".join(list_where) 
     s_where = s_where.replace("= ''", "IS NULL")
-    print('Get affiliation id', s_where)
+    #print('Get affiliation id', s_where)
     affi_list = db_conn.get_values(s_table, s_field, s_where)
     affi_id = None
     if affi_list !=[]:
@@ -70,7 +70,7 @@ def get_close_affiliation_id(db_conn, parsed_affi):
         list_where = [ k +" = '"+ v +"'" for k,v in parsed_affi.items() if k != 'address']
         s_where = " AND ".join(list_where) 
         s_where = s_where.replace("= ''", "IS NULL")
-        print('Get Close affiliation id:', s_where)
+        #print('Get Close affiliation id:', s_where)
         affi_list = db_conn.get_values(s_table, s_field, s_where)
         if affi_list !=[]:
             affi_id = affi_list[0][0]
@@ -121,9 +121,11 @@ def is_one_line_affi(cr_parser, str_affi):
 def check_assigned_affi_ol(db_name, cr_parser, cr_affi):
     assigned_ok = False
     if cr_affi[3] != None:
+        print("CHEKING THIS", cr_affi)
         parsed_affi = cr_parser.split_single(cr_affi[1])
         parsed_no_blanks = {k:v for k,v in parsed_affi.items() if v != ''} 
         affi_id = get_affiliation_id(db_name, parsed_affi)
+        print("AFFI ID", affi_id)
         if affi_id == None:
             affi_id = get_close_affiliation_id(db_name, parsed_no_blanks)
         assigned_affi_id = get_auth_affi_affiliation_id(db_name, cr_affi[3])[0]
@@ -588,7 +590,8 @@ def open_ok_list(file_name):
 
 if __name__ == "__main__":        
     # database name
-    app_db = '../mcc_data/development.sqlite3'
+    # app_db = '../mcc_data/development.sqlite3'
+    app_db = './db_files/development.sqlite3'
     # initialise parser
     affi_parser = get_parser(app_db)
     db_connection = dbh.DataBaseAdapter(app_db)
