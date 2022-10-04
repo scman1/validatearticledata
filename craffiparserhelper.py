@@ -278,6 +278,7 @@ def correct_multiline(db_name, cr_parser, cr_affis):
             ##############################################################################
             # if there is no close affiliation should ask if add, assign or ignore
             # in the case of orphan lines it is ignore
+            # --------------------------------------------------------------
             
         if correct_this != 0:
             # if the affiliation exists
