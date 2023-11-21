@@ -98,7 +98,7 @@ def get_pub_data(db_name = "app_db.sqlite3"):
 def get_pub_app_data(db_name = "app_db.sqlite3"):
     db_conn = dbh.DataBaseAdapter(db_name)
     search_in = 'articles'
-    fields_required = "id, title, doi, link"
+    fields_required = "id, title, doi, link, url"
     filter_str = "status = 'Added'"
     db_titles = db_conn.get_values(search_in, fields_required, filter_str)
     db_conn.close()

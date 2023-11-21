@@ -36,134 +36,145 @@ class crp:
         self.groups_list = self.get_value_list("affiliations", "work_group")
     
 
-        self.affi_keys = {'a':'institution', 'b':'country', 'c':'department','d':'faculty',
-                     'e':'work_group', 'f':'school' }
-
-        self.country_synonyms = {"(UK)":"United Kingdom", "UK":"United Kingdom",
-                                 "U.K.":"United Kingdom", "U. K.":"United Kingdom",
-                                 "U.K":"United Kingdom", "PRC":"Peoples Republic of China",
-                                 "P.R.C.":"Peoples Republic of China",
-                                 "P.R.China":"Peoples Republic of China",
-                                 "P. R. China":"Peoples Republic of China",
-                                 "P.R. China":"Peoples Republic of China","China":"Peoples Republic of China",
-                                 "United States":"United States of America",
-                                 "USA":"United States of America","U.S.A.":"United States of America",
-                                 "U. S. A.":"United States of America", "U.S.":"United States of America",
-                                 "U. S.":"United States of America","US":"United States of America",
-                                 "Korea":"South Korea",
-                                 "Republic of Korea":"South Korea",
-                           }
-
-        self.institution_synonyms = {"Paul Scherrer Institut":"Paul Scherrer Institute",
-                                "PSI":"Paul Scherrer Institute",
-                                "Diamond Light source Ltd": "Diamond Light Source Ltd.",
-                                "Diamond Light Source": "Diamond Light Source Ltd.",
-                                "University of St Andrews": "University of St. Andrews",
-                                "Queen’s University of Belfast":"Queen's University Belfast",
-                                "STFC":"Science and Technology Facilities Council",
-                                "University of Manchester": "The University of Manchester",
-                                "Univ. of Manchester": "The University of Manchester",
-                                "Finden Limited": "Finden Ltd",
-                                "The ISIS facility":"ISIS Neutron and Muon Source",
-                                "ISIS Neutron and Muon Facility":"ISIS Neutron and Muon Source",
-                                "ISIS Pulsed Neutron and Muon Facility":"ISIS Neutron and Muon Source",
-                                "ISIS Pulsed Neutron and Muon Source":"ISIS Neutron and Muon Source",
-                                "Oxford University":"University of Oxford",
-                                "University of St Andrews":"University of St. Andrews",
-                                "Diamond Light Source Ltd Harwell Science and Innovation Campus":"Diamond Light Source Ltd.",
-                                "Diamond Light Source":"Diamond Light Source Ltd.",
-                                "ISIS Facility":"ISIS Neutron and Muon Source",
-                                "University College of London":"University College London",
-                                "UCL":"University College London", "UOP LLC":"UOP LLC, A Honeywell Company",
-                                "University of Manchester":"The University of Manchester",
-                                "Johnson-Matthey Technology Centre":"Johnson Matthey Technology Centre",
-                                "Research Complex at Harwell (RCaH)":"Research Complex at Harwell",
-                                "RCaH":"Research Complex at Harwell",
-                                "Queens University Belfast":"Queen's University Belfast",
-                                "Queen’s University Belfast":"Queen's University Belfast",
-                                "University of Edinburgh":"The University of Edinburgh",
-                                "SynCat@Beijing, Synfuels China Technology Co. Ltd.":"SynCat@Beijing Synfuels China Company Limited",
-                                "Synfuels China Compnay Limited":"SynCat@Beijing Synfuels China Company Limited",
-                                "Finden Limited":"Finden Ltd",
-                                "The UK Catalysis Hub":"UK Catalysis Hub",
-                                "Univ. Pablo de Olavide":"Universidad Pablo de Olavide",
-                                "Univ Rennes":"Université de Rennes",
-                                "Université Rennes":"Université de Rennes",
-                                "Institut Laue Langevin":"Institut Laue-Langevin",
-                                "Esfera UAB":"Universitat Autònoma de Barcelona",
-                                "Kings College London":"King's College London",
-                                "King’s College London":"King's College London",     
-                                "Harwell XPS":"HarwellXPS",
-                                'Atomic Weapons Establishment (AWE) Plc':'Atomic Weapons Establishment Plc',
-                                'AWE':'Atomic Weapons Establishment Plc',
-                                'AWE plc':'Atomic Weapons Establishment Plc',
-                                'AWE Public Limited Company':'Atomic Weapons Establishment Plc',
-                                'Bio Nano Consulting':'Bio Nano Consulting Ltd',
-                                'Complutense University of Madrid':'Universidad Complutense de Madrid',
-                                'Diamond Light Source':'Diamond Light Source Ltd.',
-                                'Ecole Polytechnique Fédérale de Lausanne (EPFL)':'Ecole Polytechnique Federale de Lausanne',
-                                'Defence Science Technology Laboratory (DSTL)':'Defence Science Technology Laboratory ',
-                                'Elettra - Sincrotrone Trieste S.C.p.A.':'Elettra-Sincrotrone Trieste S.C.p.A.',
-                                'ESRF':'European Synchrotron Radiation Facility',
-                                'ESRF-The European Synchrotron':'European Synchrotron Radiation Facility',
-                                'Friedrich-Alexander University Erlangen-Nürnberg':'Friedrich-Alexander-Universität Erlangen-Nürnberg',
-                                'Fritz Haber Institute of the Max-Planck Society':'Fritz-Haber-Institut der Max-Planck Gesellschaft',
-                                'Fritz-Haber Institute of the Max-Planck Society':'Fritz-Haber-Institut der Max-Planck Gesellschaft',
-                                'Honeywell Int.':'Honeywell International Incorporated',
-                                'Instituto de Ciencia de Materiales de Madrid—CSIC':'Instituto de Ciencia de Materiales de Madrid C.S.I.C.',
-                                'Instituto de Ciencia de Materiales de Madrid, C.S.I.C.':'Instituto de Ciencia de Materiales de Madrid C.S.I.C.',
-                                'International Iberian Nanotechnology Laboratory':'International Iberian Nanotechnology Laboratory (INL)',
-                                'ISIS Facility':'ISIS Neutron and Muon Source',
-                                'Johnson Matthey Technology Center':'Johnson Matthey Technology Centre',
-                                'Max Planck Institute for Solid State Research':'Max-Planck Institute for Solid State Research',
-                                'New York University Abu Dhabi (NYUAD)':'New York University Abu Dhabi',
-                                'Norwegian University of Science and Technology (NTNU)':'Norwegian University of Science and Technology',
-                                'NSG-Pilkington':'NSG Group',
-                                'Réseau sur le Stockage Electrochimique de l’Energie (RS2E)':'Réseau sur le Stockage Électrochimique de l’Énergie (RS2E)',
-                                'Queen Mary University London':'Queen Mary University of London',
-                                'Sorbonne Universités':'Sorbonne Université',
-                                'SuperSTEM':'SuperSTEM Laboratory',
-                                'Technion':'Technion - Israel Institute of Technology',
-                                'Technion Israel Institute of Technology': 'Technion - Israel Institute of Technology',
-                                'Technion-Israel Institute of Technology':'Technion - Israel Institute of Technology',
-                                'The European Synchrotron':'European Synchrotron Radiation Facility',
-                                'The European Synchrotron. 71':'European Synchrotron Radiation Facility',
-                                'Univ. Bordeaux':'Université de Bordeaux',
-                                'Wrocław University of Technology':'Wrocław University of Science and Technology',
-                                'King Abdullah University of Science and Technology (KAUST)':'King Abdullah University of Science and Technology',
-                                'KAUST':'King Abdullah University of Science and Technology',
-                                'University of Padova':'Università di Padova',
-                                'A*STAR':"Agency for Science, Technology and Research",
-                                'A*STAR Agency for Science, Technology and Research':"Agency for Science, Technology and Research",
-                                'Institute of Materials Research and Engineering (IMRE)':'Institute of Materials Research and Engineering',
-                                'IMRE':'Institute of Materials Research and Engineering',
-                                'University of Bologna':'Università di Bologna',
-                                'Glasgow University':'University of Glasgow',
-                                'Imperial College, London':'Imperial College London',
-                                'Technical University Berlin':'Technische Universität Berlin',
-                                'East China University of Science & Technology':'East China University of Science and Technology',
-                                'Université Claude Bernard – Lyon 1':'Université Claude Bernard Lyon 1',
-                                'University of Aston':'Aston University',
-                                     'The University of Liverpool':'University of Liverpool',
-                                     'University of California Davis':'University of California, Davis',
-                                     'University of Bern' : 'Universität Bern',
-                                     'University of Berne' : 'Universität Bern',
-                                     'Elettra – Sincrotrone Trieste S.C.p.A.':'Elettra-Sincrotrone Trieste S.C.p.A.',
-                                     'Universitat Politecnica de Catalunya':'Universitat Politècnica de Catalunya',
-                                     'Empa − Swiss Federal Laboratories for Materials Science and Technology':'Empa-Swiss Federal Laboratories for Materials Science and Technology',
-                                     'Empa Materials Science and Technology':'Empa-Swiss Federal Laboratories for Materials Science and Technology',
-                                     'University of Trieste':'Università degli Studi di Trieste',
-                                     'NTU':'Nanyang Technological University',
-                                     }
+        self.affi_keys = {
+            'a':'institution', 'b':'country', 'c':'department',
+            'd':'faculty', 'e':'work_group', 'f':'school'}
+################################################################################
+        self.country_synonyms = {
+            "(UK)":"United Kingdom", "UK":"United Kingdom",
+            "U.K.":"United Kingdom", "U. K.":"United Kingdom",
+            "U.K":"United Kingdom", "PRC":"Peoples Republic of China",
+            "P.R.C.":"Peoples Republic of China",
+            "P.R.China":"Peoples Republic of China",
+            "P. R. China":"Peoples Republic of China",
+            "P.R. China":"Peoples Republic of China","China":"Peoples Republic of China",
+            "United States":"United States of America",
+            "USA":"United States of America","U.S.A.":"United States of America",
+            "U. S. A.":"United States of America", "U.S.":"United States of America",
+            "U. S.":"United States of America","US":"United States of America",
+            "Korea":"South Korea",
+            "Republic of Korea":"South Korea",}
+################################################################################
+        self.institution_synonyms = {
+            "Paul Scherrer Institut":"Paul Scherrer Institute",
+            "PSI":"Paul Scherrer Institute",
+            "Diamond Light source Ltd": "Diamond Light Source Ltd.",
+            "Diamond Light Source": "Diamond Light Source Ltd.",
+            "University of St Andrews": "University of St. Andrews",
+            "Queen’s University of Belfast":"Queen's University Belfast",
+            "STFC":"Science and Technology Facilities Council",
+            "University of Manchester": "The University of Manchester",
+            "Univ. of Manchester": "The University of Manchester",
+            "Finden Limited": "Finden Ltd",
+            "The ISIS facility":"ISIS Neutron and Muon Source",
+            "ISIS Neutron and Muon Facility":"ISIS Neutron and Muon Source",
+            "ISIS Pulsed Neutron and Muon Facility":"ISIS Neutron and Muon Source",
+            "ISIS Pulsed Neutron and Muon Source":"ISIS Neutron and Muon Source",
+            "Oxford University":"University of Oxford",
+            "University of St Andrews":"University of St. Andrews",
+            "Diamond Light Source Ltd Harwell Science and Innovation Campus":"Diamond Light Source Ltd.",
+            "Diamond Light Source":"Diamond Light Source Ltd.",
+            "ISIS Facility":"ISIS Neutron and Muon Source",
+            "University College of London":"University College London",
+            "UCL":"University College London", "UOP LLC":"UOP LLC, A Honeywell Company",
+            "University of Manchester":"The University of Manchester",
+            "Johnson-Matthey Technology Centre":"Johnson Matthey Technology Centre",
+            "Research Complex at Harwell (RCaH)":"Research Complex at Harwell",
+            "RCaH":"Research Complex at Harwell",
+            "Queens University Belfast":"Queen's University Belfast",
+            "Queen’s University Belfast":"Queen's University Belfast",
+            "University of Edinburgh":"The University of Edinburgh",
+            "SynCat@Beijing, Synfuels China Technology Co. Ltd.":"SynCat@Beijing Synfuels China Company Limited",
+            "Synfuels China Compnay Limited":"SynCat@Beijing Synfuels China Company Limited",
+            "Finden Limited":"Finden Ltd",
+            "The UK Catalysis Hub":"UK Catalysis Hub",
+            "Univ. Pablo de Olavide":"Universidad Pablo de Olavide",
+            "Univ Rennes":"Université de Rennes",
+            "Université Rennes":"Université de Rennes",
+            "Institut Laue Langevin":"Institut Laue-Langevin",
+            "Esfera UAB":"Universitat Autònoma de Barcelona",
+            "Kings College London":"King's College London",
+            "King’s College London":"King's College London",     
+            "Harwell XPS":"HarwellXPS",
+            'Atomic Weapons Establishment (AWE) Plc':'Atomic Weapons Establishment Plc',
+            'AWE':'Atomic Weapons Establishment Plc',
+            'AWE plc':'Atomic Weapons Establishment Plc',
+            'AWE Public Limited Company':'Atomic Weapons Establishment Plc',
+            'Bio Nano Consulting':'Bio Nano Consulting Ltd',
+            'Complutense University of Madrid':'Universidad Complutense de Madrid',
+            'Diamond Light Source':'Diamond Light Source Ltd.',
+            'Ecole Polytechnique Fédérale de Lausanne (EPFL)':'Ecole Polytechnique Federale de Lausanne',
+            'Defence Science Technology Laboratory (DSTL)':'Defence Science Technology Laboratory ',
+            'Elettra - Sincrotrone Trieste S.C.p.A.':'Elettra-Sincrotrone Trieste S.C.p.A.',
+            'ESRF':'European Synchrotron Radiation Facility',
+            'ESRF-The European Synchrotron':'European Synchrotron Radiation Facility',
+            'Friedrich-Alexander University Erlangen-Nürnberg':'Friedrich-Alexander-Universität Erlangen-Nürnberg',
+            'Fritz Haber Institute of the Max-Planck Society':'Fritz-Haber-Institut der Max-Planck Gesellschaft',
+            'Fritz-Haber Institute of the Max-Planck Society':'Fritz-Haber-Institut der Max-Planck Gesellschaft',
+            'Honeywell Int.':'Honeywell International Incorporated',
+            'Instituto de Ciencia de Materiales de Madrid—CSIC':'Instituto de Ciencia de Materiales de Madrid C.S.I.C.',
+            'Instituto de Ciencia de Materiales de Madrid, C.S.I.C.':'Instituto de Ciencia de Materiales de Madrid C.S.I.C.',
+            'International Iberian Nanotechnology Laboratory':'International Iberian Nanotechnology Laboratory (INL)',
+            'ISIS Facility':'ISIS Neutron and Muon Source',
+            'Johnson Matthey Technology Center':'Johnson Matthey Technology Centre',
+            'Max Planck Institute for Solid State Research':'Max-Planck Institute for Solid State Research',
+            'New York University Abu Dhabi (NYUAD)':'New York University Abu Dhabi',
+            'Norwegian University of Science and Technology (NTNU)':'Norwegian University of Science and Technology',
+            'NSG-Pilkington':'NSG Group',
+            'Réseau sur le Stockage Electrochimique de l’Energie (RS2E)':'Réseau sur le Stockage Électrochimique de l’Énergie (RS2E)',
+            'Queen Mary University London':'Queen Mary University of London',
+            'Sorbonne Universités':'Sorbonne Université',
+            'SuperSTEM':'SuperSTEM Laboratory',
+            'Technion':'Technion - Israel Institute of Technology',
+            'Technion Israel Institute of Technology': 'Technion - Israel Institute of Technology',
+            'Technion-Israel Institute of Technology':'Technion - Israel Institute of Technology',
+            'The European Synchrotron':'European Synchrotron Radiation Facility',
+            'The European Synchrotron. 71':'European Synchrotron Radiation Facility',
+            'Univ. Bordeaux':'Université de Bordeaux',
+            'Wrocław University of Technology':'Wrocław University of Science and Technology',
+            'King Abdullah University of Science and Technology (KAUST)':'King Abdullah University of Science and Technology',
+            'KAUST':'King Abdullah University of Science and Technology',
+            'University of Padua':'Università di Padova',
+            'University of Padova':'Università di Padova',
+            'Università degli Studi di Padova':'Università di Padova',
+            'A*STAR':"Agency for Science, Technology and Research",
+            'A*STAR Agency for Science, Technology and Research':"Agency for Science, Technology and Research",
+            'Institute of Materials Research and Engineering (IMRE)':'Institute of Materials Research and Engineering',
+            'IMRE':'Institute of Materials Research and Engineering',
+            'University of Bologna':'Università di Bologna',
+            'Glasgow University':'University of Glasgow',
+            'Imperial College, London':'Imperial College London',
+            'Technical University Berlin':'Technische Universität Berlin',
+            'East China University of Science & Technology':'East China University of Science and Technology',
+            'Université Claude Bernard – Lyon 1':'Université Claude Bernard Lyon 1',
+            'University of Aston':'Aston University',
+            'The University of Liverpool':'University of Liverpool',
+            'University of California Davis':'University of California, Davis',
+            'University of Bern' : 'Universität Bern',
+            'University of Berne' : 'Universität Bern',
+            'Elettra – Sincrotrone Trieste S.C.p.A.':'Elettra-Sincrotrone Trieste S.C.p.A.',
+            'Universitat Politecnica de Catalunya':'Universitat Politècnica de Catalunya',
+            'Empa − Swiss Federal Laboratories for Materials Science and Technology':'Empa-Swiss Federal Laboratories for Materials Science and Technology',
+            'Empa Materials Science and Technology':'Empa-Swiss Federal Laboratories for Materials Science and Technology',
+            'University of Trieste':'Università degli Studi di Trieste',
+            'NTU':'Nanyang Technological University',
+            'DGIST':'Daegu Gyeongbuk Institute of Science & Technology (DGIST)',
+            'Daegu Gyeongbuk Institute of Science & Technology':'Daegu Gyeongbuk Institute of Science & Technology (DGIST)',
+            'Flemish Institute for Technological Research': 'Flemish Institute for Technological Research (VITO)',
+            'Flemish Institute for Technological Research, VITO NV': 'Flemish Institute for Technological Research (VITO)',
+        }
         
-        self.hosted_institutions= { "UK Catalysis Hub" : "Research Complex at Harwell",
-                                    "HarwellXPS" : "Research Complex at Harwell",
-                                    "Research Complex at Harwell":"Science and Technology Facilities Council",
-                                    "ISIS Neutron and Muon Source":"Science and Technology Facilities Council",
-                                    "Institute of Materials Research and Engineering":"Agency for Science, Technology and Research",
-                                    }
+        self.hosted_institutions= { 
+            "UK Catalysis Hub" : "Research Complex at Harwell",
+            "HarwellXPS" : "Research Complex at Harwell",
+            "Research Complex at Harwell":"Science and Technology Facilities Council",
+            "ISIS Neutron and Muon Source":"Science and Technology Facilities Council",
+            "Institute of Materials Research and Engineering":"Agency for Science, Technology and Research",}
 
-        self.country_exceptions = ["Denmark Hill", "UK Catalysis Hub", "Sasol Technology U.K.", "N. Ireland", 'Indian', 'Northern Ireland',]
+        self.country_exceptions = [
+            "Denmark Hill", "UK Catalysis Hub", "UK CRG",
+            "Sasol Technology U.K.", "Sasol Technology UK",
+            "N. Ireland", 'Indian', 'Northern Ireland',]
         
         self.country_provinces  = { "England":"United Kingdom",
                                     "Scotland":"United Kingdom",
@@ -264,19 +275,43 @@ class crp:
                 has_exceptions =  True
         return has_exceptions
         
+    def handle_country_exception(self, cr_string):
+        a_country_exception = reminder_e = ""
+
+        a_country_exception, reminder_e = self.check_list(cr_string, self.country_exceptions)
+        # parse reminder of exception
+        e_country, e_parsed = self.parse_countries(reminder_e)
+        # Exception found at:
+        exception_at = cr_string.index(a_country_exception)
+        # Reinsert exception on its original position or at the end if reminder is shorter
+        if exception_at < len(e_parsed):
+            reminder_e = (e_parsed[:exception_at] + a_country_exception + e_parsed[exception_at:]).strip()
+        else:
+            reminder_e += " " + a_country_exception 
+        return e_country, reminder_e
+
     
     def parse_countries(self, a_str):
-        reminder_c = reminder_s = a_country_name = a_country_synonym = ""
+        reminder_c = reminder_s = a_country_name = a_country_synonym = a_country_exception = reminder_e = ""
+        
+        # first check for country exceptions in string 
+        if self.check_exceptions(a_str):
+            a_country_exception, reminder_e = self.handle_country_exception(a_str)
+            
+        
         # lookup on synonyms and countries lists
         # if both country and synonym are found, prefer country
         # unless the synonym is for Ireland (N. Ireland and Ireland are in the UK)
         a_country_synonym, reminder_s = self.str_has_synonym(a_str, self.country_synonyms)
          
         a_country_name, reminder_c = self.check_list(a_str, self.countries_list)
-
+        
         a_country_province, reminder_p = self.str_has_synonym(a_str, self.country_provinces)
         
-        if a_country_name == "" and a_country_synonym == "":
+        if a_country_exception != "":
+            return a_country_exception, reminder_e
+        
+        elif a_country_name == "" and a_country_synonym == "":
             # if nothing is found return an empty list
             return '', a_str
         elif a_country_province != "":
@@ -384,8 +419,8 @@ class crp:
             else:
                 break
 
-        #  lookup using Country Synonyms table
-
+        # lookup using Country Synonyms table
+        # need to remove country exceptions first
         ctry_str, splitting_this = self.parse_countries(splitting_this)
 ##        ctry_str, splitting_this = self.str_has_synonym(splitting_this, self.country_synonyms)
 ##        #  lookup using Countries list        

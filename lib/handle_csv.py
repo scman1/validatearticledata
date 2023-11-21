@@ -6,7 +6,7 @@ def get_csv_data(input_file, id_field=""):
     csv_data = {}
     fieldnames = []
     identifier = 0
-    with open(input_file, encoding="utf8") as csvfile:
+    with open(input_file, encoding="utf-8-sig") as csvfile:
         reader = csv.DictReader(csvfile)
         for row in reader:  
             if id_field != "":
@@ -18,6 +18,8 @@ def get_csv_data(input_file, id_field=""):
                 fieldnames = list(row.keys())
             csv_data[identifier]=row
     return csv_data, fieldnames
+
+
 
 # writes data to the given file name
 def write_csv_data(values, filename):
