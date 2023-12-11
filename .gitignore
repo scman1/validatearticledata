@@ -16,8 +16,10 @@ pdf_files/*
 si_files/*
 do_files/*
 config/*
+WebOfScience/*
 __pycache__/processing_functions.cpython-36.pyc
 *.pyc
 *.sql
 db_files/app_db20220527.sqbpro
 *.sqbpro
+
