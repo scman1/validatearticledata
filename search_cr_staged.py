@@ -98,6 +98,7 @@ skiped_works =[]
 wk_keys = {}
 fd_keys = {}
 awds_lst = {}
+
 while end_date < stop_date:
     end_date = start_date + timedelta(days=6)
     print ("From:", str(start_date), "to",  str(end_date))
