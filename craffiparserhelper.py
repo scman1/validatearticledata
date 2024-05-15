@@ -306,15 +306,16 @@ def make_author_affiliation(art_aut_id, affi_values, addr_values):
     # get smallest unit
     smallest_unit = "" 
     #id Institution> Faculty > School > Department > Work_group + address + Country
-    if affi_values[4] != None and  len(affi_values[4]) > 0: #'work_group'
-        smallest_unit = affi_values[4]
+    if affi_values[3] != None and  len(affi_values[3]) > 0: #'faculty'
+        smallest_unit = affi_values[3]
     elif affi_values[2] != None and len(affi_values[2]) > 0 and smallest_unit == "": #'department'
         smallest_unit = affi_values[2]
-    elif affi_values[9] != None and  len(affi_values[9]) > 0 and smallest_unit == "": #'school'
-        smallest_unit = affi_values[9]
-    elif affi_values[3] != None and len(affi_values[3]) > 0 and smallest_unit == "": #'faculty'
-        smallest_unit = affi_values[3]
-       
+    elif affi_values[4] != None and  len(affi_values[4]) > 0 and smallest_unit == "": #'school'
+        smallest_unit = affi_values[4]
+    elif affi_values[5] != None and len(affi_values[5]) > 0 and smallest_unit == "": #'group'
+        smallest_unit = affi_values[5]        
+        
+        
     ret_art_auth_affi = {}
     ret_art_auth_affi['article_author_id'] = art_aut_id
     if len(smallest_unit) > 0:
@@ -325,11 +326,11 @@ def make_author_affiliation(art_aut_id, affi_values, addr_values):
     add_01 = ""
     if affi_values[3] != None and affi_values[3]  != "" and affi_values[3] != smallest_unit:
         add_01 = affi_values[3] 
-    if affi_values[9] != None and affi_values[9] != "" and affi_values[9] != smallest_unit:
+    if affi_values[4] != None and affi_values[4] != "" and affi_values[4] != smallest_unit:
         if add_01 != "":
-               add_01 += ", "+ affi_values[9]
+               add_01 += ", "+ affi_values[4]
         else:
-               add_01 += affi_values[9]
+               add_01 += affi_values[4]
     if affi_values[2] != None and affi_values[2] != "" and affi_values[2] != smallest_unit:
         if add_01 != "":
                add_01 += ", "+ affi_values[2]
@@ -382,14 +383,18 @@ def is_affi_ok(an_affi):
     affi_ok = True
     institution_ok = country_ok = sector_ok = no_blank_fields = True
     if an_affi['institution'] in ['', None]:
+        print("Institution not OK")
         institution_ok = False
     if an_affi['sector'] in ['', None]:
+        print("Sector not OK")
         sector_ok = False
     if an_affi['country'] in ['', None]:
+        print("Country not OK")
         country_ok = False
     for field in an_affi.values():
         if field == "":
             no_blank_fields = False
+            print("There are blank fields")
             break
     if not institution_ok or not country_ok \
        or not sector_ok or not no_blank_fields:
@@ -454,10 +459,12 @@ def check_affiliation_consistency(current_db):
             if not is_affi_ok(an_affi):
                 print("Inconsistent affiliation:", an_affi)
                 hit_counter +=1
+        
         if hit_counter == 0:
-            
             all_ok = True
             break
+
+        print (f'inconsinstent {hit_counter}')
         x =input()
     return all_ok
 
@@ -523,57 +530,59 @@ def check_cr_affis_vs_affiliations(current_db,affi_parser):
     x = '1'
     already_ok = open_ok_list('ok_cr_affis.txt')
     with_problems = []
-    #last_checked = already_ok[-1:][0]
+    last_checked = already_ok[-1:][0]
     #print(last_checked)
     list_art_aut_ids = get_cr_affis_article_author_ids(current_db)
     for art_aut_id in list_art_aut_ids:
-        #if not art_aut_id in already_ok and art_aut_id >  last_checked:
-        if art_aut_id > 0:
-            print('{0:#^100}'.format(' Check article author %s '%(art_aut_id) ))
-            cr_lines = get_cr_lines_for_article_author_ids(current_db, art_aut_id)
-            print('{0:*^80}'.format('CR Affilitations found:'), "\n", cr_lines)
-            if are_all_one_liners(current_db, affi_parser, cr_lines):
-                assigned_ok = False
-                print('{0:*^80}'.format('verify one liners'))
-                for a_cr_line in cr_lines:                        
-                    if not check_assigned_affi_ol(current_db, affi_parser, a_cr_line):
-                        print("Problems with ", a_cr_line[0])
-                        print('{0:*^80}'.format(" Problems with affiliation: %s for author: %s "%(cr_lines[0][3], art_aut_id)))
+        if not art_aut_id in already_ok and art_aut_id >  last_checked:
+            art_aut_id = int(art_aut_id)
+            print("Article Author id", art_aut_id)
+            if art_aut_id > 0:
+                print('{0:#^100}'.format(' Check article author %s '%(art_aut_id) ))
+                cr_lines = get_cr_lines_for_article_author_ids(current_db, art_aut_id)
+                print('{0:*^80}'.format('CR Affilitations found:'), "\n", cr_lines)
+                if are_all_one_liners(current_db, affi_parser, cr_lines):
+                    assigned_ok = False
+                    print('{0:*^80}'.format('verify one liners'))
+                    for a_cr_line in cr_lines:                        
+                        if not check_assigned_affi_ol(current_db, affi_parser, a_cr_line):
+                            print("Problems with ", a_cr_line[0])
+                            print('{0:*^80}'.format(" Problems with affiliation: %s for author: %s "%(cr_lines[0][3], art_aut_id)))
+                            parsed_lines = affi_parser.parse_and_map_multiline(cr_lines)
+                            if can_be_assigned(current_db, affi_parser, parsed_lines):
+                                correct_oneline(current_db, affi_parser, cr_lines)
+                            else:
+                                print('{0:#^80}'.format(" cannot generate author affilitions for %s affiliations not found ")%(art_aut_id))
+                                print(a_cr_line[0])
+                                with_problems.append(a_cr_line[0])
+                                all_ok = False
+                                #input()
+                                #break
+                        else:
+                            already_ok.append(a_cr_line[0])
+                else:
+                    print('verify multiline affi')
+                    assigned_ok = check_assigned_affi_ml(current_db, affi_parser, cr_lines, art_aut_id)
+                    if not assigned_ok:
+                        print('{0:@^80}')
+                        print('{0:@^80}'.format(" Problems with: %s %s "%(cr_lines[0][2], art_aut_id)))
                         parsed_lines = affi_parser.parse_and_map_multiline(cr_lines)
                         if can_be_assigned(current_db, affi_parser, parsed_lines):
-                            correct_oneline(current_db, affi_parser, cr_lines)
+                            correct_multiline(current_db, affi_parser, cr_lines)
                         else:
                             print('{0:#^80}'.format(" cannot generate author affilitions for %s affiliations not found ")%(art_aut_id))
-                            print(a_cr_line[0])
-                            with_problems.append(a_cr_line[0])
-                            all_ok = False
-                            #input()
-                            #break
+                            print(cr_lines)
+                            crs_wiht_issues = [x[0] for x in cr_lines]
+                            with_problems += crs_wiht_issues
+                        #input()
+                        all_ok = False
+                        #break
                     else:
-                        already_ok.append(a_cr_line[0])
-            else:
-                print('verify multiline affi')
-                assigned_ok = check_assigned_affi_ml(current_db, affi_parser, cr_lines, art_aut_id)
-                if not assigned_ok:
-                    print('{0:@^80}')
-                    print('{0:@^80}'.format(" Problems with: %s %s "%(cr_lines[0][2], art_aut_id)))
-                    parsed_lines = affi_parser.parse_and_map_multiline(cr_lines)
-                    if can_be_assigned(current_db, affi_parser, parsed_lines):
-                        correct_multiline(current_db, affi_parser, cr_lines)
-                    else:
-                        print('{0:#^80}'.format(" cannot generate author affilitions for %s affiliations not found ")%(art_aut_id))
-                        print(cr_lines)
-                        crs_wiht_issues = [x[0] for x in cr_lines]
-                        with_problems += crs_wiht_issues
-                    #input()
-                    all_ok = False
-                    #break
-                else:
-                    crs_ok = [x[0] for x in cr_lines]
-                    already_ok += crs_ok
-                    print(already_ok[-20:])
-            save_ok_list(already_ok, 'ok_cr_affis.txt')
-            save_ok_list(with_problems, 'prob_cr_affis.txt')
+                        crs_ok = [x[0] for x in cr_lines]
+                        already_ok += crs_ok
+                        print(already_ok[-20:])
+                save_ok_list(already_ok, 'ok_cr_affis.txt')
+                save_ok_list(with_problems, 'prob_cr_affis.txt')
     return all_ok
     
 def save_ok_list(values_list, file_name):
