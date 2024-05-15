@@ -167,6 +167,7 @@ class crp:
             'Università degli Studi di Padova': 'Università di Padova',
             'Université Claude Bernard – Lyon 1': 'Université Claude Bernard Lyon 1',
             'Université Rennes': 'Université de Rennes',
+            'Campus UAB':'Universitat Autònoma de Barcelona',
             'Wrocław University of Technology': 'Wrocław University of Science and Technology',
         }
         

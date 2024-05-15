@@ -42,11 +42,11 @@ def test_can_be_assinged(db_name, cr_parser, auth_id):
 
 def fix_affi(an_affi):
     opt_edit = 0
-    while opt_edit in range(0,len(an_affi)):
+    max_parts=len(an_affi)
+    while opt_edit in range(0,max_parts):
         print("+"*80)
-        for an_id, a_key in enumerate(an_affi):
-            print("  ", an_id, a_key, an_affi[a_key])
-        print("  ", an_id+1, "save and end ")
+        print_parsed(an_affi)
+        print("\t", max_parts, "end editing")
         print("+"*80)
         opt_edit = int(input())
         if opt_edit in range(0,len(an_affi)):
@@ -54,20 +54,36 @@ def fix_affi(an_affi):
             print("enter value for", the_key)
             print ("current value", an_affi[the_key])
             an_affi[the_key] = input()
-
     return an_affi
 
+def print_parsed(an_affi):
+        for an_id, a_key in enumerate(an_affi):
+            print("\t", an_id, a_key+":", an_affi[a_key])
+
+def print_banner(a_str):
+    print('{0:#^80}'.format(a_str))
+
+def add_affi_and_author(db_name, cr_parser, auth_id, new_affi):
+    # 1 add a new affi
+    # 2 add a author_affi
+    # 3 update the cr_entry
+    print_banner(f" Will save this parsed affi and assing to {auth_id} ")
+    print_parsed(new_affi)
+    print_banner("")
+    print("do it")
+
 def edit_and_add(db_name, cr_parser, auth_id, new_affi):
-    edited_affi = fix_affi(new_affi)
-    print(edited_affi)
+    edited_affi = fix_affi(new_affi) 
+    add_affi_and_author(db_name, cr_parser, auth_id, edited_affi)
+
 
 def try_to_assign(db_name, cr_parser, auth_id):
     cr_affi_lines = aph.get_cr_lines_for_article_author_ids(db_name,auth_id)
     parsed_lines = affi_parser.parse_and_map_multiline(cr_affi_lines)
-
     for one_parsed in parsed_lines:
         print (cr_affi_lines)
         affi_id = aph.get_affi_from_parsed(db_name, one_parsed[0])
+        print_parsed(one_parsed[0])
         if affi_id != None:
             print('{0:#^80}'.format("affilitions %s for %s not found ")%(affi_id, auth_id))
             print('assing or add new?' )
