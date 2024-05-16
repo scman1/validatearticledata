@@ -94,6 +94,7 @@ class crp:
             'Glasgow University': 'University of Glasgow',
             'Harwell XPS': 'HarwellXPS',
             'Honeywell Int.': 'Honeywell International Incorporated',
+            'ICREA':"Institució Catalana de Recerca i Estudis Avançats",
             'IMRE': 'Institute of Materials Research and Engineering',
             'ISIS Facility': 'ISIS Neutron and Muon Source',
             'ISIS Neutron and Muon Facility': 'ISIS Neutron and Muon Source',
