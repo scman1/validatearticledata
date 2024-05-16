@@ -468,7 +468,6 @@ def check_affiliation_consistency(current_db):
         x =input()
     return all_ok
 
-
 def check_for_synonyms(current_db,affi_parser):
     all_ok = False
     x = '1'
