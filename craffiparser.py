@@ -94,6 +94,7 @@ class crp:
             'Glasgow University': 'University of Glasgow',
             'Harwell XPS': 'HarwellXPS',
             'Honeywell Int.': 'Honeywell International Incorporated',
+            'Helmut-Schmidt-University, University of the Armed Forces': 'Helmut Schmidt University - University of the Federal Armed Forces',
             'ICREA':"Institució Catalana de Recerca i Estudis Avançats",
             'IMRE': 'Institute of Materials Research and Engineering',
             'ISIS Facility': 'ISIS Neutron and Muon Source',
@@ -101,6 +102,7 @@ class crp:
             'ISIS Pulsed Neutron and Muon Facility': 'ISIS Neutron and Muon Source',
             'ISIS Pulsed Neutron and Muon Source': 'ISIS Neutron and Muon Source',
             'Imperial College, London': 'Imperial College London',
+            'Imperial College': 'Imperial College London',
             'Institut Laue Langevin': 'Institut Laue-Langevin',
             'Institute of Materials Research and Engineering (IMRE)': 'Institute of Materials Research and Engineering',
             'Instituto de Ciencia de Materiales de Madrid, C.S.I.C.': 'Instituto de Ciencia de Materiales de Madrid C.S.I.C.',
@@ -131,6 +133,7 @@ class crp:
             'Réseau sur le Stockage Electrochimique de l’Energie (RS2E)': 'Réseau sur le Stockage Électrochimique de l’Énergie (RS2E)',
             'STFC': 'Science and Technology Facilities Council',
             'Science &amp; Technology Facilities Council': 'Science and Technology Facilities Council',
+            "SciTech": "SciTech Daresbury",
             'Sorbonne Universités': 'Sorbonne Université',
             'SuperSTEM': 'SuperSTEM Laboratory',
             'SynCat@Beijing, Synfuels China Technology Co. Ltd.': 'SynCat@Beijing Synfuels China Company Limited',
@@ -149,6 +152,8 @@ class crp:
             'UOP LLC': 'UOP LLC, A Honeywell Company',
             'Univ Rennes': 'Université de Rennes',
             'Univ. Bordeaux': 'Université de Bordeaux',
+            'Univ. Lille':'Université Lille',
+            'Univ Limoges':'Université de Limoges',
             'Univ. Pablo de Olavide': 'Universidad Pablo de Olavide',
             'Univ. of Manchester': 'The University of Manchester',
             'Universitat Politecnica de Catalunya': 'Universitat Politècnica de Catalunya',
@@ -159,6 +164,7 @@ class crp:
             'University of Bologna': 'Università di Bologna',
             'University of California Davis': 'University of California, Davis',
             'University of Cardiff': 'Cardiff University',
+            'University of Durham': 'Durham University',
             'University of Edinburgh': 'The University of Edinburgh',
             'University of Manchester': 'The University of Manchester',
             'University of Padova': 'Università di Padova',
@@ -177,12 +183,14 @@ class crp:
             "HarwellXPS" : "Research Complex at Harwell",
             "Research Complex at Harwell":"Science and Technology Facilities Council",
             "ISIS Neutron and Muon Source":"Science and Technology Facilities Council",
-            "Institute of Materials Research and Engineering":"Agency for Science, Technology and Research",}
+            "Institute of Materials Research and Engineering":"Agency for Science, Technology and Research",
+            "SuperSTEM Laboratory":"SciTech Daresbury",
+            "SciTech Daresbury":"Science and Technology Facilities Council",}
 
         self.country_exceptions = [
             "Denmark Hill", "UK Catalysis Hub", "UK CRG",
             "Sasol Technology U.K.", "Sasol Technology UK",
-            "N. Ireland", 'Indian', 'Northern Ireland',]
+            "N. Ireland", 'Indian', 'Northern Ireland', "Australian"]
         
         self.country_provinces  = { "England":"United Kingdom",
                                     "Scotland":"United Kingdom",

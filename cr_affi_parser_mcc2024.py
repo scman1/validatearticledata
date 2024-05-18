@@ -40,29 +40,29 @@ def remove_dict_empties(a_dict):
 
 ## Functions to get/add/modify DB records
 
-def add_values_to_db(db_conn, table_name, values_dict):
+def add_values_to_db(table_name, values_dict):
     values_dict = remove_dict_empties(values_dict)
-    new_id = db_conn.put_values_table(table_name, list(values_dict.keys()), list(values_dict.values()))
+    new_id = db_connection.put_values_table(table_name, list(values_dict.keys()), list(values_dict.values()))
     return new_id
 
-def update_cr_affiliation(db_conn, cr_affi_id, aut_affi_id):
-    db_conn.set_value_table('cr_affiliations', cr_affi_id, 'author_affiliation_id', aut_affi_id)
+def update_cr_affiliation(cr_affi_id, aut_affi_id):
+    db_connection.set_value_table('cr_affiliations', cr_affi_id, 'author_affiliation_id', aut_affi_id)
 
-def update_added_in_cr_affis(db_conn, art_auth_id, aut_affi_id):
-    cr_affi_lines = aph.get_cr_lines_for_article_author_ids(db_conn, art_auth_id)
+def update_added_in_cr_affis(art_auth_id, aut_affi_id):
+    cr_affi_lines = aph.get_cr_lines_for_article_author_ids(db_connection, art_auth_id)
     for a_cr_line in cr_affi_lines :
         cr_affi_id = a_cr_line[0]
-        update_cr_affiliation(db_conn, cr_affi_id, aut_affi_id)
+        update_cr_affiliation( cr_affi_id, aut_affi_id)
 
-def get_record(db_conn,table,rec_id):
-    vals = db_conn.get_row(table, rec_id)
-    ti = db_conn.get_table_info(table)
+def get_record(table,rec_id):
+    vals = db_connection.get_row(table, rec_id)
+    ti = db_connection.get_table_info(table)
     return dict(zip ([x[1] for x in ti],vals[0]))
 
-def get_a_val(db_conn, table, field, id_field, id_value):
+def get_a_val(table, field, id_field, id_value):
     ret_val = None
     try:
-        a_val = db_conn.get_value(table, field, id_field, id_value)
+        a_val = db_connection.get_value(table, field, id_field, id_value)
         ret_val = a_val[0]
     except:
         print ("Val not found, will return null")
@@ -253,50 +253,80 @@ def print_parsed(an_affi):
 def print_banner(a_str):
     print('{0:#^80}'.format(a_str))
 
-# add affiliation and update author    
-    # 1 add new affi
-    # 2 add author_affi
-    # 3 update the cr_entry
-def add_affi_and_update_author(db_conn, art_auth_id, ok_affi):
-    print_banner(f" Will save this parsed affi and assing to {art_auth_id} ")
-    print_parsed(ok_affi)
-    print_banner("")
-    print("do it")
+# add affiliation, address, and author_affiliation 
+# return the number of author affiliation
+def make_address_and_affi_from_cr(cr_parsed, art_auth_id):
     # create address row from affi
-    new_affi_address = make_address_from_parsed(ok_affi)
+    new_affi_address = make_address_from_parsed(cr_parsed)
     # create affi
-    new_affiliation = make_affiliation_from_parsed(ok_affi)
+    new_affiliation = make_affiliation_from_parsed(cr_parsed)
     # add affiliation
-    new_affi_id = add_values_to_db(db_conn, "affiliations", new_affiliation)
+    new_affi_id = add_values_to_db("affiliations", new_affiliation)
     # create author affiliation
     new_affiliation["id"] = new_affi_id
     new_author_affiliation = make_author_affiliation(new_affiliation, new_affi_address, art_auth_id)
     # add address
     new_affi_address["affiliation_id"] = new_affi_id
-    new_address_id = add_values_to_db(db_conn, "addresses", new_affi_address)
+    new_address_id = add_values_to_db("addresses", new_affi_address)
     # add author affiliation
-    new_auth_affi_id = add_values_to_db(db_conn, "author_affiliations", new_author_affiliation)
-    # update cr_affiliations
-    update_added_in_cr_affis(db_conn, art_auth_id, new_auth_affi_id)
+    new_auth_affi_id = add_values_to_db("author_affiliations", new_author_affiliation)
     return new_auth_affi_id
 
-def assing_affi_to_author(db_conn, art_auth_id, affi_id):
+# add affiliation, address, and author_affiliation   
+# and update the cr_entry by art_auth_id
+def add_affi_and_update_author(art_auth_id, ok_affi):
+    print_banner(f" Will save this parsed affi and assing to {art_auth_id} ")
+    print_parsed(ok_affi)
+    print_banner("")
+    # create address, affiliation, and author affiliation from CR parsed
+    new_auth_affi_id = make_address_and_affi_from_cr(ok_affi, art_auth_id)
+    # update cr_affiliations
+    update_added_in_cr_affis(art_auth_id, new_auth_affi_id)
+    return new_auth_affi_id
+
+# add affiliation, address, and author_affiliation   
+# and update the cr_entry by cr_affi_id
+def add_affi_and_update_cr(cr_affi_id, art_auth_id, edited_affi):
+    print_banner(f" Will save parsed affi and assing to {cr_affi_id} ")
+    print_parsed(edited_affi)
+    print_banner("")
+    # create address, affiliation, and author affiliation from CR parsed
+    new_auth_affi_id = make_address_and_affi_from_cr(edited_affi, art_auth_id)
+    # update cr_affiliations
+    update_cr_affiliation(cr_affi_id, new_auth_affi_id)
+    return new_auth_affi_id
+
+def add_author_affi(art_auth_id, affi_id):
     # get affiliation 
-    affiliation_rec = get_record(db_conn,"affiliations",affi_id)
+    affiliation_rec = get_record("affiliations",affi_id)
     # get address
-    addr_id = get_a_val(db_connection,"addresses",  "id", "affiliation_id", affi_id)
+    addr_id = get_a_val("addresses",  "id", "affiliation_id", affi_id)
     # some affiliations will have no address
     if addr_id != None:
-        address_rec = get_record(db_conn,"addresses",addr_id)
+        address_rec = get_record("addresses",addr_id)
     else:
         address_rec = {"country": affiliation_rec["country"]}
     # build author affiliation
-    new_author_affiliation = make_author_affiliation(affiliation_rec, address_rec, art_auth_id)
+    new_author_affiliation = make_author_affiliation(affiliation_rec, address_rec,art_auth_id)
     # save author affiliation
-    new_auth_affi_id = add_values_to_db(db_conn, "author_affiliations", new_author_affiliation)
+    auth_affi_id = add_values_to_db("author_affiliations", new_author_affiliation)
+    return auth_affi_id
+
+def assing_affi_to_author(art_auth_id, affi_id):
+    # build and save author affiliation
+    new_auth_affi_id = add_author_affi(art_auth_id, affi_id)
     # update cr_affis
     print(f"Will assign {new_auth_affi_id} to {art_auth_id}")
-    update_added_in_cr_affis(db_conn, art_auth_id, new_auth_affi_id)
+    update_added_in_cr_affis(art_auth_id, new_auth_affi_id)
+    return new_auth_affi_id
+
+def assing_affi_to_cr(cr_affi_id, art_auth_id, affi_id):
+    # build and save author affiliation
+    new_auth_affi_id = add_author_affi (art_auth_id, affi_id)
+    # update cr_affis
+    print(f"Will assign {new_auth_affi_id} to {cr_affi_id}")
+    # update cr_affiliations
+    update_cr_affiliation(cr_affi_id, new_auth_affi_id)    
     return new_auth_affi_id
 
 # edit and add
@@ -322,9 +352,9 @@ def try_to_assign(db_conn, cr_parser, auth_id):
                 print(" 1 - assign found?\n 2 - edit and add new?\n 3 - do nothing\n Selection:")
                 assign_choice = input()
             if assign_choice == '1':
-                print(f"Assigning {affi_id} to{auth_id}")
+                print(f"Assigning {affi_id} to {auth_id}")
                 assing_affi_to_author(db_conn, auth_id, affi_id)
-            elif sel_val =='2':
+            elif assign_choice =='2':
                 print(f"Edit it before adding and assigning to {auth_id}")
                 edit_and_add(db_conn, cr_parser, auth_id, one_parsed[0])
             else:
@@ -352,7 +382,7 @@ def add_author_affiliation(db_conn, art_aut_id, affi_id, add_id):
     
     #print ("Press key to continue")
     #input()
-    new_aut_affi = make_author_affiliation(art_aut_id, affiliation_row, address_row)
+    new_aut_affi = make_author_affiliation(affiliation_row, address_row, art_aut_id)
     #print("Parsed author affiliation:",  address_row)
     new_aa_id = db_conn.put_values_table("author_affiliations", new_aut_affi.keys(), new_aut_affi.values())
     return new_aa_id
@@ -379,6 +409,44 @@ def add_affiliation(db_conn, affi_values):
     affiliation_id = db_conn.put_values_table("affiliations", affiliation_new.keys(), affiliation_new.values())
     return affiliation_id
 
+def get_affi_details(parsed_res):
+    ret_affi = {}
+    affi_id = aph.get_affi_from_parsed(db_connection, parsed_res)
+    if affi_id != None:
+        affi_name = get_a_val("affiliations", "institution", "id", affi_id)
+        ret_affi =(affi_id, affi_name)
+    return ret_affi
+
+def try_to_fix_cr(a_cr_line):
+
+    cr_affi_id = a_cr_line[0]
+    art_auth_id = a_cr_line[2]
+    print_banner(f"  fixing {a_cr_line[0]}  ")
+    parser_result = affi_parser.parse_and_map_multiline([a_cr_line])[0][0]
+    affi_pair = get_affi_details(parser_result)
+    print_dict(parser_result)
+    assigned_choice = ""
+    while not assigned_choice in ['1','2','3']:
+        print (" 1 - edit parsed and add?")
+        if affi_pair == {}: print (" 2 - add as parsed?") 
+        else: print(f" 2 - assign existing {affi_pair[0]}-{affi_pair[1]}" )
+        print (" 3 - do nothing\n Selection:")
+        assigned_choice = input()
+
+    if assigned_choice == "1":
+        print ("will edit and then add")
+        fixed_parsed = fix_affi(parser_result)
+        add_affi_and_update_cr(cr_affi_id, art_auth_id, fixed_parsed)
+    elif assigned_choice == "2":
+        if affi_pair == {}:
+            print("will add new as parsed")
+            add_affi_and_update_cr(cr_affi_id, art_auth_id, fixed_parsed)
+        else:
+            print("will add assigned")
+            assing_affi_to_cr(cr_affi_id, art_auth_id, affi_pair[0])
+    elif assigned_choice == "3":
+        print ("Will do nothing now")
+
 ## Ceck DB is OK
 # Verify affiliations tables:
 #   all affiliations are consistent
@@ -391,8 +459,40 @@ def check_tables_ok (db_connection, affi_parser):
     if aph.check_for_duplicates(db_connection): print ("OK, no duplicate affiliations")
 
 # verify assignation of affiliations to cr_affis
-def check_cr_affi_assignated(db_connection, affi_parser):
-    aph.check_cr_affis_vs_affiliations(db_connection, affi_parser)
+def check_cr_affi_assignated(db_connection, affi_parser, working_dir = "./"):
+    aph.check_cr_affis_vs_affiliations(db_connection, affi_parser, working_dir)
+
+def assign_multi(test_list=[]):
+    print("define how to assing to multiliners")
+
+def test_1_multi(test_list=[]):
+    for art_aut_id in test_list:
+        # check if affi os assigned
+        cr_lines = aph.get_cr_lines_for_article_author_ids(db_connection, art_aut_id)
+        can_proceed = False
+        for onr_cr_line in cr_lines:
+            if onr_cr_line[3] == None:
+                can_proceed = True
+        if can_proceed: 
+            print ("Need to assign affiliation")
+            try_to_assign(db_connection, affi_parser, art_aut_id)
+        else: print(f"Affiliation for art. author {art_aut_id} parsed and assigned")
+        print(f"Press any key to continue")
+        input()
+        clear()
+
+def parse_single_liners(id_list):
+    for art_aut_id in id_list:
+        cr_lines = aph.get_cr_lines_for_article_author_ids(db_connection, art_aut_id)
+        if aph.are_all_one_liners(db_connection, affi_parser, cr_lines):
+            print(f"CRs for {art_aut_id} are all one liners")
+            for a_cr_line in cr_lines:
+                if not aph.check_assigned_affi_ol(db_connection, affi_parser, a_cr_line):        
+                    print("***** Try to fix *****")
+                    print(a_cr_line)
+                    try_to_fix_cr(a_cr_line)
+            input()
+
 
 if __name__ == "__main__":        
     # database name
@@ -407,32 +507,60 @@ if __name__ == "__main__":
     check_tables_ok (db_connection, affi_parser)
 
     # verify assigned affiliations
-    check_cr_affi_assignated(db_connection, affi_parser)
+    check_cr_affi_assignated(db_connection, affi_parser, "../mcc_data")
+    # when testing and adding multiline
+    test_1_multi([])
 
-    test_list = [7345, 7346, 7348, 7349, 7352, 7360, 7361, 7362,
-                 7363, 7452, 7453, 7504, 7545, 7546, 7548, 7551,
-                 7555, 7568, 7569, 7570, 7585, 7587, 7626, 7627,
-                 7628, 7630, 7631, 7773, 7777, 7809, 7810, 7926,
-                 8004, 8007, 8008, 8025, 8038, 8056, 8058, 8163,
-                 8164, 8165, 8172, 8173, 8174, 8178, 8180, 8192,
-                 8198, 8201, 8203, 8204, 8205, 8206, 8207, 8208,
-                 8209, 8210, 8213, 8495, 8498, 8563, 8571, 8574,
-                 8655, 8805, 8814, 8848, 8997, 8998, 9000, 9170,
-                 9281, 9282, 9288, 9311, 9312, 9394, 9395, 9400,
-                 9401, 9868, 9870, 9872, 9907]
+    test_crs = [12524,12570,12575,12630,12656,12668,12707,12816,12817,
+                12818,12819,12821,12822,13022,13023,13051,13105,
+                13108,13116,13139,13140,13141,13142,13247,13250,
+                13259,13262,13361,13364,13489,13493,13536,13543,
+                13561,13576,13578,13582,13624,13628,13632,13636,13673,]
+    test_list = [9636,9639,9742,9746,9786,9799,9800,9802,9866,9868,9870,9872,9907]
+    parse_single_liners([])#(test_list)
 
-    for art_aut_id in test_list:
-        # check if affi os assigned
-        cr_lines = aph.get_cr_lines_for_article_author_ids(db_connection, art_aut_id)
-        can_proceed = False
-        for onr_cr_line in cr_lines:
-            if onr_cr_line[3] == None:
-                can_proceed = True
-                
-        if can_proceed: 
-            print ("Need to assign affiliation")
-            try_to_assign(db_connection, affi_parser, art_aut_id)
-        else: print(f"Affiliation for art. author {art_aut_id} parsed and assigned")
-        print(f"Press any key to continue")
-        input()
-        clear()
+    cr_probs = aph.open_txt_id_list("../mcc_data/prob_cr_affis.txt")
+
+    no_probs =  aph.open_txt_id_list('../mcc_data/cr_affi_validated.txt')
+    # order and compact for manual additions
+    no_probs = list(set(no_probs))
+    no_probs.sort()
+    aph.save_txt_id_list(no_probs, '../mcc_data/cr_affi_validated.txt' )
+
+    less_probs = list(set(cr_probs) - set(no_probs))
+    
+    print("IDs of CRs with issues:", len(cr_probs))
+    print(cr_probs)
+    print("IDs of CRs with issues minus validated:", len(less_probs))
+    less_probs.sort()
+    print(less_probs)
+    if len(less_probs) < len(cr_probs):
+        cr_probs = less_probs
+
+
+    for a_cr_id in cr_probs:
+        cr_row = get_record("cr_affiliations", a_cr_id)
+            
+        # Testing just the line with errors if it is a one liner
+        cr_lines = [list(cr_row.values())]
+
+        if aph.are_all_one_liners(db_connection, affi_parser, cr_lines):
+            
+            print_banner("    **** need to check the assigned affi ****    ")
+            parser_result = affi_parser.parse_and_map_multiline(cr_lines)[0][0]
+            if not aph.check_assigned_affi_ol(db_connection, affi_parser, cr_lines[0]):        
+                author_affi_in_DB = get_record("author_affiliations", int(cr_row['author_affiliation_id']))
+                assigned_affi = get_record("affiliations", author_affi_in_DB['affiliation_id'])
+                print_banner(f"** There is an issue with {cr_lines[0][0]} **")
+                print_banner("This is the affiliation assigned")
+                print(assigned_affi)
+                print_banner(f" This is the author affiliation saved in DB ({cr_row['author_affiliation_id']})")
+                print(author_affi_in_DB)
+                print_banner("This is the parsed")
+                print(parser_result)
+                break
+            else:
+                print("No issue found")
+        else :
+            print:("probably a fragment not parsed")
+        

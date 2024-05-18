@@ -6,6 +6,7 @@ from datetime import datetime
 
 import craffiparser
 
+from pathlib import Path
 
 def get_parser(db_):
     cr_parse = craffiparser.crp(db_)
@@ -459,7 +460,6 @@ def check_affiliation_consistency(current_db):
             if not is_affi_ok(an_affi):
                 print("Inconsistent affiliation:", an_affi)
                 hit_counter +=1
-        
         if hit_counter == 0:
             all_ok = True
             break
@@ -524,14 +524,22 @@ def are_all_one_liners(db_conn, cr_parser, cr_affi_lines):
             all_one_liners = False
     return all_one_liners
 
-def check_cr_affis_vs_affiliations(current_db,affi_parser):
+def check_cr_affis_vs_affiliations(current_db,affi_parser, working_dir):
+    ok_list_file = Path(working_dir, 'ok_cr_affis.txt')
+    # Manually parsed ids
+    validated_list_file= Path(working_dir, 'cr_affi_validated.txt')
+    # problem parsed
+    problem_list_file= Path(working_dir, 'prob_cr_affis.txt')
     all_ok = True
-    x = '1'
-    already_ok = open_ok_list('ok_cr_affis.txt')
+    #x = '1'
+    already_ok = open_txt_id_list(ok_list_file)
+    validated_list = open_txt_id_list(validated_list_file)
+
     with_problems = []
     last_checked = already_ok[-1:][0]
-    #print(last_checked)
+    print(last_checked)
     list_art_aut_ids = get_cr_affis_article_author_ids(current_db)
+    already_ok = list(set(already_ok).union(set(validated_list)))
     for art_aut_id in list_art_aut_ids:
         if not art_aut_id in already_ok and art_aut_id >  last_checked:
             art_aut_id = int(art_aut_id)
@@ -551,7 +559,7 @@ def check_cr_affis_vs_affiliations(current_db,affi_parser):
                             if can_be_assigned(current_db, affi_parser, parsed_lines):
                                 correct_oneline(current_db, affi_parser, cr_lines)
                             else:
-                                print('{0:#^80}'.format(" cannot generate author affilitions for %s affiliations not found ")%(art_aut_id))
+                                print('{0:#^80}'.format("cannot generate author affilitions for %s affiliations not found ")%(art_aut_id))
                                 print(a_cr_line[0])
                                 with_problems.append(a_cr_line[0])
                                 all_ok = False
@@ -580,21 +588,24 @@ def check_cr_affis_vs_affiliations(current_db,affi_parser):
                         crs_ok = [x[0] for x in cr_lines]
                         already_ok += crs_ok
                         print(already_ok[-20:])
-                save_ok_list(already_ok, 'ok_cr_affis.txt')
-                save_ok_list(with_problems, 'prob_cr_affis.txt')
+                save_txt_id_list(already_ok, ok_list_file)
+                save_txt_id_list(with_problems, problem_list_file)
     return all_ok
     
-def save_ok_list(values_list, file_name):
+def save_txt_id_list(values_list, file_name):
     with open(file_name, 'w') as f:
         for an_id in values_list:
             f.write(str(an_id)+'\n')
 
-def open_ok_list(file_name):
+def open_txt_id_list(file_name):
     with open(file_name) as f:
         lines = f.readlines()
     from_file = []
-    for a_line in lines:
-        from_file.append(int(a_line.replace('\n','')))
+    try:
+        for a_line in lines:
+            from_file.append(int(a_line.replace('\n','')))
+    except:
+        print ("Issues openning file, list may be incomplete")
     return from_file       
 
 if __name__ == "__main__":        
