@@ -155,6 +155,7 @@ class crp:
             'Technion': 'Technion - Israel Institute of Technology',
             'Technion Israel Institute of Technology': 'Technion - Israel Institute of Technology',
             'Technion-Israel Institute of Technology': 'Technion - Israel Institute of Technology',
+            'The Abdus Salam ICTP':'The Abdus Salam International Centre for Theoretical Physics',
             'The European Synchrotron': 'European Synchrotron Radiation Facility',
             'The European Synchrotron. 71': 'European Synchrotron Radiation Facility',
             'The ISIS facility': 'ISIS Neutron and Muon Source',
