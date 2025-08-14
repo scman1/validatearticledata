@@ -23,7 +23,7 @@ class crp:
     def start_lists(self):
         # get institutions list from affiliations table
         print("Refreshing lists")
-        self.institutions_list = self.get_value_list("affiliations", "institution")
+        self.institutions_list = self.get_value_list("organisations", "name")
         # get coutries from affiliations table
         self.countries_list = self.get_value_list("affiliations","country")
         # get school list from affiliations table
@@ -64,6 +64,7 @@ class crp:
             'AWE Public Limited Company': 'Atomic Weapons Establishment Plc',
             'AWE plc': 'Atomic Weapons Establishment Plc',
             'Atomic Weapons Establishment (AWE) Plc': 'Atomic Weapons Establishment Plc',
+            'The Australian National University':'Australian National University',
             'Bio Nano Consulting': 'Bio Nano Consulting Ltd',
             'CELLS-ALBA Synchrotron Light Facility': 'ALBA Synchrotron Light Source',
             'CELLS—ALBA Synchrotron': 'ALBA Synchrotron Light Source',
@@ -84,6 +85,8 @@ class crp:
             'Elettra – Sincrotrone Trieste, S.S.': 'Elettra-Sincrotrone Trieste S.C.p.A.',
             'Empa Materials Science and Technology': 'Empa-Swiss Federal Laboratories for Materials Science and Technology',
             'Empa − Swiss Federal Laboratories for Materials Science and Technology': 'Empa-Swiss Federal Laboratories for Materials Science and Technology',
+            'Centre of Excellence ENSEMBLE3':'ENSEMBLE3',
+            'ENSEMBLE3 Centre of Excellence':'ENSEMBLE3',
             'Esfera UAB': 'Universitat Autònoma de Barcelona',
             'Finden Limited': 'Finden Ltd',
             'Flemish Institute for Technological Research': 'Flemish Institute for Technological Research (VITO)',
@@ -107,6 +110,9 @@ class crp:
             'Institute of Materials Research and Engineering (IMRE)': 'Institute of Materials Research and Engineering',
             'Instituto de Ciencia de Materiales de Madrid, C.S.I.C.': 'Instituto de Ciencia de Materiales de Madrid C.S.I.C.',
             'Instituto de Ciencia de Materiales de Madrid—CSIC': 'Instituto de Ciencia de Materiales de Madrid C.S.I.C.',
+            'Instituto de Estructura de la Materia': 'Instituto de Estructura de la Materia (IEM-CSIC)',
+            'Instituto de Estructura de la Materia': 'Instituto de Estructura de la Materia, CSIC',
+            'Istituto per i processi chimico-fisici (IPCF)':'Istituto per i processi chimico-fisici',
             'International Iberian Nanotechnology Laboratory': 'International Iberian Nanotechnology Laboratory (INL)',
             'Johnson Matthey Technology Center': 'Johnson Matthey Technology Centre',
             'Johnson-Matthey Technology Centre': 'Johnson Matthey Technology Centre',
@@ -115,7 +121,12 @@ class crp:
             'King Abdullah University of Science and Technology (KAUST)': 'King Abdullah University of Science and Technology',
             'Kings College London': "King's College London",
             'King’s College London': "King's College London",
+            "King''s College London": "King's College London",
+            "Leibniz Universität Hannover":'Leibniz University Hannover',
+            'Ludwig‐Maximilians‐Universität München':'Ludwig-Maximilians Universität München',
+            'Ludwig-Maximilians-Universität München':'Ludwig-Maximilians Universität München',
             'Max Planck Institute for Solid State Research': 'Max-Planck Institute for Solid State Research',
+            'National Institute for Materials Science':'National Institute for Materials Science (NIMS)',
             'NSG-Pilkington': 'NSG Group',
             'NTU': 'Nanyang Technological University',
             'New York University Abu Dhabi (NYUAD)': 'New York University Abu Dhabi',
@@ -128,6 +139,7 @@ class crp:
             'Queens University Belfast': "Queen's University Belfast",
             'Queen’s University Belfast': "Queen's University Belfast",
             'Queen’s University of Belfast': "Queen's University Belfast",
+            'Rajamangala University of Technology ISAN':'Rajamangala University of Technology Isan',
             'RCaH': 'Research Complex at Harwell',
             'Research Complex at Harwell (RCaH)': 'Research Complex at Harwell',
             'Réseau sur le Stockage Electrochimique de l’Energie (RS2E)': 'Réseau sur le Stockage Électrochimique de l’Énergie (RS2E)',
@@ -139,6 +151,7 @@ class crp:
             'SynCat@Beijing, Synfuels China Technology Co. Ltd.': 'SynCat@Beijing Synfuels China Company Limited',
             'Synfuels China Compnay Limited': 'SynCat@Beijing Synfuels China Company Limited',
             'Technical University Berlin': 'Technische Universität Berlin',
+            'Technical University Munich':'Technical University of Munich',
             'Technion': 'Technion - Israel Institute of Technology',
             'Technion Israel Institute of Technology': 'Technion - Israel Institute of Technology',
             'Technion-Israel Institute of Technology': 'Technion - Israel Institute of Technology',
@@ -156,6 +169,8 @@ class crp:
             'Univ Limoges':'Université de Limoges',
             'Univ. Pablo de Olavide': 'Universidad Pablo de Olavide',
             'Univ. of Manchester': 'The University of Manchester',
+            'Universidade Federal de Pernambuco':'Federal University of Pernambuco',
+            'Universidade de São Paulo':'University of São Paulo',
             'Universitat Politecnica de Catalunya': 'Universitat Politècnica de Catalunya',
             'University College of London': 'University College London',
             'University of Aston': 'Aston University',
@@ -174,6 +189,8 @@ class crp:
             'Università degli Studi di Padova': 'Università di Padova',
             'Université Claude Bernard – Lyon 1': 'Université Claude Bernard Lyon 1',
             'Université Rennes': 'Université de Rennes',
+            'University of New South Wales (UNSW)':'University of New South Wales',
+            'UNSW':'University of New South Wales',
             'Campus UAB':'Universitat Autònoma de Barcelona',
             'Wrocław University of Technology': 'Wrocław University of Science and Technology',
         }

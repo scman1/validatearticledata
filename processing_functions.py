@@ -128,6 +128,14 @@ def get_dataset_data(db_name = "app_db.sqlite3"):
     db_datasets = db_conn.get_values(search_in, fields_required, filter_str)
     return db_datasets
 
+def get_dataset_data_rw(db_name = "app_db.sqlite3"):
+    db_conn = dbh.DataBaseAdapter(db_name)
+    search_in = 'datasets'
+    fields_required = "id, doi, location, name"
+    filter_str = "id > 0 "
+    db_datasets = db_conn.get_values(search_in, fields_required, filter_str)
+    return db_datasets
+
 def get_pub_datasets(db_name = "app_db.sqlite3", db_id = 1):
     db_conn = dbh.DataBaseAdapter(db_name)
     search_in = 'article_datasets'
@@ -139,6 +147,22 @@ def get_pub_datasets(db_name = "app_db.sqlite3", db_id = 1):
     if len(db_data_ids) > 0:
         search_in = "datasets"
         fields_required = "id, dataset_doi, dataset_location, dataset_name"
+        filter_str = "id in "+ str(db_data_ids).replace('{','(').replace('}',')')
+        db_datasets = db_conn.get_values(search_in, fields_required, filter_str)
+    db_conn.close()
+    return db_datasets
+
+def get_pub_datasets_rw(db_name = "app_db.sqlite3", db_id = 1):
+    db_conn = dbh.DataBaseAdapter(db_name)
+    search_in = 'article_datasets'
+    fields_required = "dataset_id"
+    filter_str = "article_id = '"+ str(db_id) +"'"
+    db_data_ids = db_conn.get_values(search_in, fields_required, filter_str)
+    db_data_ids = set(list(sum(db_data_ids,()))) # flatten list of tuples into set
+    db_datasets = []
+    if len(db_data_ids) > 0:
+        search_in = "datasets"
+        fields_required = "id, doi, location, name"
         filter_str = "id in "+ str(db_data_ids).replace('{','(').replace('}',')')
         db_datasets = db_conn.get_values(search_in, fields_required, filter_str)
     db_conn.close()

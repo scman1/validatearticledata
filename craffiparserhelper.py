@@ -197,6 +197,7 @@ def correct_oneline(db_name, cr_parser, cr_affis):
         parsed_affis += cr_parser.parse_and_map_single(a_cr_affi)
     print(parsed_affis)
     # all belong to same article author
+    print (type(cr_affis[0][2]))
     art_author_id = cr_affis[0][2]
     
     print ("verifying affiliations for article author", art_author_id)
@@ -536,7 +537,7 @@ def check_cr_affis_vs_affiliations(current_db,affi_parser, working_dir):
     validated_list = open_txt_id_list(validated_list_file)
 
     with_problems = []
-    last_checked = already_ok[-1:][0]
+    last_checked = already_ok[-1:][0] if already_ok != [] else 0
     print(last_checked)
     list_art_aut_ids = get_cr_affis_article_author_ids(current_db)
     already_ok = list(set(already_ok).union(set(validated_list)))

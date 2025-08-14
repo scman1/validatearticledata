@@ -398,7 +398,7 @@ def add_address(db_conn, addr_str, affi_id, ctry_str):
 # add an affiliation
 def add_affiliation(db_conn, affi_values):
     add_update_time = datetime.today().strftime('%Y-%m-%d %H:%M:%S')
-    affiliation_new = affi_values
+    affiliation_new = {k: v for k, v in affi_values.items() if v != ""}
     del affiliation_new['address']
     if 'address' in affiliation_new.keys():
         del affiliation_new['address']
@@ -406,8 +406,24 @@ def add_affiliation(db_conn, affi_values):
         del affiliation_new['num']
     affiliation_new['created_at'] = add_update_time
     affiliation_new['updated_at'] = add_update_time
+    o_id_sect = get_org_id_sect(affiliation_new['institution'])
+    if o_id_sect!={}:
+        affiliation_new['organisation_id'] = o_id_sect[0]
+        affiliation_new['sector'] = o_id_sect[1]
+    print("Adding ",affiliation_new)
     affiliation_id = db_conn.put_values_table("affiliations", affiliation_new.keys(), affiliation_new.values())
     return affiliation_id
+
+def get_org_id_sect(org_name):
+    ret_org = {}
+    org_id = get_a_val("organisations","id","name",org_name)
+    
+    
+    if org_id != None:
+        org_sector = get_a_val("organisations","sector","name",org_name)
+        ret_org =(org_id, org_sector)
+    return ret_org
+
 
 def get_affi_details(parsed_res):
     ret_affi = {}
@@ -457,6 +473,7 @@ def check_tables_ok (db_connection, affi_parser):
     if aph.check_affiliation_consistency(db_connection): print ("OK, no inconsistent affiliations")
     if aph.check_for_synonyms(db_connection,affi_parser): print ("OK, no synonyms in institutions")
     if aph.check_for_duplicates(db_connection): print ("OK, no duplicate affiliations")
+    #need to also check organisations and synonyms in organisations
 
 # verify assignation of affiliations to cr_affis
 def check_cr_affi_assignated(db_connection, affi_parser, working_dir = "./"):
@@ -497,8 +514,9 @@ def parse_single_liners(id_list):
 if __name__ == "__main__":        
     # database name
     clear = lambda: os.system('cls')
- 
-    app_db = '../mcc_data/development_2024bk.sqlite3' #'../mcc_data/development.sqlite3'
+    working_dir = "../cplas_data" #"../mcc_data"
+    db_file_name = 'dev_cplas_work.sqlite3' #"development_2024bk.sqlite3"
+    app_db = working_dir + "/" +db_file_name #'../mcc_data/development.sqlite3'
     # initialise parser
     affi_parser = aph.get_parser(app_db)
     db_connection = dbh.DataBaseAdapter(app_db)
@@ -507,7 +525,7 @@ if __name__ == "__main__":
     check_tables_ok (db_connection, affi_parser)
 
     # verify assigned affiliations
-    check_cr_affi_assignated(db_connection, affi_parser, "../mcc_data")
+    check_cr_affi_assignated(db_connection, affi_parser, working_dir)
     # when testing and adding multiline
     test_1_multi([])
 
@@ -519,13 +537,13 @@ if __name__ == "__main__":
     test_list = [9636,9639,9742,9746,9786,9799,9800,9802,9866,9868,9870,9872,9907]
     parse_single_liners([])#(test_list)
 
-    cr_probs = aph.open_txt_id_list("../mcc_data/prob_cr_affis.txt")
+    cr_probs = aph.open_txt_id_list(working_dir + "/prob_cr_affis.txt")
 
-    no_probs =  aph.open_txt_id_list('../mcc_data/cr_affi_validated.txt')
+    no_probs =  aph.open_txt_id_list(working_dir + '/cr_affi_validated.txt')
     # order and compact for manual additions
     no_probs = list(set(no_probs))
     no_probs.sort()
-    aph.save_txt_id_list(no_probs, '../mcc_data/cr_affi_validated.txt' )
+    aph.save_txt_id_list(no_probs, working_dir + '/cr_affi_validated.txt' )
 
     less_probs = list(set(cr_probs) - set(no_probs))
     
@@ -548,17 +566,28 @@ if __name__ == "__main__":
             
             print_banner("    **** need to check the assigned affi ****    ")
             parser_result = affi_parser.parse_and_map_multiline(cr_lines)[0][0]
-            if not aph.check_assigned_affi_ol(db_connection, affi_parser, cr_lines[0]):        
-                author_affi_in_DB = get_record("author_affiliations", int(cr_row['author_affiliation_id']))
-                assigned_affi = get_record("affiliations", author_affi_in_DB['affiliation_id'])
-                print_banner(f"** There is an issue with {cr_lines[0][0]} **")
-                print_banner("This is the affiliation assigned")
-                print(assigned_affi)
-                print_banner(f" This is the author affiliation saved in DB ({cr_row['author_affiliation_id']})")
-                print(author_affi_in_DB)
-                print_banner("This is the parsed")
-                print(parser_result)
-                break
+            if not aph.check_assigned_affi_ol(db_connection, affi_parser, cr_lines[0]):
+                if cr_row['author_affiliation_id'] is None:
+                    print ('not parsed yet', a_cr_id)
+                    print (parser_result)
+                    # check if affiliation exists
+                    affi_in_db = get_affi_details(parser_result)
+                    print (affi_in_db)
+                    if affi_in_db == {}:
+                        print ('adding affiliation')
+                        add_affiliation(db_connection, parser_result)
+                        #break
+                else:
+                    author_affi_in_DB = get_record("author_affiliations", int(cr_row['author_affiliation_id']))
+                    assigned_affi = get_record("affiliations", author_affi_in_DB['affiliation_id'])
+                    print_banner(f"** There is an issue with {cr_lines[0][0]} **")
+                    print_banner("This is the affiliation assigned")
+                    print(assigned_affi)
+                    print_banner(f" This is the author affiliation saved in DB ({cr_row['author_affiliation_id']})")
+                    print(author_affi_in_DB)
+                    print_banner("This is the parsed")
+                    print(parser_result)
+                    break
             else:
                 print("No issue found")
         else :
